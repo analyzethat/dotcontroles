@@ -1,4 +1,4 @@
-var port = process.env.PORT || 8077;
+var port = process.env.PORT || 8079;
 
 /*jslint node:true, white:true*/
 var http = require("http")
@@ -13,7 +13,7 @@ var http = require("http")
 var config = {
 	userName: 'node_user',
 	password: 'nodeuser',
-	server: '127.0.0.1',
+	server: '192.168.145.129',
 	options: {
 		database: 'dotcontroles',
 		instanceName: 'SQLEXPRESS',
@@ -29,6 +29,8 @@ var connection = new Connection(config).on('connect', function (err) {
 	server = http.createServer(function (req, res) {
 		"use strict";
 
+		var hasRows = false;
+
 		try {
 
 			// Check the request to see what the user wants (and if it exists otherwise 404)
@@ -36,16 +38,18 @@ var connection = new Connection(config).on('connect', function (err) {
 			// Get the actual data...
 
 			res.writeHead(200, {
-				'Content-Type': 'application/json'
+				'Content-Type': 'application/json',
+				"Access-Control-Allow-Origin": "*"
 			});
-
+			res.write("[");
+			
 			var request = new Request('select * from controles', function (err, rowcount) {
-				console.log("REQUEST");
+				console.log("DONE");
 				if (err) {
 					throw err;
 				}
-				res.end();
-				//console.log("rowcount", rowcount);
+				res.end("]");
+				console.log("rowcount", rowcount);
 			});
 
 			request.on('row', function (columns) {
@@ -57,11 +61,8 @@ var connection = new Connection(config).on('connect', function (err) {
 					row[column.metadata.colName] = column.value;
 				});
 
-				res.write(JSON.stringify(row) + "\n");
-			});
-
-			request.on('done', function () {
-				console.log("DONE");
+				res.write((hasRows ? "," : "") + JSON.stringify(row) + "\n");
+				hasRows = true;
 			});
 
 			connection.execSql(request);
