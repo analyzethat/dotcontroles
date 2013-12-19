@@ -1,4 +1,7 @@
+/*globals superagent, window*/
+
 (function (crafity) {
+	"use strict";
 
 	(function (controles) {
 
@@ -27,7 +30,7 @@
 				],
 				editable: {
 					control: "Selectbox",
-					default: 2
+					"default": 2
 				}
 			},
 
@@ -68,11 +71,21 @@
 
 				getDataRows: function (callback) {
 					// ajax call
-					superagent.get("http://data.dotcontroles.dev/constateringen", function (res) {
-						console.log(res.body);
+					ajaxAgent.get("http://data.dotcontroles.dev/constateringen", function (res) {
 						return callback(null, res.body);
 					});
+				},
+				
+				// correct status because of human error
+				// update status because of progress
+				
+				updateStatus: function (id, statusId, callback) {
+					// ajax call
 					
+					// /constatering/correctie
+					ajaxAgent.post("/constateringen/" + id, {id: 5, statusId: statusId, reason: "ssS"}, function (res) {
+						return callback(null, res.body);
+					});
 				}
 			};
 
@@ -80,7 +93,7 @@
 
 		controles.Repository = Repository;
 
-	}(crafity.controles = crafity.controles || {}))
+	}(crafity.controles = crafity.controles || {}));
 
 }(window.crafity = window.crafity || {}));
 

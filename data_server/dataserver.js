@@ -49,7 +49,6 @@ var connection = new Connection(config).on('connect', function (err) {
 					throw err;
 				}
 				res.end("]");
-				console.log("rowcount", rowcount);
 			});
 
 			request.on('row', function (columns) {

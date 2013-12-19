@@ -1,4 +1,6 @@
+/*globals window, document, console, moment, numeral, crafity, keyboard, Element, Repository, ConstateringenView, MenuPanel, MenuItem */
 "use strict";
+
 var appContainer;
 
 var app = {
@@ -12,10 +14,10 @@ var app = {
 		var repository = new crafity.controles.Repository();
 		var constateringenView = new crafity.controles.ConstateringenView(repository);
 
-		appContainer = new Element("div").addClass("app")
+		appContainer = new Element("div").addClass("app");
 
 		document.body.appendChild(
-			new MenuPanel("Controles")
+			new MenuPanel("Administration")
 				.addMenuItems([
 					new MenuItem("Constateringen", function () {
 						appContainer.getChildren().forEach(function (child) {
@@ -26,7 +28,7 @@ var app = {
 							}
 						});
 						appContainer.append(constateringenView);
-					}).select(),
+					}).select()
 				])
 				.addClass("main")
 				.show()
@@ -35,7 +37,7 @@ var app = {
 
 		document.body.appendChild(appContainer.render());
 
-		appContainer.toggleClass("fullscreen");
+//		appContainer.toggleClass("fullscreen");
 		
 		keyboard.on("cmd+shft+m", function (e) {
 			appContainer.toggleClass("fullscreen");

@@ -398,7 +398,7 @@ ListItem.prototype.deselect = function () {
 
 function Grid(columns) {
 	var self = this;
-	var container = new Element("div").addClass("container").appendTo(this);
+	var container = new Element("div").addClass("grid").addClass("container").appendTo(this);
 	var table = new Element("table").attr("cellspacing", "0").appendTo(container);
 	var thead = new Element("thead").appendTo(table).addClass("header");
 	var headerRow = new Element("tr").appendTo(thead);
@@ -414,7 +414,7 @@ function Grid(columns) {
 
 	var _rows = null;
 
-	this.addClass("grid");
+	this.addClass("grid-row");
 
 	this.addColumn = function (column) {
 		var th = new Element("th").addClass("sortable");
@@ -500,21 +500,9 @@ function Grid(columns) {
 		};
 
 		valuesSortedPerColumn.sort(sortFunctions[sortOrder]);
-		console.log("valuesSortedPerColumn", valuesSortedPerColumn);
 
 		valuesSortedPerColumn.forEach(function (sortedRowValue) {
 			_rows.forEach(function (row) {
-
-				console.log(sortedRowValue);
-
-				if (false && isNaN(sortedRowValue)) {
-					console.log("\n\r");
-					console.log("NEXT sortedRowValue = ", sortedRowValue);
-					console.log("isNaN(" + sortedRowValue + ")", isNaN(sortedRowValue));
-					console.log("typeof " + sortedRowValue + " === 'number'", typeof sortedRowValue === "number");
-					console.log("isNaN(" + row[column.property] + ")", isNaN(row[column.property]));
-					console.log("typeof " + row[column.property] + " === 'number'", typeof row[column.property] === 'number');
-				}
 
 				if (row[column.property] === sortedRowValue ||
 					(sortedRowValue === "__NaN__"

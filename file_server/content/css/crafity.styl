@@ -47,7 +47,7 @@ h3
 	bottom: 0
 	z-index: 100
 	transition: left 400ms ease-out
-	background-color: white
+	background-color: transparant// white
 	&.fullscreen
 		left: 0
 
@@ -273,96 +273,3 @@ h3
 		line-height: 17.333333015441895px
 		padding: 3px 10px
 
-.grid
-	position: absolute
-	top: 0
-	left: 0
-	right: 0
-	bottom: 0
-	overflow-x: hidden;
-	overflow-y: auto;
-	.container
-		height: 100%
-		overflow-x: hidden;
-		overflow-y: auto;
-		table
-			min-width: 100%
-		.header
-			.column
-				color: #758292
-				line-height: 2em
-				&.ascending .sticky span:after
-					content: "▲"
-					font-size: .7em
-					display: inline-block
-					position: relative
-					padding-left: 10px
-				&.descending .sticky span:after
-					content: "▼"
-					font-size: .7em
-					display: inline-block
-					position: relative
-					padding-left: 10px
-				.sticky
-					position: absolute
-					top: 0
-					margin-left: -1px
-					width: 100%
-					line-height: 2em
-					text-align: left;
-					padding: 0 15px 0 15px
-					z-index: 3
-					span
-						font-weight: 600
-						font-size: 9pt
-					&:before
-						position: absolute
-						top: 0
-						left: 0
-						right: 0
-						content: ""
-						display: block
-						height: 2em
-						background-image: -webkit-gradient(linear, left top, left bottom, color-stop( 0.3, rgba(255, 255, 255, 1) ), color-stop( 1.0, rgba(255, 255, 255, 0) ));
-						background-image: -webkit-linear-gradient(top, rgba(255, 255, 255, .8) 30%, rgba(255, 255, 255, 0) 100% );
-						background-image: -moz-linear-gradient(top, rgba(255, 255, 255, .8) 30%, rgba(255, 255, 255, 0) 100% );
-						background-image: -ms-linear-gradient(top, rgba(255, 255, 255, .8) 30%, rgba(255, 255, 255, 0) 100% );
-						background-image: -o-linear-gradient(top, rgba(255, 255, 255, .8) 30%, rgba(255, 255, 255, 0) 100% );
-						background-image: linear-gradient(top, rgba(255, 255, 255, .8) 30%, rgba(255, 255, 255, 0) 100% );
-						z-index: -1
-					&:after
-						content: ""
-						display: block
-						border-bottom: 1px solid #CDCDCD
-						border-left: 1px solid #CDCDCD
-						position: absolute
-						background: rgba(255, 255, 255, 0.7)
-						left: 0
-						right: 0
-						top: 0
-						bottom: 0
-						z-index: -2
-		.row
-			background: white
-			&.top-spacer
-				height: 2em
-				background: white
-			&:nth-child(even)
-				background: #F6F7F9
-			.cell
-				min-width: 80px;
-				padding: 0 15px 0 15px
-				line-height: 2em
-				&, *
-					white-space: nowrap
-					color: #808080
-					font-size: 9pt
-					font-weight: 400
-				&:nth-child(1)
-					color: black
-				&.number
-					text-align: right
-					&.negative
-						color: maroon
-				&.date
-					text-align: right
