@@ -171,6 +171,30 @@ Element.prototype.toggleClass = function (classNames) {
 Element.prototype.isVisible = function () {
 	return !this.hasClass("hidden");
 };
+Element.prototype.readonly = function (value) {
+	if (value === true) {
+		this.attr("readonly", "readonly");
+		this.emit("readonlyChanged", value);
+	} else if (value === false) {
+		this.attr("readonly", null);
+		this.emit("readonlyChanged", value);
+	} else {
+		return !!this.attr("readonly");
+	}
+	return this;
+};
+Element.prototype.disabled = function (value) {
+	if (value === true) {
+		this.attr("disabled", "disabled");
+		this.emit("disabledChanged", value);
+	} else if (value === false) {
+		this.attr("disabled", null);
+		this.emit("disabledChanged", value);
+	} else {
+		return !!this.attr("disabled");
+	}
+	return this;
+};
 Element.prototype.show = function () {
 	this.removeClass("hidden");
 	return this;
@@ -526,7 +550,6 @@ function Grid(columns) {
 		columns.forEach(function (column) {
 			var td = new Element("td").addClass("cell").appendTo(rowElement);
 
-			
 			if (column.options) {
 				td.addClass("string");
 			} else {
@@ -609,6 +632,7 @@ function Button(text, callback) {
 	this.addClass("button");
 	this.text(text);
 	this.getElement().addEventListener("click", function () {
+		if (self.disabled()) { return; }
 		self.emit("click");
 	});
 }
