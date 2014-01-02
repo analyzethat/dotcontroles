@@ -1,4 +1,4 @@
-/*globals superagent, window*/
+/*globals superagent, window, console*/
 
 (function (crafity) {
 	"use strict";
@@ -10,84 +10,146 @@
 		 *
 		 *  Description | Status | Price | Creation Date | Specialist | Id
 		 *
+		 *  Status int | PatientNr str | ZiektegevalNr str | DatumActiviteit date
+		 *  | DBCTypering str | VerantwoordelijkSpecialist str | OverigeKenmerken str | Id int | GebruikersId int
+		 *
+		 *
 		 * @type {Array}
 		 */
 		var constateringenColumnDefinitionList = [
 
-			{ name: "Description",
-				property: "description",
-				type: "String"
-			},
-
 			{ name: "Status",
-				property: "status",
+				property: "StatusId",
 				type: "Number",
 				options: [
 					{ value: 0, text: " "},
 					{ value: 1, text: "Open"},
-					{ value: 2, text: "In progress"},
-					{ value: 3, text: "Complete"}
+					{ value: 2, text: "Status 2"},
+					{ value: 3, text: "Status 3"},
+					{ value: 4, text: "Status 4"},
+					{ value: 5, text: "Status 5"},
+					{ value: 6, text: "Doorgezet"}
 				],
 				editable: {
 					control: "Selectbox",
 					"default": 2
 				}
 			},
-
-			{ name: "Price",
-				property: "price",
-				type: "Number",
-				format: "$0,0.00"
+			{ name: "Patientnummer",
+				property: "PatientNr",
+				type: "String"
 			},
-
-			{ name: "Creation Date",
-				property: "creationDate",
+			{ name: "Ziektegeval",
+				property: "ZiektegevalNr",
+				type: "Number"
+			},
+			{ name: "Datum Activiteit",
+				property: "DatumActiviteit",
 				type: "Date",
 				sortable: "descending",
 				format: "DD-MM-YYYY"
 			},
-
-			{ name: "Specialist",
-				property: "creator",
+			{ name: "DBC Typering",
+				property: "DBCTypering",
 				type: "String"
 			},
-
-			{ name: "Id",
-				property: "id",
-				type: "Number"
+			{ name: "Specialist",
+				property: "VerantwoordelijkSpecialist",
+				type: "String"
+			},
+			{ name: "Overige kenmerken",
+				property: "OverigeKenmerken",
+				type: "String"
 			}
 
+//			{ name: "Id",
+//				property: "id",
+//				type: "Number"
+//			}
+
+//			{ name: "Price",
+//				property: "price",
+//				type: "Number",
+//				format: "$0,0.00"
+//			},
 		];
 
 		function Repository() {
-
+			var URL_DATASERVER = "http://data.dotcontroles.dev";
 			var ajaxAgent = superagent;
+			var user = null;
 
-			this.constateringen = {
-
-				getColumnDefinitionList: function () {
-					return constateringenColumnDefinitionList;
-				},
-
-				getDataRows: function (callback) {
-					// ajax call
-					ajaxAgent.get("http://data.dotcontroles.dev/constateringen", function (res) {
-						return callback(null, res.body);
-					});
-				},
-				
-				// correct status because of human error
-				// update status because of progress
-				
-				updateStatus: function (id, statusId, callback) {
-					// ajax call
-					
-					// /constatering/correctie
-					ajaxAgent.post("/constateringen/" + id, {id: 5, statusId: statusId, reason: "ssS"}, function (res) {
-						return callback(null, res.body);
-					});
+			this.users = {
+				get: function (callback) {
+					ajaxAgent
+						.get(URL_DATASERVER + "users")
+						.end(function (res) {
+							if (res.error) {
+								callback(res.error, null);
+							} else {
+								callback(null, res.body);
+							}
+						});
 				}
 			};
+
+			this.user = {
+				get: function (callback) {
+					ajaxAgent
+						.get(URL_DATASERVER + "user/1")
+						.end(function (res) {
+							if (res.error) {
+								callback(res.error, null);
+							} else {
+								callback(null, res.body);
+							}
+						});
+
+				},
+				save: function (firstName, lastName) {
+					ajaxAgent.post(URL_DATASERVER + "user/" + user.id)
+						.send({firstName: firstName, lastName: lastName})
+						.end(function (res) {
+							console.log("Result from saving user data to database: res", res);
+						});
+				}
+			};
+
+//			this.getConstateringen = function (callback) {
+//				var state;
+//
+//				var constateringen = {
+//					
+//					getColumnDefinitionList: function () {
+//						return constateringenColumnDefinitionList;
+//					},
+//					
+//					getRows: function () {
+//						return state.items;
+//					},
+//
+//					getFirst: function (callback) {
+//						ajaxAgent.get(URL_DATASERVER + state.first.href, function (res) {
+//							state = res.body;
+//							return callback(constateringen);
+//						});
+//					},
+//
+//					getLast: function (callback) {
+//						ajaxAgent.get(URL_DATASERVER + state.last.href, function (res) {
+//							state = res.body;
+//							return callback(constateringen);
+//						});
+//					}
+//
+//				};
+//
+//				// initial call to backend
+//				ajaxAgent.get(URL_DATASERVER + "/constateringen?offset=0", function (res) {
+//					state = res.body;
+//					return callback(constateringen);
+//				});
+//			};
 
 		}
 
