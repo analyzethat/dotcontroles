@@ -47,7 +47,7 @@ h3
 	bottom: 0
 	z-index: 100
 	transition: left 400ms ease-out
-	background-color: transparant// white
+	background-color: white
 	&.fullscreen
 		left: 0
 
@@ -272,4 +272,7 @@ h3
 		font-size: 1.2em
 		line-height: 17.333333015441895px
 		padding: 3px 10px
-
+	&[disabled]
+		color: #C8C8C8
+		&:active
+			box-shadow: none
