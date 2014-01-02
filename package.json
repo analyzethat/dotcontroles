@@ -1,0 +1,31 @@
+{
+  "name": "controles",
+  "version": "0.1.0",
+  "description": "POC for controles application",
+  "main": "index.js",
+  "dependencies": {
+    "express": "~3.4.7",
+    "mime": "~1.2.11",
+    "stylus": "~0.41.3",
+    "tedious": "~0.1.5"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Crafity/dotcontroles.git"
+  },
+  "keywords": [
+    "SPA",
+    "controles",
+    "REST",
+    "API"
+  ],
+  "author": "Crafity",
+  "license": "Proprietary",
+  "bugs": {
+    "url": "https://github.com/Crafity/dotcontroles/issues"
+  }
+}
