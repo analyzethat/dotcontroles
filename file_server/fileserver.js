@@ -1,4 +1,4 @@
-"use strict";
+/*globals process, env, console */
 
 var port = process.env.PORT || 8077;
 
@@ -10,7 +10,15 @@ var http = require('http')
 	, mime = require('mime')
 	, server;
 
+/* Auxiliary method */
+function handleError(err, res) {
+	console.log(err.message, err.stack);
+	res.writeHead(500);
+	return res.end(err.message + "\n" + err.stack);
+}
+
 server = http.createServer(function (req, res) {
+	"use strict";
 	console.log("Requesting:", req.url);
 
 	try {
@@ -37,6 +45,8 @@ server = http.createServer(function (req, res) {
 
 		res.writeHead(200, {
 			'Content-Type': mimeType,
+			'Access-Control-Allow-Origin': "http://data.dotcontroles.dev",
+			'Origin': "http://dotcontroles.dev",
 			'Content-Encoding': 'gzip'
 		});
 
@@ -62,12 +72,6 @@ server = http.createServer(function (req, res) {
 		return handleError(err, res);
 	}
 });
-
-function handleError(err, res) {
-	console.log(err.message, err.stack);
-	res.writeHead(500);
-	return res.end(err.message + "\n" + err.stack);
-}
 
 server.listen(port);
 
