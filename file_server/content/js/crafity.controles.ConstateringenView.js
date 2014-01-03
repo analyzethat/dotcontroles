@@ -2,21 +2,25 @@
 
 (function (crafity) {
 	"use strict";
+	var html = crafity.html;
+
 	(function (controles) {
 
-		function ConstateringenView(constateringenRepository) {
+		function ConstateringenView(constateringenRepository, specialistsRepository) {
 			var self = this;
 
-			this.save = function () {
-				throw new Error("not implemented.");
-			};
-			this.cancel = function () {
-				throw new Error("Not implemented!");
-			};
+			var gridRow = new html.Element("div").addClass("grid-row");
+			var mygrid = new html.Grid(constateringenRepository.columnDefinitionList).appendTo(gridRow)
+				.on("selected", function (column, row, value) {
+					confirm("Are you sure?");
+					row[column.property] = value;
+					constateringenRepository.update(row);
+				});
 
-			var mygrid = new Grid(constateringenRepository.columnDefinitionList);
-			var previousButton = new Button("Previous").on("click", constateringenRepository.previous);
-			var nextButton = new Button("Next").on("click", constateringenRepository.next);
+			var firstButton = new html.Button("Eerste").addClass("right").on("click", constateringenRepository.first);
+			var lastButton = new html.Button("Laatste").addClass("right").on("click", constateringenRepository.last);
+			var previousButton = new html.Button("<<").addClass("right").on("click", constateringenRepository.previous);
+			var nextButton = new html.Button(">>").addClass("right").on("click", constateringenRepository.next);
 
 			constateringenRepository.on("data", function (rows) {
 				mygrid.addRows(rows);
@@ -25,52 +29,41 @@
 				previousButton.disabled(!constateringenRepository.hasPrevious());
 				nextButton.disabled(!constateringenRepository.hasNext());
 			});
-
-			constateringenRepository.init();
+			constateringenRepository.init(); // load data
 
 			// build the GUI elements
-			var info = new Element("div").addClass("info");
-			new Element("h3").text("VDC00037").appendTo(info);
-			new Element("p").text("Aanvrager (poort)specialisme in dummy DBC").appendTo(info);
 
 			// info row
-			var infoRow = new Element("div").addClass("info-row");
-			infoRow.append(info);
+			var infoRow = new html.Element("div").addClass("info-row");
+			var infoContainer = new html.Element("div").addClass("info")
+				.append(new html.Element("h3").text("VDC00037"))
+				.append(new html.Element("p").text("Aanvrager (poort)specialisme in dummy DBC"))
+				.appendTo(infoRow);
 
-			var filterContainer = new Element("div").addClass("filter-container form");
-			new Element("h3").text("Resultaten in tabel filteren op").appendTo(filterContainer);
-
-			new TextField().label("tonen vanaf datum").readonly(false).addClass("filter").appendTo(filterContainer);
-			new TextField().label("specialist").readonly(false).addClass("filter").appendTo(filterContainer);
-			new TextField().label("locatie").readonly(false).addClass("filter").appendTo(filterContainer);
-			infoRow.append(filterContainer);
+			var filterContainer = new html.Element("div").addClass("filter-container form")
+				.append(new html.Element("h3").text("Resultaten in tabel filteren op"))
+				.append(new html.DateField().label("tonen vanaf datum").readonly(false).addClass("filter"))
+				.append(new html.SelectField().label("specialist").readonly(false).addClass("filter")
+					.options(specialistsRepository.getSpecialists()).value("all")
+					.on("selected", function (value) {
+						constateringenRepository.filterOnSpecialist(value);
+					}))
+				.appendTo(infoRow);
 
 			// command row
-			var commandRow = new Element("div").addClass("command-row");
+			var commandRow = new html.Element("div").addClass("command-row")
+				.append(new html.ButtonBar()
+					.append(lastButton)
+					.append(nextButton)
+					.append(previousButton)
+					.append(firstButton));
 
-			var children = new Button("Previous")
-				.on("click", constateringenRepository.previous);
-			var buttonBar = new ButtonBar()
-				.append(new Button("Opslaan")
-					.on("click", self.save))
-				.append(new Button("Annuleren")
-					.on("click", self.cancel))
-
-				.append(new Button("First")
-					.on("click", constateringenRepository.first))
-				.append(new Button("Last")
-					.on("click", constateringenRepository.last))
-				.append(previousButton)
-				.append(nextButton)
-
-				.appendTo(commandRow);
-
-			this.append(infoRow);
-			this.append(mygrid);
-			this.append(commandRow);
+			this.append(infoRow)
+				.append(gridRow)
+				.append(commandRow);
 		}
 
-		ConstateringenView.prototype = new Element("div").addClass("constateringen");
+		ConstateringenView.prototype = new html.Element("div").addClass("constateringen");
 		controles.ConstateringenView = ConstateringenView;
 
 	}(crafity.controles = crafity.controles || {}));

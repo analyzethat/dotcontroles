@@ -57,11 +57,26 @@
 				});
 			};
 
+			// filtering
+			this.filterOnSpecialist = function (specialistName) {
+				ajaxAgent.get(dataserverUrl + "/constateringen?offset=0&limit=" + self.limit + "&filters=VerantwoordelijkSpecialist:" + specialistName, function (res) {
+					setState(res.body);
+				});
+			};
+			
+			// save
+			this.update = function(constatering) {
+				ajaxAgent.put(dataserverUrl + "/constateringen/" + constatering.Id, constatering, function(res){
+					console.log("res", res);
+				});
+			};
+			
+			
 		}
 
 		ConstateringenRepository.prototype = crafity.core.EventEmitter.prototype;
-		ConstateringenRepository.prototype.limit = 10;
-		
+		ConstateringenRepository.prototype.limit = 12;
+
 		/**
 		 * The constateringen columns are placed in an Array of zero or more column definition objects
 		 *
@@ -74,21 +89,23 @@
 		 * @type {Array}
 		 */
 		ConstateringenRepository.prototype.columnDefinitionList = [
-			{ name: "Status",
+			{ 
+				name: "Status",
 				property: "StatusId",
 				type: "Number",
-				options: [
-					{ value: 0, text: " "},
-					{ value: 1, text: "Open"},
-					{ value: 2, text: "Status 2"},
-					{ value: 3, text: "Status 3"},
-					{ value: 4, text: "Status 4"},
-					{ value: 5, text: "Status 5"},
-					{ value: 6, text: "Doorgezet"}
-				],
+				options: {
+					0: " ",
+					1: "Open",
+					2: "Status 2",
+					3: "Status 3",
+					4: "Status 4",
+					5: "Status 5",
+					6: "Doorgezet"
+				},
 				editable: {
 					control: "Selectbox",
-					"default": 2
+					"default": 2,
+					"events": ["selected"]
 				}
 			},
 			{ name: "Patientnummer",
