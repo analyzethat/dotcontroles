@@ -34,16 +34,17 @@ var app = {
 		var URL_DATASERVER = "http://data.dotcontroles.dev";
 		
 		var constateringenRepository = new controles.repositories.ConstateringenRepository(superagent, URL_DATASERVER);
-		var constateringenView = new crafity.controles.ConstateringenView(constateringenRepository);
+		var specialistsRepository = new controles.repositories.SpecialistsRepository(superagent, URL_DATASERVER);
+		var constateringenView = new crafity.controles.ConstateringenView(constateringenRepository, specialistsRepository);
 		
 		var userView = new crafity.controles.UserView(new crafity.controles.Repository());
 
-		appContainer = new Element("div").addClass("app");
+		appContainer = new crafity.html.Element("div").addClass("app");
 
 		document.body.appendChild(
-			new MenuPanel("Overzicht")
+			new crafity.html.MenuPanel("Overzicht")
 				.addMenuItems([
-					new MenuItem("Mijn gegevens", function () {
+					new crafity.html.MenuItem("Mijn gegevens", function () {
 						appContainer.getChildren().forEach(function (child) {
 							if (child === userView) {
 								child.show();
@@ -53,7 +54,7 @@ var app = {
 						});
 						appContainer.append(userView);
 					}).select(),
-					new MenuItem("Constateringen", function () {
+					new crafity.html.MenuItem("Constateringen", function () {
 						appContainer.getChildren().forEach(function (child) {
 							if (child === constateringenView) {
 								child.show();
