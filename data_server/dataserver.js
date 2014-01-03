@@ -10,6 +10,8 @@ var fs = require("fs");
 var zlib = require("zlib"); // todo_gasl implement this
 var mime = require("mime");
 var tedious = require("tedious");
+var tediousTypes = tedious.TYPES;
+
 var Connection = tedious.Connection;
 var Request = tedious.Request;
 var server;
@@ -62,6 +64,8 @@ function setHttpResponseHeader(res, body) {
 	// only the Origin Url is allowed to use this data server
 	// value of Origin must match the value of Access-Control-Allow-Origin
 	res.setHeader("Origin", ORIGIN_URL);
+//	res.setHeader("Access-Control-Allow-Headers", "Access-Control-Allow-Origin, Access-Control-Allow-Methods, Access-Control-Allow-Credentials, Origin");
+//	res.setHeader("Access-Control-Allow-Methods", "GET, PUT, POST, DELETE");
 	res.setHeader("Access-Control-Allow-Origin", ORIGIN_URL);
 
 }
@@ -91,6 +95,49 @@ var database = {
 				});
 				connection.execSql(request);
 			});
+		},
+		update: function (constatering, callback) {
+			database.createConnection(function (err, connection) {
+				if (err) {
+					return callback(err);
+				}
+
+//				var query = "UPDATE Constateringen SET "
+//					+ " GebruikerId = " + constatering.GebruikerId
+//					+ ", StatusId = " + constatering.StatusId 
+//					+ ", ZiektegevalNr = '" + constatering.ZiektegevalNr + "'" // '; select * from logins ; --
+//					+ ", DatumActiviteit = '" + constatering.DatumActiviteit + "'"
+//					+ ", DBCTypering = '" + constatering.DBCTypering + "'"
+//					+ ", VerantwoordelijkSpecialist = '" + constatering.VerantwoordelijkSpecialist + "'"
+//					+ ", OverigeKenmerken = '" + constatering.OverigeKenmerken + "'"
+//					+ " WHERE Id = " + constatering.Id;
+
+				var query = "UPDATE Constateringen SET "
+					+ " GebruikerId = @GebruikerId"
+					+ ", StatusId = @StatusId"
+					+ ", ZiektegevalNr = @ZiektegevalNr" // prevent sql injection like: '; select * from logins ; --
+					+ ", DatumActiviteit = @DatumActiviteit"
+					+ ", DBCTypering = @DBCTypering"
+					+ ", VerantwoordelijkSpecialist = @VerantwoordelijkSpecialist"
+					+ ", OverigeKenmerken = @OverigeKenmerken"
+					+ " WHERE Id = @Id";
+
+				var request = new Request(query, function (err, rowcount) {
+					return callback(err, rowcount);
+				});
+
+				request.addParameter('GebruikerId', tediousTypes.Int, constatering.GebruikerId);
+				request.addParameter('StatusId', tediousTypes.Int, constatering.StatusId);
+				request.addParameter('ZiektegevalNr', tediousTypes.NVarChar, constatering.ZiektegevalNr);
+				request.addParameter('DatumActiviteit', tediousTypes.SmallDateTime, new Date(constatering.DatumActiviteit));
+				
+				request.addParameter('DBCTypering', tediousTypes.NVarChar, constatering.DBCTypering);
+				request.addParameter('VerantwoordelijkSpecialist', tediousTypes.NVarChar, constatering.VerantwoordelijkSpecialist);
+				request.addParameter('OverigeKenmerken', tediousTypes.NVarChar, constatering.OverigeKenmerken);
+				request.addParameter('Id', tediousTypes.Int, constatering.Id);
+				
+				connection.execSql(request);
+			});
 		}
 	}
 
@@ -104,10 +151,9 @@ var database = {
 //	}
 
 app.options("*", function (req, res) {
-	console.log("\n\n\n GOTCHA !  req", req);
-	res.setHeader("Access-Control-Allow-Headers", "Access-Control-Allow-Origin, Access-Control-Allow-Methods, Access-Control-Allow-Credentials, Origin");
+	res.setHeader("Access-Control-Allow-Headers", "Access-Control-Allow-Origin, Access-Control-Allow-Methods, Access-Control-Allow-Credentials, Origin, Content-Type");
 	res.setHeader("Access-Control-Allow-Origin", ORIGIN_URL);
-	res.setHeader("Access-Control-Allow-Methods", "*");
+	res.setHeader("Access-Control-Allow-Methods", "GET, PUT, POST, DELETE");
 	res.setHeader("Access-Control-Allow-Credentials", "true");
 	res.end();
 });
@@ -222,6 +268,16 @@ app.get("/constateringen", function (req, res) {
 	var offset = parseInt(req.query.offset || 0, 10);
 	var limit = parseInt(req.query.limit || 5, 10);
 
+	var filters = {};
+	if (req.query.filters) {
+		var splitted = req.query.filters.split(',')
+		splitted.forEach(function (filter) {
+			var keyValue = filter.split(":");
+			filters[keyValue[0]] = keyValue[1];
+		});
+		console.log("filters", filters);
+	}
+
 	database.constateringen.getTotal(function (err, total) {
 		if (err) {
 			throw err;
@@ -264,15 +320,37 @@ app.get("/constateringen", function (req, res) {
 
 				res.write(string);
 
-				var query = 'SELECT * FROM  Constateringen ORDER BY Id ASC OFFSET '
-					+ offset
-					+ ' ROWS FETCH NEXT '
-					+ limit
+				var where = '';
+				var filterArray = Object.keys(filters);
+				var hasMoreFilters = false;
+				if (filterArray.length > 0) {
+
+					filterArray.forEach(function (key) {
+
+						if (!hasMoreFilters) {
+							if (filters[key].toLowerCase() === "null") {
+								where += ' WHERE ' + 'VerantwoordelijkSpecialist' + " is null";
+							} else {
+								where += ' WHERE ' + 'VerantwoordelijkSpecialist' + " = '" + filters[key] + "'";
+							}
+							hasMoreFilters = true;
+						} else {
+							where += ' AND ' + key + " = '" + filters[key] + "'";
+						}
+					});
+				}
+
+				console.log("\nWHERE clause = ", where);
+				var query = 'SELECT * FROM Constateringen'
+					+ where
+					+ ' ORDER BY Id ASC OFFSET ' + offset
+					+ ' ROWS FETCH NEXT ' + limit
 					+ ' ROWS ONLY ';
 
 				var request = new Request(query, function (err, rowcount) {
 					if (err) throw err;
 
+					console.log("total", total);
 					var lastOffset = Math.floor(total / limit) * limit;
 					res.end('],\n"last": { "href": "/constateringen?offset=' + lastOffset + '&limit=' + limit + '" }\n}');
 				});
@@ -299,6 +377,17 @@ app.get("/constateringen", function (req, res) {
 		});
 
 	});
+});
+
+app.put("/constateringen/:id", function (req, res) {
+
+	setHttpResponseHeader(res);
+	console.log("You are in the PUT", req.params, req.body);
+
+	database.constateringen.update(req.body, function () {
+		res.end();
+	});
+
 });
 
 // By default 404 Route (ALWAYS Keep this as the last route)
