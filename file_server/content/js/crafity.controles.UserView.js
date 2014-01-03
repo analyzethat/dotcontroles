@@ -2,6 +2,8 @@
 
 (function (crafity) {
 	"use strict";
+	var html = crafity.html;
+	
 	(function (controles) {
 
 		function UserView(repository) {
@@ -9,10 +11,10 @@
 			var user = null;
 
 			// build the GUI elements
-			var infoRow = new Form().addClass("clientDetails readonly");
-			var txtUsername = new TextField().label("gebruikersnaam").appendTo(infoRow).readonly(true);
-			var txtName = new TextField().label("Naam").appendTo(infoRow);
-			var txtFamilyName = new TextField().label("Familienaam").appendTo(infoRow);
+			var infoRow = new html.Form().addClass("clientDetails readonly");
+			var txtUsername = new html.TextField().label("gebruikersnaam").appendTo(infoRow).readonly(true);
+			var txtName = new html.TextField().label("Naam").appendTo(infoRow);
+			var txtFamilyName = new html.TextField().label("Familienaam").appendTo(infoRow);
 
 			repository.user.get(function (err, result) {
 			
@@ -37,9 +39,9 @@
 				repository.user.save(txtName.value(), txtFamilyName.value());
 			};
 
-			var buttonBar = new ButtonBar()
+			var buttonBar = new html.ButtonBar()
 				.append(
-					new Button("Opslaan")
+					new html.Button("Opslaan")
 						.addClass("right")
 						.on("click", self.save)
 				);
@@ -48,7 +50,7 @@
 			this.append(buttonBar);
 		}
 
-		UserView.prototype = new Element("div").addClass("detailsContainer");
+		UserView.prototype = new html.Element("div").addClass("detailsContainer");
 		controles.UserView = UserView;
 
 	}(crafity.controles = crafity.controles || {}));
