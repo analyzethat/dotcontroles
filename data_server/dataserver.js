@@ -9,25 +9,12 @@ var app = express();
 var fs = require("fs");
 var zlib = require("zlib"); // todo_gasl implement this
 var mime = require("mime");
-var tedious = require("tedious");
-var tediousTypes = tedious.TYPES;
 
-var Connection = tedious.Connection;
-var Request = tedious.Request;
+var database = require("./database");
+
 var server;
 var TIMEOUT_IN_MINUTES = 20;
 var ORIGIN_URL = "http://dotcontroles.dev";
-
-var configSQLServer = {
-	userName: "node_user",
-	password: "nodeuser",
-	server: "192.168.145.129",
-	options: {
-		database: "dotcontroles",
-		instanceName: "SQLEXPRESS",
-		rowCollectionOnRequestCompletion: false
-	}
-};
 
 app.use(express.bodyParser());
 app.use(express.cookieParser());
@@ -53,102 +40,24 @@ function handleServerError(err, res) {
 	return res.end(err.message + "\n" + err.stack);
 }
 
-function setHttpResponseHeader(res, body) {
-	res.setHeader("Content-Type", "application/json");
-
-	if (body) {
-		res.setHeader("Content-Length", body.length);
-	}
-
+/**
+ * Intercept every request by doing preliminary checks
+ * and preparational work.
+ */
+app.use(function appendHeaders(req, res, next) {
 	// meaning of the headers below: 
 	// only the Origin Url is allowed to use this data server
 	// value of Origin must match the value of Access-Control-Allow-Origin
-	res.setHeader("Origin", ORIGIN_URL);
-//	res.setHeader("Access-Control-Allow-Headers", "Access-Control-Allow-Origin, Access-Control-Allow-Methods, Access-Control-Allow-Credentials, Origin");
-//	res.setHeader("Access-Control-Allow-Methods", "GET, PUT, POST, DELETE");
-	res.setHeader("Access-Control-Allow-Origin", ORIGIN_URL);
-
-}
-
-var database = {
-
-	createConnection: function (callback) {
-		var connection = new Connection(configSQLServer).on("connect", function (err) {
-			callback(err, !err && connection);
-		});
-	},
-
-	constateringen: {
-		getTotal: function (callback) {
-			database.createConnection(function (err, connection) {
-				if (err) {
-					return callback(err);
-				}
-
-				var query = "SELECT count('x') as total FROM Constateringen";
-				var total = 0;
-				var request = new Request(query, function (err) {
-					return callback(err, !err && total);
-				});
-				request.on("row", function (columns) {
-					total = columns.total.value;
-				});
-				connection.execSql(request);
-			});
-		},
-		update: function (constatering, callback) {
-			database.createConnection(function (err, connection) {
-				if (err) {
-					return callback(err);
-				}
-
-//				var query = "UPDATE Constateringen SET "
-//					+ " GebruikerId = " + constatering.GebruikerId
-//					+ ", StatusId = " + constatering.StatusId 
-//					+ ", ZiektegevalNr = '" + constatering.ZiektegevalNr + "'" // '; select * from logins ; --
-//					+ ", DatumActiviteit = '" + constatering.DatumActiviteit + "'"
-//					+ ", DBCTypering = '" + constatering.DBCTypering + "'"
-//					+ ", VerantwoordelijkSpecialist = '" + constatering.VerantwoordelijkSpecialist + "'"
-//					+ ", OverigeKenmerken = '" + constatering.OverigeKenmerken + "'"
-//					+ " WHERE Id = " + constatering.Id;
-
-				var query = "UPDATE Constateringen SET "
-					+ " GebruikerId = @GebruikerId"
-					+ ", StatusId = @StatusId"
-					+ ", ZiektegevalNr = @ZiektegevalNr" // prevent sql injection like: '; select * from logins ; --
-					+ ", DatumActiviteit = @DatumActiviteit"
-					+ ", DBCTypering = @DBCTypering"
-					+ ", VerantwoordelijkSpecialist = @VerantwoordelijkSpecialist"
-					+ ", OverigeKenmerken = @OverigeKenmerken"
-					+ " WHERE Id = @Id";
-
-				var request = new Request(query, function (err, rowcount) {
-					return callback(err, rowcount);
-				});
-
-				request.addParameter('GebruikerId', tediousTypes.Int, constatering.GebruikerId);
-				request.addParameter('StatusId', tediousTypes.Int, constatering.StatusId);
-				request.addParameter('ZiektegevalNr', tediousTypes.NVarChar, constatering.ZiektegevalNr);
-				request.addParameter('DatumActiviteit', tediousTypes.SmallDateTime, new Date(constatering.DatumActiviteit));
-				
-				request.addParameter('DBCTypering', tediousTypes.NVarChar, constatering.DBCTypering);
-				request.addParameter('VerantwoordelijkSpecialist', tediousTypes.NVarChar, constatering.VerantwoordelijkSpecialist);
-				request.addParameter('OverigeKenmerken', tediousTypes.NVarChar, constatering.OverigeKenmerken);
-				request.addParameter('Id', tediousTypes.Int, constatering.Id);
-				
-				connection.execSql(request);
-			});
-		}
-	}
-
-};
+	res.header({
+		"Origin": ORIGIN_URL,
+		"Access-Control-Allow-Origin": ORIGIN_URL,
+		"x-powered-by": "Crafity",
+		"Content-Type": "application/json; charset=utf-8"
+	});
+	next();
+});
 
 // END Auxiliary method
-
-//var connection = createConnection().on("connect", function (err) {
-//	if (err) {
-//		throw err;
-//	}
 
 app.options("*", function (req, res) {
 	res.setHeader("Access-Control-Allow-Headers", "Access-Control-Allow-Origin, Access-Control-Allow-Methods, Access-Control-Allow-Credentials, Origin, Content-Type");
@@ -160,15 +69,13 @@ app.options("*", function (req, res) {
 
 // ROUTINGS
 app.get("/", function (req, res) {
-//	console.log(" APP.GET(/......");
-
-	var body = JSON.stringify({ name: "Data server", version: "0.1" });
-	setHttpResponseHeader(res, body);
-	res.end(body);
+	var body = { name: "Data server", version: "0.1" };
+	res.send(200, body);
 });
 
 app.post("/login", function (req, res) {
-	console.log("req.body", req.body);
+	console.log("POST /login", req.params, req.body);
+
 	console.log("req.session", req.session);
 	console.log("req.cookies", req.cookies);
 	req.session.user = req.body.username;
@@ -176,215 +83,227 @@ app.post("/login", function (req, res) {
 	if (req.body.username && req.body.password) {
 	}
 
-	var body = JSON.stringify({ name: "Logged in succesfull"});
-
-	setHttpResponseHeader(res, body);
-	res.end(body);
+	var body = { name: "Logged in succesfull"};
+	res.send(200, body);
 });
 
-app.get("/user/:id", function (req, res) {
+app.get("/users", function (req, res) {
+	console.log("GET /users ", req.params, req.body);
 
-	var connection = createConnection().on("connect", function (err) {
-		if (err) throw err;
+	var hasRows = false;
 
-		setHttpResponseHeader(res);
+	database.users.getAll(function (err, row, rowcount) {
+		if (err) {
+			throw err;
+		}
 
-		try {
-
+		if (!hasRows) {
 			res.write("[");
-
-			var request = new Request("select * from users where id = " + req.params.id, function (err, rowcount) {
-				console.log("DONE, select * from users where id = " + req.params.id);
-				console.log("rowcount", rowcount);
-				if (err) {
-					throw err;
-				}
-				res.end("]");
-			});
-
-			request.on("row", function (columns) {
-				var row = {};
-
-				columns.forEach(function (column) {
-					row[column.metadata.colName] = column.value;
-				});
-
-				res.write(JSON.stringify(row));
-			});
-
-			connection.execSql(request);
-
-		} catch (err) {
-			return handleServerError(err, res);
+		}
+		if (row) {
+			row.href = req.url + "/" + row.Id;
+			res.write((hasRows ? "," : "") + JSON.stringify(row) + "\n");
+			hasRows = true;
+		} else {
+			res.end("]");
 		}
 	});
 });
 
-app.get("/users", function (req, res) {
-	console.log("URL = /users");
+app.get("/users/:id", function (req, res) {
+	console.log("GET /users/:id ", req.params, req.body);
 
-	var connection = createConnection().on("connect", function (err) {
-		if (err) throw err;
-
-		setHttpResponseHeader(res);
-		var hasRows = false;
-
-		try {
-
-			res.write("[");
-
-			var request = new Request("select * from users", function (err, rowcount) {
-				console.log("DONE, select * from users");
-
-				if (err) throw err;
-
-				res.end("]");
-			});
-
-			request.on("row", function (columns) {
-				console.log("ROW");
-
-				var row = {};
-
-				columns.forEach(function (column) {
-					row[column.metadata.colName] = column.value;
-				});
-
-				res.write((hasRows ? "," : "") + JSON.stringify(row) + "\n");
-				hasRows = true;
-			});
-
-			connection.execSql(request);
-
-		} catch (err) {
-			return handleServerError(err, res);
+	database.users.getById(req.params.id, function (err, row) {
+		if (err) {
+			throw err;
 		}
+
+		if (!row) {
+			return res.send(404, {
+				"status": 404,
+				"message": "User with id '" + req.params.id + "' is not found."
+			});
+		}
+
+		row.href = req.url;
+		res.send(200, row);
+
 	});
 
 });
 
 app.get("/constateringen", function (req, res) {
+	console.log("GET /constateringen ", req.params, req.body);
 
 	var offset = parseInt(req.query.offset || 0, 10);
 	var limit = parseInt(req.query.limit || 5, 10);
+	var _total = null;
 
-	var filters = {};
+	var _finishedSendingTotal = false;
+	var _startedReceivingRows = false;
+	var _finishedReceivingRows = false;
+
+	var filters = null;
+	var queryFilters = "";
+
 	if (req.query.filters) {
+		queryFilters = "&filters=" + req.query.filters;
+		filters = {};
 		var splitted = req.query.filters.split(',')
 		splitted.forEach(function (filter) {
 			var keyValue = filter.split(":");
-			filters[keyValue[0]] = keyValue[1];
+			if (keyValue.length === 2) {
+				filters[keyValue[0]] = keyValue[1];
+			}
 		});
-		console.log("filters", filters);
 	}
 
-	database.constateringen.getTotal(function (err, total) {
+	function sendChunkInitial() {
+		var previousUrl = null;
+		if (offset > 0) {
+			if (offset - limit >= 0) {
+				previousUrl = '{"href": "/constateringen?offset=' + (offset - limit) + '&limit=' + limit + queryFilters + '"}';
+			} else {
+				previousUrl = '{"href": "/constateringen?offset=0&limit=' + limit + queryFilters + '"}';
+			}
+		}
+		var chunkInitial = '{\n\t"href": "/constateringen",'
+			+ '\n\t"offset": ' + offset + ','
+			+ '\n\t"limit": ' + limit + ','
+			+ '\n\t"filters": ' + JSON.stringify(filters) + ','
+			+ '\n\t"first": {"href": "/constateringen?offset=0&limit=' + limit + queryFilters + '"},'
+			+ '\n\t"previous": ' + previousUrl + ',';
+		res.write(chunkInitial);
+	}
+
+	function sendChunkTotal(total) {
+		_total = null;
+		_finishedSendingTotal = true;
+
+		var nextUrl = null;
+		var lastOffset = Math.floor(total / limit) * limit;
+
+		if (offset + limit < total) {
+			nextUrl = '{ "href": "/constateringen?offset=' + (offset + limit) + '&limit=' + limit + queryFilters + '" }';
+		}
+
+		var chunkTotal = '\n\t"next": ' + nextUrl + ',' +
+			'\n\t"last": { "href": "/constateringen?offset=' + lastOffset + '&limit=' + limit + queryFilters + '" },' +
+			'\n\t"total": ' + total + (_finishedReceivingRows ? "" : ",");
+
+		res.write(chunkTotal);
+	}
+
+	function sendChunkLast() {
+		res.end("\n}");
+	}
+
+	sendChunkInitial();
+
+	database.constateringen.getTotal(filters, function (err, total) {
 		if (err) {
 			throw err;
 		}
 
-		var connection = createConnection().on("connect", function (err) {
+		_total = total;
+
+		if (!_startedReceivingRows) {
+
+			// Zijn de items nog niet aan het streamen? -> Send total thingies
+			sendChunkTotal(_total);
+
+		} else if (_finishedReceivingRows) {
+
+			// Zijn de items al klaar met streamen? -> Send total thingies + finalize request
+			sendChunkTotal(_total);
+			sendChunkLast();
+		}
+		// Else... Zijn de items al aan het streamen? -> Wait
+	});
+
+	var hasRows = false;
+	database.constateringen.getAll(offset, limit, filters, function (err, row, rowcount) {
+		if (err) {
+			throw err;
+		}
+
+		if (!_startedReceivingRows) {
+			res.write('\n\t"items": [');
+			_startedReceivingRows = true;
+		}
+
+		if (!row) {
+			res.write("\n\t]" + (_finishedSendingTotal ? "" : ","))
+			_finishedReceivingRows = true;
+
+			// Klaar met streamen. Kijk of de total klaar staat om nog te versturen?
+			if (_total) {
+				//    -> Ja: Send total thingies 
+				sendChunkTotal(_total);
+			}
+			if (_finishedSendingTotal) {
+				//    -> Nee: finalize request (total is blijkbaar al verzonden)
+				sendChunkLast();
+			}
+
+		} else {
+			// Streamen...
+			res.write("\n\t\t" + (hasRows ? "," : "") + JSON.stringify(row));
+			hasRows = true;
+		}
+
+	});
+
+});
+
+/**
+ * This is a partial update (document replacement) perfprmed with
+ * REST verb 'POST'
+ *
+ * It returns:
+ *  a status code
+ *  and object as a body
+ */
+app.post("/constateringen/:id", function (req, res) {
+	console.log("POST /constateringen/:id ", req.params, req.body);
+
+	database.constateringen.update(req.params.id, req.body, function (err, rowcount) {
+		if (err) {
+			throw err;
+		}
+
+		database.constateringen.getById(req.params.id, function (err, constatering) {
 			if (err) {
 				throw err;
 			}
 
-			setHttpResponseHeader(res);
-			var hasRows = false;
-
-			try {
-				// Check the request to see what the user wants (and if it exists otherwise 404)
-				// Check if the user is logged in and is authorized for the requested action (if not 403)
-				// Get the actual data...
-
-				var previousUrl = null;
-				if (offset > 0) {
-					if (offset - limit >= 0) {
-						previousUrl = '{"href": "/constateringen?offset=' + (offset - limit) + '&limit=' + limit + '"}';
-					} else {
-						previousUrl = '{"href": "/constateringen?offset=0&limit=' + limit + '"}';
-					}
-				}
-
-				var nextUrl = null;
-				if (offset + limit < total) {
-					nextUrl = '{"href": "/constateringen?offset=' + (offset + limit) + '&limit=' + limit + '"}';
-				}
-
-				var string = '{\n"href": "/constateringen",'
-					+ '\n"offset": 0,'
-					+ '\n"limit": ' + limit + ','
-					+ '\n"first": {"href": "/constateringen?offset=0&limit=' + limit + '"},'
-					+ '\n"previous": ' + previousUrl + ','
-					+ '\n"next": ' + nextUrl + ','
-					+ '\n"items": [\n';
-
-				res.write(string);
-
-				var where = '';
-				var filterArray = Object.keys(filters);
-				var hasMoreFilters = false;
-				if (filterArray.length > 0) {
-
-					filterArray.forEach(function (key) {
-
-						if (!hasMoreFilters) {
-							if (filters[key].toLowerCase() === "null") {
-								where += ' WHERE ' + 'VerantwoordelijkSpecialist' + " is null";
-							} else {
-								where += ' WHERE ' + 'VerantwoordelijkSpecialist' + " = '" + filters[key] + "'";
-							}
-							hasMoreFilters = true;
-						} else {
-							where += ' AND ' + key + " = '" + filters[key] + "'";
-						}
-					});
-				}
-
-				console.log("\nWHERE clause = ", where);
-				var query = 'SELECT * FROM Constateringen'
-					+ where
-					+ ' ORDER BY Id ASC OFFSET ' + offset
-					+ ' ROWS FETCH NEXT ' + limit
-					+ ' ROWS ONLY ';
-
-				var request = new Request(query, function (err, rowcount) {
-					if (err) throw err;
-
-					console.log("total", total);
-					var lastOffset = Math.floor(total / limit) * limit;
-					res.end('],\n"last": { "href": "/constateringen?offset=' + lastOffset + '&limit=' + limit + '" }\n}');
+			if (!constatering) {
+				return res.send(404, {
+					"status": 404,
+					"message": "Constateringen with id '" + req.params.id + "' is not found."
 				});
-
-				request.on("row", function (columns) {
-//				console.log("ROW");
-
-					var row = {};
-
-					columns.forEach(function (column) {
-						row[column.metadata.colName] = column.value;
-					});
-
-					res.write((hasRows ? ",\n" : "") + JSON.stringify(row) + "\n");
-					hasRows = true;
-				});
-
-				connection.execSql(request);
-
-			} catch (err) {
-				return handleServerError(err, res);
 			}
 
+			constatering.href = req.url;
+			res.send(200, constatering);
 		});
 
 	});
+
 });
 
+/**
+ * This is a full (document replacement) update perfprmed with
+ * REST verb 'PUT'
+ *
+ * It returns:
+ *  a status code
+ *  and object as a body
+ */
 app.put("/constateringen/:id", function (req, res) {
+	console.log("PUT /constateringen/:id ", req.params, req.body);
 
-	setHttpResponseHeader(res);
-	console.log("You are in the PUT", req.params, req.body);
-
-	database.constateringen.update(req.body, function () {
+	database.constateringen.updateAllProperties(req.body, function () {
 		res.end();
 	});
 
@@ -393,10 +312,7 @@ app.put("/constateringen/:id", function (req, res) {
 // By default 404 Route (ALWAYS Keep this as the last route)
 app.get("*", function (req, res) {
 	console.log("req.body", req.body);
-
-	res.setHeader("Access-Control-Allow-Origin", ORIGIN_URL);
-	res.setHeader("Content-Type", "text/plain");
-	res.send("NOT FOUND!", 404);
+	res.send(404, { status: 404, message: "Unknown request" });
 });
 
 console.log("Serving content on http://localhost:" + port);
