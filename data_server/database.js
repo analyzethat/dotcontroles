@@ -17,54 +17,6 @@ var configSQLServer = {
 	}
 };
 
-//var columnDefinitionList = [
-//	{
-//		name: "Status",
-//		property: "StatusId",
-//		type: "Number",
-//		options: {
-//			0: " ",
-//			1: "Open",
-//			2: "Status 2",
-//			3: "Status 3",
-//			4: "Status 4",
-//			5: "Status 5",
-//			6: "Doorgezet"
-//		},
-//		editable: {
-//			control: "Selectbox",
-//			"default": 2,
-//			"events": ["selected"]
-//		}
-//	},
-//	{ name: "Patientnummer",
-//		property: "PatientNr",
-//		type: "String"
-//	},
-//	{ name: "Ziektegeval",
-//		property: "ZiektegevalNr",
-//		type: "Number"
-//	},
-//	{ name: "Datum Activiteit",
-//		property: "DatumActiviteit",
-//		type: "Date",
-//		sortable: "descending",
-//		format: "DD-MM-YYYY"
-//	},
-//	{ name: "DBC Typering",
-//		property: "DBCTypering",
-//		type: "String"
-//	},
-//	{ name: "Specialist",
-//		property: "VerantwoordelijkSpecialist",
-//		type: "String"
-//	},
-//	{ name: "Overige kenmerken",
-//		property: "OverigeKenmerken",
-//		type: "String"
-//	}
-//];
-
 var database = {
 
 	createConnection: function (callback) {
@@ -89,7 +41,6 @@ var database = {
 	},
 
 	users: {
-
 		getAll: function (callback) {
 
 			database.createConnection(function (err, connection) {
@@ -160,6 +111,38 @@ var database = {
 		}
 	},
 
+	specialists: {
+
+		getAll: function (callback) {
+			database.createConnection(function (err, connection) {
+				if (err) {
+					return callback(err);
+				}
+
+				var specialist = database.constateringen.getPropertyFor("Specialist") || "VerantwoordelijkSpecialist";
+				
+				var query = "SELECT DISTINCT " + specialist + " from constateringen;";
+
+				var request = new Request(query, function (err, rowcount) {
+					return callback(err, null, rowcount); // end
+				});
+
+				request.on("row", function (columns) {
+					var row = {};
+
+					columns.forEach(function (column) {
+						row[column.metadata.colName] = column.value;
+					});
+					return callback(null, row, null);
+				});
+
+				connection.execSql(request);
+
+			});
+		}
+
+	},
+
 	constateringen: {
 
 		getColumnDefinitionList: function () {
@@ -210,6 +193,24 @@ var database = {
 					type: "String"
 				}
 			];
+		},
+
+		getPropertyFor: function (name) {
+
+			var results = null;
+			results = database.constateringen.getColumnDefinitionList().filter(function (colDefinition, index) {
+				if (name === colDefinition.property) {
+					return colDefinition.property;
+				}
+			});
+
+			console.log("\n\n\ngetPropertyFor => name, results", name, results);
+
+			if (results.length > 2) {
+				throw new Error("Multiple properties were found for name " + name);
+			}
+
+			return (results && results.length > 0) ? results[0] : null;
 		},
 
 		getTotal: function (filters, callback) {
@@ -372,14 +373,12 @@ var database = {
 					return callback(err, rowcount);
 				});
 
-				console.log("propertyKeys.length", propertyKeys.length);
+//					console.log("propertyKeys.length", propertyKeys.length);
 				propertyKeys.forEach(function (propertyKey, indexPropertyKey) {
 					database.constateringen.getColumnDefinitionList().forEach(function (colDefinition, index) {
 
 						if (propertyKey === colDefinition.property) {
-							console.log("\nlastIndex, index", lastIndex, index);
-
-							//UPDATE Constateringen , StatusId = @StatusId WHERE Id = @Id
+//								console.log("\nlastIndex, index", lastIndex, index);
 
 							query += (index === 0)
 								? "SET " + propertyKey + " = @" + propertyKey
@@ -390,15 +389,12 @@ var database = {
 						}
 
 					});
-
 				});
 
 				query += " WHERE Id = @Id";
-				console.log("query", query);
 				request.addParameter('Id', tediousTypes.Int, id);
 
 				request.sqlTextOrProcedure = query;
-				console.log("\nrequest.sqlTextOrProcedure", request.sqlTextOrProcedure);
 				connection.execSql(request);
 			});
 		},
