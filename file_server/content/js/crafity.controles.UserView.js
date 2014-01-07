@@ -14,15 +14,14 @@
 			var infoRow = new html.Form().addClass("clientDetails readonly");
 			var txtUsername = new html.TextField().label("gebruikersnaam").appendTo(infoRow).readonly(true);
 			var txtName = new html.TextField().label("Naam").appendTo(infoRow);
-			var txtFamilyName = new html.TextField().label("Familienaam").appendTo(infoRow);
+			var txtFamilyName = new html.TextField().label("Achternaam").appendTo(infoRow);
 
-			repository.user.get(function (err, result) {
+			repository.user.get(function (err, user) {
 			
 				if (err) {
 					console.log("err", err);
 				} else {
 
-					user = result[0];
 					console.log("Got user: ", user);
 
 					txtUsername.value(user.username);
