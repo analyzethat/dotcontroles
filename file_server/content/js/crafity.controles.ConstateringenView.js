@@ -12,22 +12,25 @@
 			var gridRow = new html.Element("div").addClass("grid-row");
 			var mygrid = new html.Grid(constateringenRepository.columnDefinitionList).appendTo(gridRow)
 				.on("selected", function (column, row, value) {
-					confirm("Are you sure?");
+					confirm("Bevestiging status " + value + " update?");
 					row[column.property] = value;
-					constateringenRepository.update(row);
+					constateringenRepository.updateStatus(row);
+//					constateringenRepository.updateAllProperties(row);
 				});
 
-			var firstButton = new html.Button("Eerste").addClass("right").on("click", constateringenRepository.first);
-			var lastButton = new html.Button("Laatste").addClass("right").on("click", constateringenRepository.last);
-			var previousButton = new html.Button("<<").addClass("right").on("click", constateringenRepository.previous);
-			var nextButton = new html.Button(">>").addClass("right").on("click", constateringenRepository.next);
+			var firstButton = new html.Button("Eerste").addClass("right").disabled(true).on("click", constateringenRepository.first);
+			var lastButton = new html.Button("Laatste").addClass("right").disabled(true).on("click", constateringenRepository.last);
+			var previousButton = new html.Button("<<").addClass("right").disabled(true).on("click", constateringenRepository.previous);
+			var nextButton = new html.Button(">>").addClass("right").disabled(true).on("click", constateringenRepository.next);
 
 			constateringenRepository.on("data", function (rows) {
 				mygrid.addRows(rows);
 			});
 			constateringenRepository.on("stateChanged", function () {
+				firstButton.disabled(false);
 				previousButton.disabled(!constateringenRepository.hasPrevious());
 				nextButton.disabled(!constateringenRepository.hasNext());
+				lastButton.disabled(false);
 			});
 			constateringenRepository.init(); // load data
 
@@ -43,6 +46,9 @@
 			var filterContainer = new html.Element("div").addClass("filter-container form")
 				.append(new html.Element("h3").text("Resultaten in tabel filteren op"))
 				.append(new html.DateField().label("tonen vanaf datum").readonly(false).addClass("filter"))
+				.on("change", function(value){
+					constateringenRepository.filterOnDate(value); // GO ON FROM HERE
+				})
 				.append(new html.SelectField().label("specialist").readonly(false).addClass("filter")
 					.options(specialistsRepository.getSpecialists()).value("all")
 					.on("selected", function (value) {
