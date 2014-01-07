@@ -4,7 +4,7 @@
 	"use strict";
 	(function (repositories) {
 
-		function ConstateringenRepository(ajaxAgent, dataserverUrl) {
+		function ConstateringenRepository(ajaxAgent, dataserverUrl, specialistsRepository) {
 			if (!dataserverUrl) {
 				throw new Error("Expected a 'dataserverUrl' argument");
 			}
@@ -14,6 +14,7 @@
 
 			var self = this;
 			var columnDefinitionList = null;
+			var _specialists = null;
 			var state;
 
 			function setState(data) {
@@ -22,6 +23,11 @@
 				self.emit('stateChanged', state);
 			}
 
+			// listen to the state changed event of this repo in order to update the list of specialists
+			specialistsRepository.on("stateChanged", function (data) {
+				_specialists = data;
+			});
+			
 			function updateProperties(id, properties) {
 				console.log("properties", properties);
 				ajaxAgent.post(dataserverUrl + "/constateringen/" + id, properties, function (res) {
@@ -60,14 +66,15 @@
 			};
 
 			this.init = function () {
+				specialistsRepository.init();
 				ajaxAgent.get(dataserverUrl + "/constateringen?offset=0&limit=" + self.limit, function (res) {
 					setState(res.body);
 				});
 			};
 
 			// filtering
-			this.filterOnDate = function (date) {
-alert(date);
+			this.filterOnDate = function (date) { // TODO
+//				alert(date);
 				var filters = null;
 				self.columnDefinitionList.forEach(function (column) {
 					if (column.name === "Datum Activiteit") {
@@ -85,7 +92,7 @@ alert(date);
 					setState(res.body);
 				});
 			};
-			
+
 			this.filterOnSpecialist = function (specialistName) {
 
 				var filters = null;
@@ -114,7 +121,7 @@ alert(date);
 			};
 
 			this.updateStatus = function (constatering) {
-				updateProperties(constatering.Id, {StatusId: constatering.StatusId, VerantwoordelijkSpecialist: "Benedikt"});
+				updateProperties(constatering.Id, {StatusId: constatering.StatusId, DBCTypering: "00.41.999"}); // test
 			};
 
 		}
