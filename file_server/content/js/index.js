@@ -74,7 +74,7 @@ var app = {
 
 //		appContainer.toggleClass("fullscreen");
 
-		keyboard.on("cmd+shft+m", function (e) {
+		crafity.keyboard.on("cmd+shft+m", function (e) {
 			appContainer.toggleClass("fullscreen");
 			e.preventDefault();
 		});
