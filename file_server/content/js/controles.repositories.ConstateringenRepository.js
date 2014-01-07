@@ -13,12 +13,20 @@
 			}
 
 			var self = this;
+			var columnDefinitionList = null;
 			var state;
 
 			function setState(data) {
 				state = data;
 				self.emit('data', state.items);
 				self.emit('stateChanged', state);
+			}
+
+			function updateProperties(id, properties) {
+				console.log("properties", properties);
+				ajaxAgent.post(dataserverUrl + "/constateringen/" + id, properties, function (res) {
+					console.log("response", res);
+				});
 			}
 
 			this.hasPrevious = function () {
@@ -58,20 +66,57 @@
 			};
 
 			// filtering
-			this.filterOnSpecialist = function (specialistName) {
-				ajaxAgent.get(dataserverUrl + "/constateringen?offset=0&limit=" + self.limit + "&filters=VerantwoordelijkSpecialist:" + specialistName, function (res) {
+			this.filterOnDate = function (date) {
+alert(date);
+				var filters = null;
+				self.columnDefinitionList.forEach(function (column) {
+					if (column.name === "Datum Activiteit") {
+						filters = "&filters=" + column.property + ":" + date;
+					}
+				});
+
+				var url = dataserverUrl + "/constateringen?offset=0&limit=" + self.limit;
+				if (filters) {
+					url += filters;
+				}
+
+				ajaxAgent.get(url, function (res) {
+					console.log("\n\nURL: ", url);
 					setState(res.body);
 				});
 			};
 			
+			this.filterOnSpecialist = function (specialistName) {
+
+				var filters = null;
+				self.columnDefinitionList.forEach(function (column) {
+					if (column.name === "Specialist") {
+						filters = "&filters=" + column.property + ":" + specialistName;
+					}
+				});
+
+				var url = dataserverUrl + "/constateringen?offset=0&limit=" + self.limit;
+				if (filters) {
+					url += filters;
+				}
+
+				ajaxAgent.get(url, function (res) {
+					console.log("\n\nURL: ", url);
+					setState(res.body);
+				});
+			};
+
 			// save
-			this.update = function(constatering) {
-				ajaxAgent.put(dataserverUrl + "/constateringen/" + constatering.Id, constatering, function(res){
+			this.updateAllProperties = function (constatering) {
+				ajaxAgent.put(dataserverUrl + "/constateringen/" + constatering.Id, constatering, function (res) {
 					console.log("res", res);
 				});
 			};
-			
-			
+
+			this.updateStatus = function (constatering) {
+				updateProperties(constatering.Id, {StatusId: constatering.StatusId, VerantwoordelijkSpecialist: "Benedikt"});
+			};
+
 		}
 
 		ConstateringenRepository.prototype = crafity.core.EventEmitter.prototype;
@@ -89,7 +134,7 @@
 		 * @type {Array}
 		 */
 		ConstateringenRepository.prototype.columnDefinitionList = [
-			{ 
+			{
 				name: "Status",
 				property: "StatusId",
 				type: "Number",
