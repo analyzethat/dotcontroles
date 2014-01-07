@@ -132,6 +132,32 @@ app.get("/users/:id", function (req, res) {
 
 });
 
+app.get("/specialists", function (req, res) {
+	console.log("GET /specialists ", req.params, req.body);
+
+	var hasRows = false;
+	database.specialists.getAll(function (err, row, rowcount) {
+		if (err) {
+			throw err;
+		}
+		
+		if (!hasRows) {
+			res.write("[");
+		}
+		
+		if (row) {
+//			row.href = req.url + "/" + row.Id;
+			console.log("row", row);
+			res.write((hasRows ? "," : "") + JSON.stringify(row) + "\n");
+			hasRows = true;
+			
+		} else {
+			res.end("]");
+		}
+		
+	});
+});
+
 app.get("/constateringen", function (req, res) {
 	console.log("GET /constateringen ", req.params, req.body);
 
