@@ -96,7 +96,7 @@
 			this.user = {
 				get: function (callback) {
 					ajaxAgent
-						.get(URL_DATASERVER + "user/1")
+						.get(URL_DATASERVER + "/users/1")
 						.end(function (res) {
 							if (res.error) {
 								callback(res.error, null);
