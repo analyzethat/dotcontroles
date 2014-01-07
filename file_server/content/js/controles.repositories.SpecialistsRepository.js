@@ -12,13 +12,51 @@
 			}
 
 			var self = this;
+			var state = null;
+
+//			var dummySpecialists = {"all": "<alles>", null: "<leeg>", "Jansen": "Jansen", "Pulles": "Pulles"};
+
+			function setState(data) {
+				state = data;
+				console.log("\n\nNew update specialists: ", state);
+
+				self.emit('stateChanged', state);
+			}
 
 			this.getSpecialists = function () {
-				var specialists = {"all": "<alles>", null: "<leeg>", "Jansen": "Jansen", "Pulles": "Pulles"};
-				console.log("specialists", specialists);
-				return specialists;
+				var url = dataserverUrl + "/specialists";
+
+				ajaxAgent.get(url, function (res) {
+					console.log("\n\nURL: ", url, res.body);
+
+					// RESULT
+//					[{"VerantwoordelijkSpecialist":null}
+//					,{"VerantwoordelijkSpecialist":"Benedikt"}
+//					,{"VerantwoordelijkSpecialist":"Jansen"}
+//					,{"VerantwoordelijkSpecialist":"Pulles"}
+//					]
+					
+					var specialists = {"all": "<alles>", null: "<leeg>"};
+
+					if (res.body && res.body instanceof Array) {
+						console.log("getSpecialists => res.body", res.body);
+
+						res.body.forEach(function (specialist) {
+
+								specialists[specialist.VerantwoordelijkSpecialist] = (specialist.VerantwoordelijkSpecialist !== null) 
+									? specialist.VerantwoordelijkSpecialist
+									: "null";
+							
+						});
+					}
+					setState(specialists);
+				});
 			};
 
+			this.init = function () {
+				self.getSpecialists();
+			};
+			
 		}
 
 		SpecialistsRepository.prototype = crafity.core.EventEmitter.prototype;
