@@ -33,8 +33,8 @@ var app = {
 		// END only for testing purposes
 		var URL_DATASERVER = "http://data.dotcontroles.dev";
 		
-		var constateringenRepository = new controles.repositories.ConstateringenRepository(superagent, URL_DATASERVER);
 		var specialistsRepository = new controles.repositories.SpecialistsRepository(superagent, URL_DATASERVER);
+		var constateringenRepository = new controles.repositories.ConstateringenRepository(superagent, URL_DATASERVER, specialistsRepository);
 		var constateringenView = new crafity.controles.ConstateringenView(constateringenRepository, specialistsRepository);
 		
 		var userView = new crafity.controles.UserView(new crafity.controles.Repository());
