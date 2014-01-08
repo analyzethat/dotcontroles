@@ -171,17 +171,21 @@ app.get("/constateringen", function (req, res) {
 
 	var filters = null;
 	var queryFilters = "";
-
+	
 	if (req.query.filters) {
-		queryFilters = "&filters=" + req.query.filters;
+		queryFilters = "&filters=" + encodeURIComponent(req.query.filters);
 		filters = {};
 		var splitted = req.query.filters.split(',')
 		splitted.forEach(function (filter) {
 			var keyValue = filter.split(":");
+			
 			if (keyValue.length === 2) {
-				filters[keyValue[0]] = keyValue[1];
+				filters[keyValue[0]] = decodeURIComponent(keyValue[1]);
+			} else {
+				throw new Error("Filter has multiple sections separated by colon");
 			}
 		});
+		console.log("filters", filters);
 	}
 
 	function sendChunkInitial() {
