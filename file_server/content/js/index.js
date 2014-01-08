@@ -32,43 +32,39 @@ var app = {
 		};
 		// END only for testing purposes
 		var URL_DATASERVER = "http://data.dotcontroles.dev";
-		
+
 		var specialistsRepository = new controles.repositories.SpecialistsRepository(superagent, URL_DATASERVER);
 		var constateringenRepository = new controles.repositories.ConstateringenRepository(superagent, URL_DATASERVER, specialistsRepository);
 		var constateringenView = new crafity.controles.ConstateringenView(constateringenRepository, specialistsRepository);
-		
+		var menu = new crafity.html.Menu().addClass("main");
 		var userView = new crafity.controles.UserView(new crafity.controles.Repository());
 
 		appContainer = new crafity.html.Element("div").addClass("app");
 
-		document.body.appendChild(
-			new crafity.html.MenuPanel("Overzicht")
-				.addMenuItems([
-					new crafity.html.MenuItem("Mijn gegevens", function () {
-						appContainer.getChildren().forEach(function (child) {
-							if (child === userView) {
-								child.show();
-							} else {
-								child.hide();
-							}
-						});
-						appContainer.append(userView);
-					}).select(),
-					new crafity.html.MenuItem("Constateringen", function () {
-						appContainer.getChildren().forEach(function (child) {
-							if (child === constateringenView) {
-								child.show();
-							} else {
-								child.hide();
-							}
-						});
-						appContainer.append(constateringenView);
-					}).select()
-				])
-				.addClass("main")
-				.show()
-				.render()
-		);
+		document.body.appendChild(menu.render());
+		menu.addMenuPanel(new crafity.html.MenuPanel("Overzicht")
+			.addMenuItems([
+				new crafity.html.MenuItem("Mijn gegevens", function () {
+					appContainer.getChildren().forEach(function (child) {
+						if (child === userView) {
+							child.show();
+						} else {
+							child.hide();
+						}
+					});
+					appContainer.append(userView);
+				}).select(),
+				new crafity.html.MenuItem("Constateringen", function () {
+					appContainer.getChildren().forEach(function (child) {
+						if (child === constateringenView) {
+							child.show();
+						} else {
+							child.hide();
+						}
+					});
+					appContainer.append(constateringenView);
+				}).select()
+			]));
 
 		document.body.appendChild(appContainer.render());
 
