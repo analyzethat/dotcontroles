@@ -1,0 +1,12 @@
+{
+	"configSQLServer": {
+		"userName": "node_user",
+		"password": "nodeuser",
+		"server": "192.168.145.129",
+		"options": {
+			"database": "dotcontroles",
+			"instanceName": "SQLEXPRESS",
+			"rowCollectionOnRequestCompletion": false
+		}
+	}
+}

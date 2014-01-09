@@ -83,7 +83,7 @@ app.post("/login", function (req, res) {
 	if (req.body.username && req.body.password) {
 	}
 
-	var body = { name: "Logged in succesfull"};
+	var body = { name: "Logged in succesfully"};
 	res.send(200, body);
 });
 
