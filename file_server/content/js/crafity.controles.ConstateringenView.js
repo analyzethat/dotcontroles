@@ -15,7 +15,6 @@
 					confirm("Bevestiging status " + value + " update?");
 					row[column.property] = value;
 					constateringenRepository.updateStatus(row);
-//					constateringenRepository.updateAllProperties(row);
 				});
 
 			var firstButton = new html.Button("Eerste").addClass("right").disabled(true).on("click", constateringenRepository.first);
@@ -43,28 +42,7 @@
 				.append(new html.Element("p").text("Aanvrager (poort)specialisme in dummy DBC"))
 				.appendTo(infoRow);
 
-			var filterView = new window.controles.ConstateringenFilterView(constateringenRepository, specialistsRepository);
-			filterView.appendTo(infoRow);
-
-//			// filters
-//			var specialistsOptionList = new html.SelectField().label("specialist").readonly(false).addClass("filter");
-//			var filterContainer = new html.Element("div").addClass("filter-container form")
-//				.append(new html.Element("h3").text("Resultaten in tabel filteren op"))
-//				.append(new html.DateField().label("tonen vanaf datum").readonly(false).addClass("filter")
-//				.change(function (value) {
-//						if (!value) { return; }
-//					constateringenRepository.filterOnDate(value);
-//				}))
-//				.append(specialistsOptionList)
-//				.appendTo(infoRow);
-//			
-//			specialistsRepository.on("stateChanged", function (specialists) {
-//				// What happens here in the future?
-//				specialistsOptionList.options(specialists).value("all")
-//									.on("selected", function (value) {
-//										constateringenRepository.filterOnSpecialist(value);
-//									});
-//			});
+			var filterView = new window.controles.ConstateringenFilterView(constateringenRepository, specialistsRepository).appendTo(infoRow);
 
 			// command row
 			var commandRow = new html.Element("div").addClass("command-row")
