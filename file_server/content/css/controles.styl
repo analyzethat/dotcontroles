@@ -19,6 +19,51 @@ h3
 	z-index: -10
 	border-right: #E8E8E8 1px solid
 
+.login.container
+	position: fixed
+	left: 0
+	top: 0
+	right: 0
+	bottom: 0
+	background-color: #f6f7f9
+	z-index: -1
+	.dialog
+		position: relative
+		z-index: 0		
+		margin: 100px auto
+		width: 400px
+		border: 1px double silver
+		box-shadow: 1px 1px 4px #AAA;
+		border-radius: 3px
+		overflow: hidden
+		padding: 20px
+		.stethoscope
+			font-size: 70pt
+			text-align: center
+			color: silver
+			padding: 10px 15px
+		.field
+			line-height: 2.5em
+		.username,
+		.password
+			label span,
+			input
+				font-size: 12pt
+				margin: 0 5px
+			input,
+			input:focus
+				position: relative;
+				padding: 3px;
+				border: 1px solid #bdbdbd;
+				box-shadow: 0 1px 5px #808182;
+				text-indent: 5px;
+				border-radius: 2px;
+				/*background: blue*/
+		.submit
+			float: right
+			margin: initial
+			line-height: 22px
+
 .constateringen
 	.info-row
 		height: 150px

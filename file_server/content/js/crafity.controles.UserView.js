@@ -3,13 +3,13 @@
 (function (crafity) {
 	"use strict";
 	var html = crafity.html;
-	
+
 	(function (controles) {
 
 		function UserView(repository) {
 			var self = this;
 			var user = null;
-
+			
 			// build the GUI elements
 			var infoRow = new html.Form().addClass("clientDetails readonly");
 			var txtUsername = new html.TextField().label("gebruikersnaam").appendTo(infoRow).readonly(true);
@@ -17,7 +17,7 @@
 			var txtFamilyName = new html.TextField().label("Achternaam").appendTo(infoRow);
 
 			repository.user.get(function (err, user) {
-			
+
 				if (err) {
 					console.log("err", err);
 				} else {
@@ -30,6 +30,8 @@
 				}
 			});
 
+			this.addClass("detailsContainer");
+			
 			this.save = function () {
 				if (!user || user === null) {
 					return;
@@ -41,7 +43,7 @@
 			var buttonBar = new html.ButtonBar()
 				.append(
 					new html.Button("Opslaan")
-						.addClass("right")
+						.addClass("right").hide()
 						.on("click", self.save)
 				);
 
@@ -49,7 +51,7 @@
 			this.append(buttonBar);
 		}
 
-		UserView.prototype = new html.Element("div").addClass("detailsContainer");
+		UserView.prototype = new html.Element("div");
 		controles.UserView = UserView;
 
 	}(crafity.controles = crafity.controles || {}));
