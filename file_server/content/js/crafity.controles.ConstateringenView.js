@@ -8,7 +8,8 @@
 
 		function ConstateringenView(constateringenRepository, specialistsRepository) {
 			var self = this;
-
+			this.addClass("constateringen");
+			
 			var gridRow = new html.Element("div").addClass("grid-row");
 			var mygrid = new html.Grid(constateringenRepository.columnDefinitionList).appendTo(gridRow)
 				.on("selected", function (column, row, value) {
@@ -57,7 +58,7 @@
 				.append(commandRow);
 		}
 
-		ConstateringenView.prototype = new html.Element("div").addClass("constateringen");
+		ConstateringenView.prototype = new html.Element("div");
 		controles.ConstateringenView = ConstateringenView;
 
 	}(crafity.controles = crafity.controles || {}));

@@ -17,7 +17,8 @@
 			specialist: null
 		};
 		this.state = _state;
-
+		this.addClass("filter-container form");
+		
 		var specialistsOptionList = new html.SelectField().label("specialist").readonly(false).addClass("filter");
 		var dateFilter = new html.DateField().label("tonen vanaf datum").readonly(false).addClass("filter")
 			.change(function (value) {
@@ -41,7 +42,7 @@
 		});
 	}
 
-	ConstateringenFilterView.prototype = new html.Element("div").addClass("filter-container form");
+	ConstateringenFilterView.prototype = new html.Element("div");
 	controles.ConstateringenFilterView = ConstateringenFilterView;
 
 }(window.controles = window.controles || {}));
