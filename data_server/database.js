@@ -153,34 +153,86 @@ var database = (function () {
 
 		},
 
-		controles: {
-			
-			getAll: function (callback) {
-				database.createConnection(function (err, connection) {
-					if (err) {
-						return callback(err);
-					}
+		controles: (function () {
+			function createWhere(filters, request) {
+				var where = "";
+				return where;
+			}
 
-					var query = "SELECT * from Controles;";
-					var request = new Request(query, function (err, rowcownt) {
-						return callback(err, null, rowcount); // end
-					});
+			return {
+				getTotal: function (filters, callback) {
+					database.createConnection(function (err, connection) {
+						if (err) {
+							return callback(err);
+						}
+						var total = 0;
+						var where = "";
+						var query = "SELECT count('x') as total FROM Controles";
 
-					request.on("row", function (columns) {
-						var row = {};
-
-						columns.forEach(function (column) {
-							console.log("column", column);
-							row[column.metadata.colName] = column.value;
+						var request = new Request(query, function (err) {
+							return callback(err, !err && total);
 						});
 
-						return callback(null, row, null);
-					});
+						try {
+							where = createWhere(filters, request);
+						} catch (error) {
+							return callback(error);
+						}
 
-					connection.execSql(request);
-				});
-			}
-		},
+						query += (where ? ' WHERE ' + where : "");
+
+						request.on("row", function (columns) {
+							total = columns.total.value;
+						});
+						console.log("query", query);
+						request.sqlTextOrProcedure = query;
+						connection.execSql(request);
+					});
+				},
+				getAll: function (offset, limit, filters, callback) {
+					database.createConnection(function (err, connection) {
+						if (err) {
+							return callback(err);
+						}
+
+						var where = "";
+						var query = "";
+
+						var request = new Request(query, function (err, rowcount) {
+							return callback(err, null, rowcount);
+						});
+
+						try {
+							where = createWhere(filters, request);
+						} catch (error) {
+							return callback(error);
+						}
+
+						query = "SELECT Controles.*,  (SELECT COUNT(*) FROM Constateringen WHERE ControleId = Controles.Id) AS NumberOfConstateringen FROM [Controles]"
+							+ (where ? " WHERE " + where : "")
+							+ " ORDER BY Id ASC OFFSET " + offset
+							+ " ROWS FETCH NEXT " + limit
+							+ " ROWS ONLY ";
+						request.sqlTextOrProcedure = query;
+
+						console.log("\nquery", query);
+
+						request.on("row", function (columns) {
+							var row = {};
+
+							columns.forEach(function (column) {
+								row[column.metadata.colName] = column.value;
+							});
+
+							return callback(null, row, null);
+						});
+
+						connection.execSql(request);
+					});
+				}
+			};
+
+		}()),
 
 		constateringen: (function () {
 
@@ -333,37 +385,6 @@ var database = (function () {
 							return callback(err, null, rowcount);
 						});
 
-						//					if (filters) {
-						//						var filterArray = Object.keys(filters);
-						//
-						//						filterArray.forEach(function (key) {
-						//
-						//							if (key === "VerantwoordelijkSpecialist") {
-						//								where = where && where + " AND ";
-						//
-						//								if (filters[key].toLowerCase() === "null") {
-						//									where += "VerantwoordelijkSpecialist is null";
-						//								} else {
-						//									where += "VerantwoordelijkSpecialist = @" + key;
-						//									request.addParameter(key, tediousTypes.NVarChar, filters[key]);
-						//								}
-						//
-						//							} else if (key === "DatumActiviteit") {
-						//								// TODO: IS THE DATE VALID???
-						//								where = where && where + " AND ";
-						//
-						//								where += "DatumActiviteit >= @" + key;
-						//								request.addParameter(key, tediousTypes.SmallDateTime, new Date(filters[key]));
-						//							} else {
-						//								error = new Error("The filter '" + key + "' is not supported.");
-						//							}
-						//
-						//						});
-						//
-						//						if (error) {
-						//							return callback(error);
-						//						}
-						//					}
 						try {
 							where = createWhere(filters, request);
 						} catch (error) {
@@ -524,15 +545,33 @@ var database = (function () {
 }());
 
 module.exports = database;
+
+//		{
+//			
+//			getAll: function (callback) {
 //				database.createConnection(function (err, connection) {
+//					if (err) {
+//						return callback(err);
+//					}
 //
+//					var query = "SELECT Controles.*,  (SELECT COUNT(*) FROM Constateringen WHERE ControleId = Controles.Id) AS NumberOfConstateringen FROM [Controles];";
+//					
 //					var request = new Request(query, function (err, rowcount) {
+//						return callback(err, null, rowcount); // end
+//					});
+//
 //					request.on("row", function (columns) {
+//						var row = {};
+//
+//						columns.forEach(function (column) {
 //							console.log("column", column);
 //							row[column.metadata.colName] = column.value;
 //						});
 //
+//						return callback(null, row, null);
 //					});
+//
+//					connection.execSql(request);
 //				});
 //			}
 //		},
