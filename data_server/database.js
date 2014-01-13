@@ -524,3 +524,15 @@ var database = (function () {
 }());
 
 module.exports = database;
+//				database.createConnection(function (err, connection) {
+//
+//					var request = new Request(query, function (err, rowcount) {
+//					request.on("row", function (columns) {
+//							console.log("column", column);
+//							row[column.metadata.colName] = column.value;
+//						});
+//
+//					});
+//				});
+//			}
+//		},
