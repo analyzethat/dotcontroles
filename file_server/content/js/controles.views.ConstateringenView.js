@@ -1,15 +1,15 @@
 /*globals window, Element, TextField, Grid, ButtonBar, Button*/
 
-(function (crafity) {
+(function (controles) {
 	"use strict";
 	var html = crafity.html;
 
-	(function (controles) {
+	(function (views) {
 
 		function ConstateringenView(constateringenRepository, specialistsRepository) {
 			var self = this;
 			this.addClass("constateringen");
-			
+
 			var gridRow = new html.Element("div").addClass("grid-row");
 			var mygrid = new html.Grid(constateringenRepository.columnDefinitionList).appendTo(gridRow)
 				.on("selected", function (column, row, value) {
@@ -18,10 +18,21 @@
 					constateringenRepository.updateStatus(row);
 				});
 
-			var firstButton = new html.Button("Eerste").addClass("right").disabled(true).on("click", function () { constateringenRepository.first(); });
-			var lastButton = new html.Button("Laatste").addClass("right").disabled(true).on("click", function () { constateringenRepository.last(); });
-			var previousButton = new html.Button("<<").addClass("right").disabled(true).on("click", function () { constateringenRepository.previous(); });
-			var nextButton = new html.Button(">>").addClass("right").disabled(true).on("click", function () { constateringenRepository.next(); });
+			var backButton = new html.Button("Controles").on("click", function () {
+				controles.eventbus.emit("openControles");
+			});
+			var firstButton = new html.Button("Eerste").addClass("right").disabled(true).on("click", function () {
+				constateringenRepository.first();
+			});
+			var lastButton = new html.Button("Laatste").addClass("right").disabled(true).on("click", function () {
+				constateringenRepository.last();
+			});
+			var previousButton = new html.Button("<<").addClass("right").disabled(true).on("click", function () {
+				constateringenRepository.previous();
+			});
+			var nextButton = new html.Button(">>").addClass("right").disabled(true).on("click", function () {
+				constateringenRepository.next();
+			});
 
 			constateringenRepository.on("data", function (rows) {
 				mygrid.addRows(rows);
@@ -48,6 +59,7 @@
 			// command row
 			var commandRow = new html.Element("div").addClass("command-row")
 				.append(new html.ButtonBar()
+					.append(backButton)
 					.append(lastButton)
 					.append(nextButton)
 					.append(previousButton)
@@ -59,8 +71,8 @@
 		}
 
 		ConstateringenView.prototype = new html.Element("div");
-		controles.ConstateringenView = ConstateringenView;
+		views.ConstateringenView = ConstateringenView;
 
-	}(crafity.controles = crafity.controles || {}));
+	}(controles.views = controles.views || {}));
 
-}(window.crafity = window.crafity || {}));
+}(window.controles = window.controles || {}));
