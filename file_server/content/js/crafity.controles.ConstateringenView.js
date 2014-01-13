@@ -18,10 +18,10 @@
 					constateringenRepository.updateStatus(row);
 				});
 
-			var firstButton = new html.Button("Eerste").addClass("right").disabled(true).on("click", constateringenRepository.first);
-			var lastButton = new html.Button("Laatste").addClass("right").disabled(true).on("click", constateringenRepository.last);
-			var previousButton = new html.Button("<<").addClass("right").disabled(true).on("click", constateringenRepository.previous);
-			var nextButton = new html.Button(">>").addClass("right").disabled(true).on("click", constateringenRepository.next);
+			var firstButton = new html.Button("Eerste").addClass("right").disabled(true).on("click", function () { constateringenRepository.first(); });
+			var lastButton = new html.Button("Laatste").addClass("right").disabled(true).on("click", function () { constateringenRepository.last(); });
+			var previousButton = new html.Button("<<").addClass("right").disabled(true).on("click", function () { constateringenRepository.previous(); });
+			var nextButton = new html.Button(">>").addClass("right").disabled(true).on("click", function () { constateringenRepository.next(); });
 
 			constateringenRepository.on("data", function (rows) {
 				mygrid.addRows(rows);
