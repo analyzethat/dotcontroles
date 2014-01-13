@@ -18,19 +18,19 @@
 		var loginButton = new html.Button("login").addClass("symbol submit smaller").appendTo(loginDialog);
 		icon.getElement().innerHTML = "&#xF0F1;";
 		loginButton.getElement().innerHTML = "&#xF13E;";
-	
-		loginButton.on("click",function () {
 
-			var isValid = true;
-			isValid = usernameField.verify() && isValid;
-			isValid = passwordField.verify() && isValid;
-
+		function login() {
+			var isValid = loginForm.verify();
 			if (isValid) {
 				self.emit("loggedin", { username: usernameField.value(), password: passwordField.value() });
+			} else {
+				loginForm.focus();
 			}
+		}
 
-		});
-
+		loginButton.on("click",login);
+		crafity.keyboard.attach(loginForm).on("enter", login);
+		
 		this.focus = function () {
 			usernameField.focus();
 		};
