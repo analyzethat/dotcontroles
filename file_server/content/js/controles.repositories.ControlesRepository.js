@@ -21,7 +21,7 @@
 		/**
 		 * Become a child of the ListRepository object
 		 */
-		ControlesRepository.prototype = new controles.repositories.ListRepository(superagent, this.URL_DATASERVER);
+		ControlesRepository.prototype = new controles.repositories.ListRepository(superagent, repositories.URL_DATASERVER);
 		/**
 		 * Ensure that 'instanceof' will point to the type ControlesRepository and not the prototype
 		 */
@@ -47,12 +47,11 @@
 			{ name: "Type",
 				property: "Type",
 				type: "String"
+			},
+			{ name: "Aantal Constateringen",
+				property: "NumberOfConstateringen",
+				type: "Number"
 			}
-//			,
-//			{ name: "Constateringen",
-//				property: "Contateringen",
-//				type: "Number"
-//			}
 		];
 
 		/**
