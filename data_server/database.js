@@ -57,7 +57,7 @@ var database = (function () {
 						return callback(err);
 					}
 
-					var query = "select * from users";
+					var query = "SELECT * FROM users";
 
 					var request = new Request(query, function (err, rowcount) {
 						return callback(err, null, rowcount); // end
