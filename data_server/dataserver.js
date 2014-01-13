@@ -161,25 +161,129 @@ app.get("/specialists", function (req, res) {
 app.get("/controles", function (req, res) {
 	console.log("GET /controles ", req.params, req.body);
 
-	var hasRows = false;
-	database.controles.getAll(function (err, row, rowcount) {
+	var offset = parseInt(req.query.offset || 0, 10);
+	var limit = parseInt(req.query.limit || 5, 10);
+	var _total = null;
+
+	var _finishedSendingTotal = false;
+	var _startedReceivingRows = false;
+	var _finishedReceivingRows = false;
+
+	var filters = null;
+	var queryFilters = "";
+
+	if (req.query.filters) {
+		queryFilters = "&filters=" + encodeURIComponent(req.query.filters);
+		filters = {};
+		var splitted = req.query.filters.split(',')
+		splitted.forEach(function (filter) {
+			var keyValue = filter.split(":");
+
+			if (keyValue.length === 2) {
+				filters[keyValue[0]] = decodeURIComponent(keyValue[1]);
+			} else {
+				throw new Error("Filter has multiple sections separated by colon");
+			}
+		});
+		console.log("filters", filters);
+	}
+
+	function sendChunkInitial() {
+		var previousUrl = null;
+		if (offset > 0) {
+			if (offset - limit >= 0) {
+				previousUrl = '{"href": "/controles?offset=' + (offset - limit) + '&limit=' + limit + queryFilters + '"}';
+			} else {
+				previousUrl = '{"href": "/controles?offset=0&limit=' + limit + queryFilters + '"}';
+			}
+		}
+		var chunkInitial = '{\n\t"href": "/controles",'
+			+ '\n\t"offset": ' + offset + ','
+			+ '\n\t"limit": ' + limit + ','
+			+ '\n\t"filters": ' + JSON.stringify(filters) + ','
+			+ '\n\t"first": {"href": "/controles?offset=0&limit=' + limit + queryFilters + '"},'
+			+ '\n\t"previous": ' + previousUrl + ',';
+		res.write(chunkInitial);
+	}
+
+	function sendChunkTotal(total) {
+		_total = null;
+		_finishedSendingTotal = true;
+
+		var nextUrl = null;
+		var lastOffset = Math.floor(total / limit) * limit;
+
+		if (offset + limit < total) {
+			nextUrl = '{ "href": "/controles?offset=' + (offset + limit) + '&limit=' + limit + queryFilters + '" }';
+		}
+
+		var chunkTotal = '\n\t"next": ' + nextUrl + ',' +
+			'\n\t"last": { "href": "/controles?offset=' + lastOffset + '&limit=' + limit + queryFilters + '" },' +
+			'\n\t"total": ' + total + (_finishedReceivingRows ? "" : ",");
+
+		res.write(chunkTotal);
+	}
+
+	function sendChunkLast() {
+		res.end("\n}");
+	}
+
+	sendChunkInitial();
+
+	database.controles.getTotal(filters, function (err, total) {
 		if (err) {
 			throw err;
 		}
 
-		if (!hasRows) {
-			res.write("[");
+		_total = total;
+
+		if (!_startedReceivingRows) {
+
+			// Zijn de items nog niet aan het streamen? -> Send total thingies
+			sendChunkTotal(_total);
+
+		} else if (_finishedReceivingRows) {
+
+			// Zijn de items al klaar met streamen? -> Send total thingies + finalize request
+			sendChunkTotal(_total);
+			sendChunkLast();
+		}
+		// Else... Zijn de items al aan het streamen? -> Wait
+	});
+
+	var hasRows = false;
+	database.controles.getAll(offset, limit, filters, function (err, row, rowcount) {
+		if (err) {
+			throw err;
 		}
 
-		if (row) {
-			res.write((hasRows ? "," : "") + JSON.stringify(row) + "\n");
-			hasRows = true;
+		if (!_startedReceivingRows) {
+			res.write('\n\t"items": [');
+			_startedReceivingRows = true;
+		}
+
+		if (!row) {
+			res.write("\n\t]" + (_finishedSendingTotal ? "" : ","))
+			_finishedReceivingRows = true;
+
+			// Klaar met streamen. Kijk of de total klaar staat om nog te versturen?
+			if (_total) {
+				//    -> Ja: Send total thingies 
+				sendChunkTotal(_total);
+			}
+			if (_finishedSendingTotal) {
+				//    -> Nee: finalize request (total is blijkbaar al verzonden)
+				sendChunkLast();
+			}
 
 		} else {
-			res.end("]");
+			// Streamen...
+			res.write("\n\t\t" + (hasRows ? "," : "") + JSON.stringify(row));
+			hasRows = true;
 		}
-		
+
 	});
+	
 });
 
 app.get("/constateringen", function (req, res) {
