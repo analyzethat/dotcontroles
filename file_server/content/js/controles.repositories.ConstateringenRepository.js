@@ -1,195 +1,107 @@
-/*globals superagent, window, console*/
+/*globals superagent, window, console, alert*/
 
 (function (controles) {
 	"use strict";
-	
+
 	(function (repositories) {
 
-		function ConstateringenRepository(ajaxAgent, dataserverUrl, specialistsRepository) {
-			if (!dataserverUrl) {
-				throw new Error("Expected a 'dataserverUrl' argument");
-			}
-			if (!ajaxAgent) {
-				throw new Error("Expected a 'ajaxAgent' argument");
-			}
-
-			var self = this;
-			var columnDefinitionList = null;
+		function ConstateringenRepository(specialistsRepository) {
 			var _specialists = null;
-			var state;
-
-			function setState(data) {
-				state = data;
-				self.emit('data', state.items);
-				self.emit('stateChanged', state);
-			}
-
-			function getPropertyFor(name) {
-				var res = null;
-				res = self.columnDefinitionList
-					.filter(function (colDefinition, index) {
-						return (name === colDefinition.name);
-					})
-					.map(function (colDefinition, index) {
-						if (name === colDefinition.name) {
-							return colDefinition.property;
-						}
-					});
-
-				if (res.length > 2) {
-					throw new Error("Multiple properties were found for name " + name);
-				}
-
-				return (res && res.length > 0) ? res[0] : null;
-			}
+			var _url = this._dataserverUrl + "/constateringen";
 
 			// listen to the state changed event of this repo in order to update the list of specialists
 			specialistsRepository.on("stateChanged", function (data) {
 				_specialists = data;
 			});
 
-			function updateProperties(id, properties) {
-				console.log("properties", properties);
-				ajaxAgent.post(dataserverUrl + "/constateringen/" + id, properties, function (res) {
-					console.log("response", res);
-				});
-			}
-
-			this.hasPrevious = function () {
-				return state.previous !== null;
-			};
-			this.hasNext = function () {
-				return state.next !== null;
-			};
-
-			this.first = function () {
-				ajaxAgent.get(dataserverUrl + state.first.href, function (res) {
-					setState(res.body);
-				});
-			};
-
-			this.last = function () {
-				ajaxAgent.get(dataserverUrl + state.last.href, function (res) {
-					setState(res.body);
-				});
-			};
-
-			this.previous = function () {
-				ajaxAgent.get(dataserverUrl + state.previous.href, function (res) {
-					setState(res.body);
-				});
-			};
-			this.next = function () {
-				ajaxAgent.get(dataserverUrl + state.next.href, function (res) {
-					setState(res.body);
-				});
-			};
-
+			/**
+			 * Initialize.
+			 */
 			this.init = function () {
 				specialistsRepository.init();
-				ajaxAgent.get(dataserverUrl + "/constateringen?offset=0&limit=" + self.limit, function (res) {
-					setState(res.body);
+
+				var self = this;
+				this._ajaxAgent.get(_url + "?offset=0&limit=" + self.limit, function (res) {
+					console.log("\nGET /constateringen?offset=0&limit=    , res.body", res.body);
+					self.state(res.body);
 				});
 			};
-
-			// filtering
+			
+			/**
+			 * Filter
+			 * @param filters
+			 */
 			this.filter = function (filters) {
 				if (!filters) {
 					throw new Error("Missing argument filters.");
 				}
 
-				var url = dataserverUrl + "/constateringen?offset=0&limit=" + self.limit;
-				var queryString = ""; // a falsy value => can check against !value
+				var self = this;
+				var url = _url + "?offset=0&limit=" + self.limit;
+				var filtersQueryString = ""; // a falsy value => can check against !value
 
-				// gather all filters with and AND operator
+				// gather all filters and combine with the logical AND operator
 				Object.keys(filters).forEach(function (filterKey) {
 
 					if (filterKey === "fromDate" && filters[filterKey] !== null) {
 						console.log("filters[filterKey]", filters[filterKey]);
 
-						queryString += (queryString ? "," : "")
-							+ encodeURIComponent(getPropertyFor("Datum Activiteit"))
+						filtersQueryString += (filtersQueryString ? "," : "")
+							+ encodeURIComponent(self.getPropertyFor("Datum Activiteit", self.columnDefinitionList))
 							+ ":" + encodeURIComponent(encodeURIComponent(filters[filterKey].toISOString()));
 					}
 
 					if (filterKey === "specialist" && filters[filterKey] !== null) {
-						queryString += (queryString ? "," : "")
-							+ encodeURIComponent(getPropertyFor("Specialist"))
+						filtersQueryString += (filtersQueryString ? "," : "")
+							+ encodeURIComponent(self.getPropertyFor("Specialist", self.columnDefinitionList))
 							+ ":" + encodeURIComponent(encodeURIComponent(filters[filterKey]));
 					}
 				});
 
-				console.log("queryString", queryString);
-				if (queryString) {
-					queryString = "&filters=" + queryString;
-					url += queryString;
+				console.log("queryString", filtersQueryString);
+				if (filtersQueryString) {
+					filtersQueryString = "&filters=" + filtersQueryString;
+					url += filtersQueryString;
 				}
 
-				ajaxAgent.get(url, function (res) {
-					console.log("\n\nURL: ", url);
+				this._ajaxAgent.get(url, function (res) {
+					console.log("\n\nGET ", url);
 
 					console.log("res.body", res.body);
-					setState(res.body);
+					self.state(res.body);
 				});
 			};
 
-//			this.filterOnDate = function (date) {
-//				var filters = null;
-//				self.columnDefinitionList.forEach(function (column) {
-//
-//					if (date && column.name === "Datum Activiteit") {
-//						// encode the value two times, because the 
-//						filters = "&filters=" + encodeURIComponent(column.property) + ":" + encodeURIComponent(encodeURIComponent(date.toISOString()));
-//					}
-//				});
-//
-//				var url = dataserverUrl + "/constateringen?offset=0&limit=" + self.limit;
-//				if (filters) {
-//					url += filters;
-//				}
-//
-//				ajaxAgent.get(url, function (res) {
-//					console.log("\n\nURL: ", url);
-//					setState(res.body);
-//				});
-//			};
-//
-//			this.filterOnSpecialist = function (specialistName) {
-//
-//				var filters = null;
-//				self.columnDefinitionList.forEach(function (column) {
-//					if (column.name === "Specialist") {
-//						filters = "&filters=" + column.property + ":" + specialistName;
-//					}
-//				});
-//
-//				var url = dataserverUrl + "/constateringen?offset=0&limit=" + self.limit;
-//				if (filters) {
-//					url += filters;
-//				}
-//
-//				ajaxAgent.get(url, function (res) {
-//					console.log("\n\nURL: ", url);
-//					setState(res.body);
-//				});
-//			};
-
-			// save
+			/**
+			 * Full update.
+			 * @param constatering
+			 */
 			this.updateAllProperties = function (constatering) {
-				ajaxAgent.put(dataserverUrl + "/constateringen/" + constatering.Id, constatering, function (res) {
+				this._ajaxAgent.put(_url + "/" + constatering.Id, constatering, function (res) {
 					console.log("res", res);
 				});
 			};
 
+			/**
+			 * Partial update.
+			 * @param constatering
+			 */
 			this.updateStatus = function (constatering) {
-				updateProperties(constatering.Id, {StatusId: constatering.StatusId, DBCTypering: "00.41.999"}); // test
+				console.log("UPDATE status constatering", constatering);
+				this._ajaxAgent.post(_url + "/" + constatering.Id, { StatusId: constatering.StatusId }, function (res) {
+					console.log("GET response", res);
+				});
 			};
-
 		}
 
-		ConstateringenRepository.prototype = crafity.core.EventEmitter.prototype;
-		ConstateringenRepository.prototype.limit = 12;
-
+		/**
+		 * Become a child of the ListRepository object
+		 */
+		ConstateringenRepository.prototype = new controles.repositories.ListRepository(superagent, repositories.URL_DATASERVER);
+		/**
+		 * Ensure that 'instanceof' will point to the type ConstateringenRepository and not the prototype
+		 */
+		ConstateringenRepository.prototype.constructor = controles.repositories.ConstateringenRepository;
 		/**
 		 * The constateringen columns are placed in an Array of zero or more column definition objects
 		 *
@@ -249,7 +161,10 @@
 			}
 		];
 
-		// expose to outside callers
+		/**
+		 * Expose to outside callers
+		 * @type {ConstateringenRepository}
+		 */
 		repositories.ConstateringenRepository = ConstateringenRepository;
 
 	}(controles.repositories = controles.repositories || {}));
