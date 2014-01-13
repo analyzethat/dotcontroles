@@ -128,7 +128,7 @@
 					6: "Doorgezet"
 				},
 				editable: {
-					control: "Selectbox",
+					control: "crafity.html.Selectbox",
 					"default": 2,
 					"events": ["selected"]
 				}
