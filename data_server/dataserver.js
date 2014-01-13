@@ -140,17 +140,41 @@ app.get("/specialists", function (req, res) {
 		if (err) {
 			throw err;
 		}
-		
+
 		if (!hasRows) {
 			res.write("[");
 		}
-		
+
 		if (row) {
 //			row.href = req.url + "/" + row.Id;
 			console.log("row", row);
 			res.write((hasRows ? "," : "") + JSON.stringify(row) + "\n");
 			hasRows = true;
-			
+
+		} else {
+			res.end("]");
+		}
+
+	});
+});
+
+app.get("/controles", function (req, res) {
+	console.log("GET /controles ", req.params, req.body);
+
+	var hasRows = false;
+	database.controles.getAll(function (err, row, rowcount) {
+		if (err) {
+			throw err;
+		}
+
+		if (!hasRows) {
+			res.write("[");
+		}
+
+		if (row) {
+			res.write((hasRows ? "," : "") + JSON.stringify(row) + "\n");
+			hasRows = true;
+
 		} else {
 			res.end("]");
 		}
@@ -171,14 +195,14 @@ app.get("/constateringen", function (req, res) {
 
 	var filters = null;
 	var queryFilters = "";
-	
+
 	if (req.query.filters) {
 		queryFilters = "&filters=" + encodeURIComponent(req.query.filters);
 		filters = {};
 		var splitted = req.query.filters.split(',')
 		splitted.forEach(function (filter) {
 			var keyValue = filter.split(":");
-			
+
 			if (keyValue.length === 2) {
 				filters[keyValue[0]] = decodeURIComponent(keyValue[1]);
 			} else {
