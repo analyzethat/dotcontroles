@@ -22,8 +22,7 @@
 					console.log("err", err);
 				} else {
 
-					console.log("Got user: ", user);
-
+//					console.log("Got user: ", user);
 					txtUsername.value(user.username);
 					txtName.value(user.firstName);
 					txtFamilyName.value(user.lastName);
