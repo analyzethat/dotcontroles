@@ -9,7 +9,8 @@
 		var URL_DATASERVER = "http://data.dotcontroles.dev";
 
 		var specialistsRepository = new controles.repositories.SpecialistsRepository(superagent, URL_DATASERVER);
-		var constateringenRepository = new controles.repositories.ConstateringenRepository(superagent, URL_DATASERVER, specialistsRepository);
+		
+		var constateringenRepository = new controles.repositories.ConstateringenRepository(specialistsRepository);
 		var constateringenView = new crafity.controles.ConstateringenView(constateringenRepository, specialistsRepository);
 		var menu = new crafity.html.Menu().addClass("main").appendTo(this);
 		var viewContainer = new crafity.html.ViewContainer().addClass("app").appendTo(this);
