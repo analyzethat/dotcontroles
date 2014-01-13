@@ -153,6 +153,35 @@ var database = (function () {
 
 		},
 
+		controles: {
+			
+			getAll: function (callback) {
+				database.createConnection(function (err, connection) {
+					if (err) {
+						return callback(err);
+					}
+
+					var query = "SELECT * from Controles;";
+					var request = new Request(query, function (err, rowcownt) {
+						return callback(err, null, rowcount); // end
+					});
+
+					request.on("row", function (columns) {
+						var row = {};
+
+						columns.forEach(function (column) {
+							console.log("column", column);
+							row[column.metadata.colName] = column.value;
+						});
+
+						return callback(null, row, null);
+					});
+
+					connection.execSql(request);
+				});
+			}
+		},
+
 		constateringen: (function () {
 
 			function createWhere(filters, request) {
@@ -191,7 +220,6 @@ var database = (function () {
 			}
 
 			return {
-
 
 				getColumnDefinitionList: function () {
 					return [
