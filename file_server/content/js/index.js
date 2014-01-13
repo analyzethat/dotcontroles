@@ -45,7 +45,8 @@ var app = {
 			return appView;
 		}
 		
-		showLogin();
+		//showLogin();
+		showApp();
 		
 //		var loginView = new controles.LoginView();
 //		var appView = new controles.AppView();
