@@ -8,6 +8,7 @@
 		function ConstateringenRepository(specialistsRepository) {
 			var _specialists = null;
 			var _url = this._dataserverUrl + "/constateringen";
+			var _controle = null;
 
 			// listen to the state changed event of this repo in order to update the list of specialists
 			specialistsRepository.on("stateChanged", function (data) {
@@ -17,18 +18,19 @@
 			/**
 			 * Initialize.
 			 */
-			this.init = function () {
+			this.init = function (controle) {
 				specialistsRepository.init();
 
-				var self = this;
-				this._ajaxAgent.get(_url + "?offset=0&limit=" + self.limit, function (res) {
-					console.log("\nGET /constateringen?offset=0&limit=    , res.body", res.body);
-					self.state(res.body);
-				});
+				_controle = controle;
+				this.filter({controleId: controle.Id});
 			};
-			
+
 			/**
-			 * Filter
+			 * Filter constateringen.
+			 *
+			 * @example
+			 * this.filter({controleId: controle.Id});
+			 *
 			 * @param filters
 			 */
 			this.filter = function (filters) {
@@ -41,7 +43,20 @@
 				var filtersQueryString = ""; // a falsy value => can check against !value
 
 				// gather all filters and combine with the logical AND operator
+				if (!filters.controleId) {
+					filters.controleId = _controle.Id;
+				}
+				console.log("filters", filters);
+				
 				Object.keys(filters).forEach(function (filterKey) {
+
+					if (filterKey === "controleId" && filters[filterKey] !== null) {
+						console.log("filters[filterKey]", filters[filterKey]);
+
+						filtersQueryString += (filtersQueryString ? "," : "")
+							+ encodeURIComponent("ControleId")
+							+ ":" + encodeURIComponent(encodeURIComponent(filters[filterKey]));
+					}
 
 					if (filterKey === "fromDate" && filters[filterKey] !== null) {
 						console.log("filters[filterKey]", filters[filterKey]);
@@ -56,6 +71,7 @@
 							+ encodeURIComponent(self.getPropertyFor("Specialist", self.columnDefinitionList))
 							+ ":" + encodeURIComponent(encodeURIComponent(filters[filterKey]));
 					}
+
 				});
 
 				console.log("queryString", filtersQueryString);
@@ -65,7 +81,7 @@
 				}
 
 				this._ajaxAgent.get(url, function (res) {
-					console.log("\n\nGET ", url);
+					console.log("\n\nGET ", url + filtersQueryString);
 
 					console.log("res.body", res.body);
 					self.state(res.body);

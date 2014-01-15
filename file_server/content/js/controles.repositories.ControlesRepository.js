@@ -26,7 +26,6 @@
 		 * Ensure that 'instanceof' will point to the type ControlesRepository and not the prototype
 		 */
 		ControlesRepository.prototype.constructor = controles.repositories.ControlesRepository;
-
 		/**
 		 * The controles columns are placed in an Array of zero or more column definition objects
 		 *
