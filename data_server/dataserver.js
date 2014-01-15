@@ -74,21 +74,38 @@ app.get("/", function (req, res) {
 });
 
 app.post("/login", function (req, res) {
-	console.log("POST /login", req.params, req.body);
-
+	console.log("\nPOST /login", req.params, req.body);
 	console.log("req.session", req.session);
 	console.log("req.cookies", req.cookies);
 	req.session.user = req.body.username;
 
-	if (req.body.username && req.body.password) {
-	}
+	database.users.getByCredentials(req.body.username, req.body.password, function (err, user) {
+		if (err) {
+			throw err;
+		}
 
-	var body = { name: "Logged in succesfully"};
-	res.send(200, body);
+		if (!user) {
+			return res.send(404, {
+				"status": 404,
+				"message": "User '" + req.body.username + "' is not found."
+			});
+		}
+
+		var body = {href: req.url};
+		body.user = user;
+		
+		res.send(200, body);
+
+	});
+
+//	if (req.body.username && req.body.password) {
+//	}
+//	var body = { name: "Logged in succesfully"};
+//	res.send(200, body);
 });
 
 app.get("/users", function (req, res) {
-	console.log("GET /users ", req.params, req.body);
+	console.log("\nGET /users ", req.params, req.body);
 
 	var hasRows = false;
 
@@ -283,7 +300,7 @@ app.get("/controles", function (req, res) {
 		}
 
 	});
-	
+
 });
 
 app.get("/constateringen", function (req, res) {
@@ -423,7 +440,7 @@ app.get("/constateringen", function (req, res) {
  *  and object as a body
  */
 app.post("/constateringen/:id", function (req, res) {
-	console.log("POST /constateringen/:id ", req.params, req.body);
+	console.log("\nPOST /constateringen/:id ", req.params, req.body);
 
 	database.constateringen.update(req.params.id, req.body, function (err, rowcount) {
 		if (err) {
