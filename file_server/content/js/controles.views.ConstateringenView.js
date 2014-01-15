@@ -6,9 +6,22 @@
 
 	(function (views) {
 
-		function ConstateringenView(constateringenRepository, specialistsRepository) {
+		function ConstateringenView(controle, constateringenRepository, specialistsRepository) {
 			var self = this;
+			var _controle = controle;
 			this.addClass("constateringen");
+
+			// build the GUI elements
+
+			// info row
+			var infoRow = new html.Element("div").addClass("info-row");
+			var infoContainer = new html.Element("div").addClass("info")
+				.append(new html.Element("h3").text("Controle code: " + controle.Code))
+				.append(new html.Element("p").text(controle.Name))
+				.appendTo(infoRow);
+
+			var filterView = new window.controles.views.ConstateringenFilterView(constateringenRepository, specialistsRepository)
+				.appendTo(infoRow);
 
 			var gridRow = new html.Element("div").addClass("grid-row");
 			var mygrid = new html.Grid(constateringenRepository.columnDefinitionList).appendTo(gridRow)
@@ -43,18 +56,7 @@
 				nextButton.disabled(!constateringenRepository.hasNext());
 				lastButton.disabled(false);
 			});
-			constateringenRepository.init(); // load data
-
-			// build the GUI elements
-
-			// info row
-			var infoRow = new html.Element("div").addClass("info-row");
-			var infoContainer = new html.Element("div").addClass("info")
-				.append(new html.Element("h3").text("VDC00037"))
-				.append(new html.Element("p").text("Aanvrager (poort)specialisme in dummy DBC"))
-				.appendTo(infoRow);
-
-			var filterView = new window.controles.ConstateringenFilterView(constateringenRepository, specialistsRepository).appendTo(infoRow);
+			constateringenRepository.init(controle); // load data
 
 			// command row
 			var commandRow = new html.Element("div").addClass("command-row")
