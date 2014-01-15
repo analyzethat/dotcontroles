@@ -12,47 +12,51 @@
 			moment.lang("nl");
 
 			controles.eventbus = new crafity.core.EventEmitter();
-			
 			console.element = document.querySelector(".console");
 
 			var showLogin, showApp;
 
-			// BEGIN only for testing purposes
-			window.getUser = function () {
-				// test login
-				superagent
-					.get("http://data.dotcontroles.dev/user/1")
-					.end(function (res) {
-						console.log(res);
-					});
-			};
+//			var usersRepository = new controles.repositories.UsersRepository();
+			var authenticationRepository = new controles.repositories.AuthenticationRepository();
+			var loginView = new controles.views.LoginView(authenticationRepository);
+			var appView = new controles.views.AppView(authenticationRepository);
+
+			authenticationRepository.on("loggedin", function () {
+				console.log("\n.on(loggedin");
+				document.body.removeChild(loginView.getElement());
+				showApp();
+			});
+
+			authenticationRepository.on("loggedout", function () {
+				console.log("\n.on(loggedout");
+				document.body.removeChild(appView.getElement());
+				showLogin();
+			});
 
 			showLogin = function () {
-				var loginView = new controles.LoginView();
-				console.log("loginView", loginView);
 				document.body.appendChild(loginView.render());
 				window.loginView = loginView;
 				loginView.focus();
-				loginView.on("loggedin", function (user) {
-					document.body.removeChild(loginView.getElement());
-					showApp(user);
-				});
-				return loginView;
+
+				return loginView; // useful for chaining
 			};
 
-			showApp = function (user) {
-				var appView = new controles.AppView();
-				console.log("appView", appView, user);
+			showApp = function () {
+
+//				var appView = new controles.views.AppView(authenticationRepository);
+//				console.log("\n\nappView: %o, authenticatedUser", appView, authenticatedUser);
 				document.body.appendChild(appView.render());
-				appView.on("logout", function () {
-					document.body.removeChild(appView.getElement());
-					showLogin();
-				});
-				return appView;
+
+//				appView.on("logout", function () {
+//					document.body.removeChild(appView.getElement());
+//					showLogin();
+//				});
+
+				return appView; // useful for chaining
 			};
 
-			//showLogin();
-			showApp({});
+			showLogin();
+			//showApp({});
 
 		}
 
