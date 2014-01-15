@@ -2,6 +2,8 @@
 
 (function (controles) {
 	"use strict";
+	
+	(function (views) {
 	var html = crafity.html;
 
 	function ConstateringenFilterView(constateringenRepository, specialistsRepository) {
@@ -43,6 +45,9 @@
 	}
 
 	ConstateringenFilterView.prototype = new html.Element("div");
-	controles.ConstateringenFilterView = ConstateringenFilterView;
+		views.ConstateringenFilterView = ConstateringenFilterView;
 
+		
+	}(controles.views = controles.views || {}));
+		
 }(window.controles = window.controles || {}));
