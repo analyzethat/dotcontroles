@@ -9,6 +9,7 @@ var fs = require("fs");
 
 var configSQLServer = null;
 
+// default configuration
 //var configSQLServer = {
 //	userName: "node_user",
 //	password: "nodeuser",
@@ -23,8 +24,6 @@ var configSQLServer = null;
 var database = (function () {
 
 	configSQLServer = JSON.parse(fs.readFileSync("config.json").toString()).configSQLServer;
-
-	console.log("\n\nconfigSQLServer =", configSQLServer);
 
 	return {
 
@@ -117,7 +116,50 @@ var database = (function () {
 					connection.execSql(request);
 
 				});
+			},
+			getByCredentials: function (username, password, callback) {
+				var isFound = false;
+				
+				database.createConnection(function (err, connection) {
+					if (err) {
+						return callback(err);
+					}
+
+					var query = "SELECT APIToken, Id, FirstName, LastName, Username, Email from Users WHERE Username = @Username AND Password = @Password";
+
+					var request = new Request(query, function (err, rowcount) {
+						console.log("rowcount", rowcount);
+						if (err) {
+							throw err;
+						}
+						if (!isFound) {
+							return callback(null, null);
+						}
+					});
+
+					request.on("row", function (columns) {
+						if (isFound) {
+							throw new Error("Multiple users with the same username are found in the database.");
+						}
+
+						isFound = true;
+
+						var row = {};
+						columns.forEach(function (column) {
+							row[column.metadata.colName] = column.value;
+						});
+						return callback(null, row);
+
+					});
+
+					request.addParameter("Username", tediousTypes.NVarChar, username);
+					request.addParameter("Password", tediousTypes.NVarChar, password);
+
+					connection.execSql(request);
+
+				});
 			}
+
 		},
 
 		specialists: {
@@ -128,7 +170,6 @@ var database = (function () {
 						return callback(err);
 					}
 
-					console.log("database.constateringen.getPropertyFor(Specialist)", database.constateringen.getPropertyFor("Specialist"));
 					var specialist = database.constateringen.getPropertyFor("Specialist") || "VerantwoordelijkSpecialist";
 
 					var query = "SELECT DISTINCT " + specialist + " from constateringen;";
@@ -237,14 +278,19 @@ var database = (function () {
 		constateringen: (function () {
 
 			function createWhere(filters, request) {
-				var where = "";
+				var where = " StatusId in (1, 5)";
 
 				if (filters) {
 					var filterArray = Object.keys(filters);
 
 					filterArray.forEach(function (key) {
 
-						if (key === "VerantwoordelijkSpecialist") {
+						if (key === "ControleId") {
+							where = where && where + " AND ";
+							where += "ControleId = @" + key;
+							request.addParameter(key, tediousTypes.Int, filters[key]);
+						}
+						else if (key === "VerantwoordelijkSpecialist") {
 							where = where && where + " AND ";
 
 							if (filters[key].toLowerCase() === "null") {
@@ -545,33 +591,3 @@ var database = (function () {
 }());
 
 module.exports = database;
-
-//		{
-//			
-//			getAll: function (callback) {
-//				database.createConnection(function (err, connection) {
-//					if (err) {
-//						return callback(err);
-//					}
-//
-//					var query = "SELECT Controles.*,  (SELECT COUNT(*) FROM Constateringen WHERE ControleId = Controles.Id) AS NumberOfConstateringen FROM [Controles];";
-//					
-//					var request = new Request(query, function (err, rowcount) {
-//						return callback(err, null, rowcount); // end
-//					});
-//
-//					request.on("row", function (columns) {
-//						var row = {};
-//
-//						columns.forEach(function (column) {
-//							console.log("column", column);
-//							row[column.metadata.colName] = column.value;
-//						});
-//
-//						return callback(null, row, null);
-//					});
-//
-//					connection.execSql(request);
-//				});
-//			}
-//		},
