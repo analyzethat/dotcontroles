@@ -31,7 +31,7 @@
 			
 			mygrid.on("open", function (row) {
 				//console.log("Selected", row);
-				controles.eventbus.emit("openConstateringen", row.Id);
+				controles.eventbus.emit("openConstateringen", row);
 			});
 			
 			controlesRepository.on("stateChanged", function () {
