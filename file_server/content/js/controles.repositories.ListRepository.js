@@ -8,10 +8,10 @@
 
 		function ListRespository(ajaxAgent, dataserverUrl) {
 			if (!dataserverUrl) {
-				throw new Error("Expected a 'dataserverUrl' argument");
+				throw new Error("Missing argument 'dataserverUrl'");
 			}
 			if (!ajaxAgent) {
-				throw new Error("Expected a 'ajaxAgent' argument");
+				throw new Error("Missing argument 'ajaxAgent'");
 			}
 
 			this._ajaxAgent = ajaxAgent;
