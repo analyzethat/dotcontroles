@@ -47,7 +47,7 @@
 					filters.controleId = _controle.Id;
 				}
 				console.log("filters", filters);
-				
+
 				Object.keys(filters).forEach(function (filterKey) {
 
 					if (filterKey === "controleId" && filters[filterKey] !== null) {
@@ -104,6 +104,12 @@
 			 */
 			this.updateStatus = function (constatering) {
 				console.log("UPDATE status constatering", constatering);
+
+				// TODOGASL       update   these memebers when changing status
+				// StatusId
+				// GebruikerId
+				// DatumLaatsteMutatue
+
 				this._ajaxAgent.post(_url + "/" + constatering.Id, { StatusId: constatering.StatusId }, function (res) {
 					console.log("GET response", res);
 				});
