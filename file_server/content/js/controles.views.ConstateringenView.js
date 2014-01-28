@@ -16,8 +16,9 @@
 			// info row
 			var infoRow = new html.Element("div").addClass("info-row");
 			var infoContainer = new html.Element("div").addClass("info")
-				.append(new html.Element("h3").text("Controle code: " + controle.Code))
-				.append(new html.Element("p").text(controle.Name))
+				.append(new html.Element("h2").text("Controle code: " + controle.Code))
+				.append(new html.Element("h3").text(controle.Name))
+				.append(new html.Element("h3").text("Type: " + controle.Type))
 				.appendTo(infoRow);
 
 			var filterView = new window.controles.views.ConstateringenFilterView(constateringenRepository, specialistsRepository)
