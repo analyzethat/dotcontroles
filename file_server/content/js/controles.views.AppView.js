@@ -5,13 +5,15 @@
 
 	(function (views) {
 
-		function AppView(authenticationRepository) {
-			var self = this;
+		function AppView(authenticationRepository, usersRepository) {
+			if (!authenticationRepository) {
+				throw new Error("Missing argument 'authenticationRepository'");
+			}	
+			if (!usersRepository) {
+				throw new Error("Missing argument 'usersRepository'");
+			}
 
-			var URL_DATASERVER = "http://data.dotcontroles.dev";
-
-			var specialistsRepository = new controles.repositories.SpecialistsRepository(superagent, URL_DATASERVER);
-			var usersRepository = new controles.repositories.UsersRepository(superagent, URL_DATASERVER);
+			var specialistsRepository = new controles.repositories.SpecialistsRepository(superagent, controles.URL_DATASERVER);
 
 			var menu = new crafity.html.Menu().addClass("main").appendTo(this);
 			var viewContainer = new crafity.html.ViewContainer().addClass("app").appendTo(this);
@@ -22,13 +24,11 @@
 			var controlesRepository = new controles.repositories.ControlesRepository();
 			var controlesView = new controles.views.ControlesView(controlesRepository);
 
-			menu.addMenuPanel(new crafity.html.MenuPanel("Overzicht")
-				.addMenuItems([
+			menu.addMenuPanel(new crafity.html.MenuPanel("Overzicht").addMenuItems([
 					new crafity.html.MenuItem("DOT Controles", function () {
 						viewContainer.activate(controlesView);
 					}).select()
 				]));
-
 			menu.addMenuPanel(new crafity.html.MenuPanel("Systeem").addMenuItems([
 
 				new crafity.html.MenuItem("Mijn gegevens", function () {
