@@ -50,13 +50,12 @@ var database = (function () {
 
 		users: {
 			getAll: function (callback) {
-
 				database.createConnection(function (err, connection) {
 					if (err) {
 						return callback(err);
 					}
 
-					var query = "SELECT * FROM users";
+					var query = "SELECT * FROM [Users]";
 
 					var request = new Request(query, function (err, rowcount) {
 						return callback(err, null, rowcount); // end
@@ -74,9 +73,7 @@ var database = (function () {
 					connection.execSql(request);
 
 				});
-
 			},
-
 			getById: function (id, callback) {
 				var isFound = false;
 
@@ -119,7 +116,7 @@ var database = (function () {
 			},
 			getByCredentials: function (username, password, callback) {
 				var isFound = false;
-				
+
 				database.createConnection(function (err, connection) {
 					if (err) {
 						return callback(err);
@@ -158,8 +155,72 @@ var database = (function () {
 					connection.execSql(request);
 
 				});
-			}
+			},
+			getRolesByUserId: function (id, callback) {
+				database.createConnection(function (err, connection) {
+					if (err) {
+						return callback(err);
+					}
 
+					var query =
+						"SELECT ufr.Id, ufr.UserId, ufr.FunctionalRoleId, fr.Name, fr.NeedsSpecialism, ufr.CreationDate, ufr.LastMutationDate"
+							+ " FROM [UserFunctionalRoles] as ufr"
+							+ " INNER JOIN [FunctionalRoles] as fr ON fr.Id = ufr.FunctionalRoleId"
+							+ " WHERE UserId = @Id";
+
+					var rows = [];
+					var request = new Request(query, function (err, rowcount) {
+						return callback(err, rows, rowcount); // end
+					});
+
+					request.on("row", function (columns) {
+						var row = {};
+
+						columns.forEach(function (column) {
+							row[column.metadata.colName] = column.value;
+						});
+
+						rows.push(row);
+					});
+
+					request.addParameter("Id", tediousTypes.Int, id);
+					connection.execSql(request);
+
+				});
+			},
+			getSpecialismsByUserId: function (id, callback) {
+
+				database.createConnection(function (err, connection) {
+					if (err) {
+						return callback(err);
+					}
+
+					var query =
+						"SELECT us.Id, us.UserId, us.SpecialismId, s.Name, s.AGBCode, us.CreationDate, us.LastMutationDate"
+							+ " FROM [UserSpecialisms] AS us"
+							+ " INNER JOIN [Specialisms] AS s ON s.Id = us.SpecialismId"
+							+ " WHERE UserId = @Id";
+
+					var rows = [];
+					var request = new Request(query, function (err, rowcount) {
+						return callback(err, rows, rowcount); // end
+					});
+
+					request.on("row", function (columns) {
+						var row = {};
+
+						columns.forEach(function (column) {
+							row[column.metadata.colName] = column.value;
+						});
+
+						rows.push(row);
+					});
+
+					request.addParameter("Id", tediousTypes.Int, id);
+					connection.execSql(request);
+
+				});
+			}
 		},
 
 		specialists: {
@@ -278,7 +339,7 @@ var database = (function () {
 		constateringen: (function () {
 
 			function createWhere(filters, request) {
-				var where = " StatusId in (1, 5)";
+				var where = "StatusId IN (1, 5)";
 
 				if (filters) {
 					var filterArray = Object.keys(filters);
@@ -443,7 +504,6 @@ var database = (function () {
 							+ ' ROWS FETCH NEXT ' + limit
 							+ ' ROWS ONLY ';
 						request.sqlTextOrProcedure = query;
-
 						console.log("\nquery", query);
 
 						request.on("row", function (columns) {
@@ -504,10 +564,10 @@ var database = (function () {
 
 				update: function (id, properties, callback) {
 					if (!id || id === null) {
-						throw new Error("Missing argument id.");
+						throw new Error("Missing argument 'id'.");
 					}
 					if (!properties || properties.length === 0) {
-						throw new Error("Missing argument members.");
+						throw new Error("Missing argument 'members'.");
 					}
 
 					database.createConnection(function (err, connection) {
@@ -524,7 +584,6 @@ var database = (function () {
 							return callback(err, rowcount);
 						});
 
-						//					console.log("propertyKeys.length", propertyKeys.length);
 						propertyKeys.forEach(function (propertyKey, indexPropertyKey) {
 							database.constateringen.getColumnDefinitionList().forEach(function (colDefinition, index) {
 

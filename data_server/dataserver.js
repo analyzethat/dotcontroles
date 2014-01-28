@@ -9,6 +9,8 @@ var app = express();
 var fs = require("fs");
 var zlib = require("zlib"); // todo_gasl implement this
 var mime = require("mime");
+var core = require("crafity-core");
+var Synchronizer = core.Synchronizer;
 
 var database = require("./database");
 
@@ -81,72 +83,37 @@ app.post("/login", function (req, res) {
 
 	database.users.getByCredentials(req.body.username, req.body.password, function (err, user) {
 		if (err) {
-			throw err;
+			return res.send(500, {"status": 500, "message": err.message});
 		}
-
 		if (!user) {
 			return res.send(404, {
 				"status": 404,
 				"message": "User '" + req.body.username + "' is not found."
 			});
 		}
-
-		var body = {href: req.url};
-
 		console.log("\n\nuser", user);
 
-		body.user = user;
+		var synchronizer = new Synchronizer();
+		var body = { href: req.url, user: user };
 
-		// begin test
-		body.user = {
-			APIToken: 'CBCAB0D9-0FEE-47A2-8C26-9FE5A43D2859',
-			Id: 1,
-			FirstName: 'Galina',
-			LastName: 'Slavova',
-			Username: 'gasl',
-			Email: 'galina@crafity.com',
-			Roles: [
-				{
-					Id: 1,
-					UserId: 1,
-					FunctionalRoleId: 1,
-					Name: "Specialist",
-					NeedsSpecialism: true,
-					CreationDate: "2014-01-14 00:00:00",
-					LastMutationDate: null
-				},
-				{
-					Id: 2,
-					UserId: 1,
-					FunctionalRoleId: 3,
-					Name: "Zorgadministratie",
-					NeedsSpecialism: false,
-					CreationDate: "2014-01-14 00:00:00",
-					LastMutationDate: null
-				}
-			],
-			Specialisms: [
-				{
-					Id: 2,
-					UserId: 1,
-					SpecialismId: 9,
-					Name: "Dermatologie",
-					AGBCode: "0310",
-					CreationDate: "2014-01-14 00:00:00",
-					LastMutationDate: null
-				}
-			]
-		};
-// end test
-		
-		res.send(200, body);
+		database.users.getRolesByUserId(user.Id, synchronizer.register("roles"));
+		database.users.getSpecialismsByUserId(user.Id, synchronizer.register("specialisms"));
+
+		synchronizer.on('finished', function (err, result) {
+			console.log("err", err);
+			if (err) {
+				return res.send(500, {"status": 500, "message": err.toString()});
+			}
+
+			console.log("\n\nresult", result);
+
+			body.user.Roles = result.roles || [];
+			body.user.Specialisms = result.specialisms || [];
+
+			res.send(200, body);
+		});
 
 	});
-
-//	if (req.body.username && req.body.password) {
-//	}
-//	var body = { name: "Logged in succesfully"};
-//	res.send(200, body);
 });
 
 app.get("/users", function (req, res) {
