@@ -11,44 +11,34 @@
 			if (!authenticationRepository) {
 				throw new Error("Missing argument 'authenticationRepository");
 			}
-//			var self = this;
 
 			this.addClass("login container");
 
 			var loginDialog = new html.Element("div").addClass("dialog").appendTo(this);
-			var icon = new html.Element("div").addClass("symbol stethoscope").appendTo(loginDialog);
+			var icon = new html.Element("div").addClass("symbol stethoscope").appendTo(loginDialog).text("\uF0F1");
 			var loginForm = new html.Form().appendTo(loginDialog);
 			var usernameField = new html.TextField().label("Gebruiker").addClass("username").required(true).appendTo(loginForm);
 			var passwordField = new html.PasswordField().label("Wachtwoord").addClass("password").required(true).appendTo(loginForm);
-			var loginButton = new html.Button("login").addClass("symbol submit smaller").appendTo(loginDialog);
+			var loginButton = new html.Button("login").addClass("symbol submit smaller").appendTo(loginDialog).text("\uF13E");
 			var errorLabel = new html.Element("label").appendTo(loginDialog);
 
-			icon.getElement().innerHTML = "&#xF0F1;";
-			loginButton.getElement().innerHTML = "&#xF13E;";
-
-			authenticationRepository.on("loginError", function (err) {
-				console.log("\n.on(loginError");
+			controles.eventbus.on("loggedin", function () {
+				loginForm.clearFields();
+				errorLabel.text(" ");
+			});
+			
+			controles.eventbus.on("loginError", function (err) {
 				errorLabel.text(err);
 			});
 
-			authenticationRepository.on("loggedout", function () {
-				console.log("\n.on(loggedout");
-				loginForm.clearFields();
+			controles.eventbus.on("loggedout", function () {
 			});
-			
+
 			function login() {
 				var isValid = loginForm.verify();
 
 				if (isValid) {
 					authenticationRepository.login(usernameField.value(), passwordField.value());
-
-//					authenticationRepository.login(usernameField.value(), passwordField.value(), function (err, user) {
-//						if (err) {
-//							throw err;
-//						}
-//						self.emit("loggedin", user);
-//					});
-
 				} else {
 					loginForm.focus();
 				}
