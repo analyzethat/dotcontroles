@@ -21,15 +21,20 @@
 		this.state = _state;
 		this.addClass("filter-container form");
 		
-		var specialistsOptionList = new html.SelectField().label("specialist").readonly(false).addClass("filter");
-		var dateFilter = new html.DateField().label("tonen vanaf datum").readonly(false).addClass("filter")
+		var specialistsOptionList = new html.SelectField().label("\uF0B0 specialist").addClass("symbol").readonly(false).addClass("filter");
+		var dateFilter = new html.DateField().label("\uF0B0 tonen vanaf datum").addClass("symbol").readonly(false).addClass("filter")
 			.change(function (value) {
 
 				_state.fromDate = value;
 				constateringenRepository.filter(_state);
 			});
+
 		
-		this.append(new html.Element("h3").text("Resultaten in tabel filteren op"))
+		var header = new html.Element("h3").text("Constateringen in tabel filteren op");
+//		new html.Element("span").text("\uF0B0").addClass("symbol").appendTo(header);
+//		new html.Element("span").text(" Constateringen in tabel filteren op").appendTo(header);
+		
+		this.append(header)
 			.append(dateFilter)
 			.append(specialistsOptionList);
 
