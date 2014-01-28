@@ -5,34 +5,30 @@
 
 	(function (repositories) {
 
-		function UsersRepository() {
-			var URL_DATASERVER = "http://data.dotcontroles.dev";
+		function UsersRepository(URL_DATASERVER) {
+//			var URL_DATASERVER = "http://data.dotcontroles.dev";
 			var ajaxAgent = superagent;
+			var _authenticatedUser = null;
 			var _user = null;
 
-			this.login = function (username, password, callback) {
+			/**
+			 * A getter / setter function to keep the logged in user.
+			 * @param user
+			 * @returns {*}
+			 */
+			this.authenticatedUser = function (user) {
+				if (!user) {
+					throw new Error("Expected argument 'user'");
+				}
 
-				superagent.post("http://data.dotcontroles.dev/login")
-					.type('form')
-					.send({ username: username, password: password })
-					.end(function (res) {
-						console.log("res.body", res.body);
-
-						if (res.error) {
-							callback(res.error, null);
-
-						} else {
-
-							if (res.body.user) {
-								_user = res.body.user;
-								callback(null, _user);
-							} else {
-								callback(null, null);
-							}
-
-						}
-					});
-
+				if (user == null) {
+					return _authenticatedUser;
+				}
+				_authenticatedUser = user;
+				controles.eventbus.emit("authenticated", _authenticatedUser);
+				
+				return this;
+//				console.log("_authenticatedUser", _authenticatedUser);
 			};
 
 			this.users = {
@@ -54,17 +50,8 @@
 					if (!_user) {
 						return _user;
 					}
-//					ajaxAgent
-//						.get(URL_DATASERVER + "/users/2")
-//						.end(function (res) {
-//							if (res.error) {
-//								callback(res.error, null);
-//							} else {
-//								callback(null, res.body);
-//							}
-//						});
-
 				},
+
 				save: function (firstName, lastName) {
 					ajaxAgent.post(URL_DATASERVER + "user/" + _user.id)
 						.send({firstName: firstName, lastName: lastName})
