@@ -29,7 +29,7 @@ app.use(express.cookieSession({
 //	cookie: { maxAge: new Date(new Date().setMinutes(new Date().getMinutes() + TIMEOUT_IN_MINUTES)) }
 //}));
 
-// BEGIN Auxiliary methods
+// Auxiliary methods
 function createConnection() {
 	return new Connection(configSQLServer);
 }
@@ -92,7 +92,52 @@ app.post("/login", function (req, res) {
 		}
 
 		var body = {href: req.url};
+
+		console.log("\n\nuser", user);
+
 		body.user = user;
+
+		// begin test
+		body.user = {
+			APIToken: 'CBCAB0D9-0FEE-47A2-8C26-9FE5A43D2859',
+			Id: 1,
+			FirstName: 'Galina',
+			LastName: 'Slavova',
+			Username: 'gasl',
+			Email: 'galina@crafity.com',
+			Roles: [
+				{
+					Id: 1,
+					UserId: 1,
+					FunctionalRoleId: 1,
+					Name: "Specialist",
+					NeedsSpecialism: true,
+					CreationDate: "2014-01-14 00:00:00",
+					LastMutationDate: null
+				},
+				{
+					Id: 2,
+					UserId: 1,
+					FunctionalRoleId: 3,
+					Name: "Zorgadministratie",
+					NeedsSpecialism: false,
+					CreationDate: "2014-01-14 00:00:00",
+					LastMutationDate: null
+				}
+			],
+			Specialisms: [
+				{
+					Id: 2,
+					UserId: 1,
+					SpecialismId: 9,
+					Name: "Dermatologie",
+					AGBCode: "0310",
+					CreationDate: "2014-01-14 00:00:00",
+					LastMutationDate: null
+				}
+			]
+		};
+// end test
 		
 		res.send(200, body);
 
@@ -411,7 +456,7 @@ app.get("/constateringen", function (req, res) {
 			res.write("\n\t]" + (_finishedSendingTotal ? "" : ","))
 			_finishedReceivingRows = true;
 
-			// Klaar met streamen. Kijk of de total klaar staat om nog te versturen?
+			// Finished streaming rows. Is the total also ready to be sent?
 			if (_total) {
 				//    -> Ja: Send total thingies 
 				sendChunkTotal(_total);
@@ -422,7 +467,7 @@ app.get("/constateringen", function (req, res) {
 			}
 
 		} else {
-			// Streamen...
+			// Streaming...
 			res.write("\n\t\t" + (hasRows ? "," : "") + JSON.stringify(row));
 			hasRows = true;
 		}
@@ -432,7 +477,7 @@ app.get("/constateringen", function (req, res) {
 });
 
 /**
- * This is a partial update (document replacement) perfprmed with
+ * This is a partial update performed with
  * REST verb 'POST'
  *
  * It returns:
@@ -468,7 +513,7 @@ app.post("/constateringen/:id", function (req, res) {
 });
 
 /**
- * This is a full (document replacement) update perfprmed with
+ * This is a full (document replacement) update performed with
  * REST verb 'PUT'
  *
  * It returns:
