@@ -22,22 +22,21 @@
 
 						if (res.error) {
 							if (res.body && res.body.status === 404) {
-								self.emit("loginError", "Gebruikersnaam of wachtwoord is incorrect.");
+								controles.eventbus.emit("loginError", "Gebruikersnaam of wachtwoord is incorrect.");
+							} else if (res.body && res.body.status === 500) {
+								controles.eventbus.emit("loginError", "Er is een technische fout opgetreden.");
 							} else {
-
-								self.emit("loginError", res.error);
+								controles.eventbus.emit("loginError", res.error);
 							}
 
 						} else {
 
 							if (res.body.user) {
 								_user = res.body.user;
-								self.emit("loggedin", _user);
-//								callback(null, _user);
-
+								controles.eventbus.emit("loggedin", _user);
 							} else {
-								self.emit("loginError", new Error("User not found"));
-//								callback(null, null);
+							
+								controles.eventbus.emit("loginError", new Error("User not found"));
 							}
 
 						}
@@ -48,7 +47,9 @@
 			this.logout = function () {
 				_user = null;
 				console.log("_user", _user);
-				this.emit("loggedout");
+							
+				controles.eventbus.emit("loggedout");
+//				this.emit("loggedout");
 			};
 
 		}
