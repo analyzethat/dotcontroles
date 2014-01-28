@@ -1,35 +1,34 @@
-/*globals superagent, window, document, console, moment, numeral, crafity, keyboard, Element, Repository, ConstateringenView, MenuPanel, MenuItem, controles */
-
+/*globals superagent, window, document, console, moment, numeral, crafity, keyboard, Element, Repository, ConstateringenView, MenuPanel, MenuItem, controles, $, jStorage */
 (function (controles) {
-
 	"use strict";
 
 	controles.app = {
-
 		initialize: function () {
-			// set the local region
 			numeral.language("be-nl");
 			moment.lang("nl");
 
+			window.jStorage = $.jStorage.noConflict();
+			controles.URL_DATASERVER = "http://data.dotcontroles.dev";
 			controles.eventbus = new crafity.core.EventEmitter();
 			console.element = document.querySelector(".console");
 
 			var showLogin, showApp;
-
-//			var usersRepository = new controles.repositories.UsersRepository();
 			var authenticationRepository = new controles.repositories.AuthenticationRepository();
+			var usersRepository = new controles.repositories.UsersRepository(superagent, controles.URL_DATASERVER);
 			var loginView = new controles.views.LoginView(authenticationRepository);
-			var appView = new controles.views.AppView(authenticationRepository);
+			var appView = new controles.views.AppView(authenticationRepository, usersRepository);
+			var authenticatedUser = jStorage.get("authenticatedUser");
 
-			authenticationRepository.on("loggedin", function () {
-				console.log("\n.on(loggedin");
+			controles.eventbus.on("loggedin", function (user) {
+				usersRepository.authenticatedUser(user);
 				document.body.removeChild(loginView.getElement());
+				jStorage.set("authenticatedUser", user);
 				showApp();
 			});
 
-			authenticationRepository.on("loggedout", function () {
-				console.log("\n.on(loggedout");
+			controles.eventbus.on("loggedout", function () {
 				document.body.removeChild(appView.getElement());
+				jStorage.deleteKey("authenticatedUser");
 				showLogin();
 			});
 
@@ -42,24 +41,17 @@
 			};
 
 			showApp = function () {
-
-//				var appView = new controles.views.AppView(authenticationRepository);
-//				console.log("\n\nappView: %o, authenticatedUser", appView, authenticatedUser);
 				document.body.appendChild(appView.render());
-
-//				appView.on("logout", function () {
-//					document.body.removeChild(appView.getElement());
-//					showLogin();
-//				});
-
-				return appView; // useful for chaining
+				return appView;
 			};
 
-			showLogin();
-			//showApp({});
-
+			if (!authenticatedUser) {
+				showLogin();
+			} else {
+				showApp(authenticatedUser);
+				usersRepository.authenticatedUser(authenticatedUser);
+			}
 		}
-
 	};
 
 }(window.controles = window.controles || {}));
