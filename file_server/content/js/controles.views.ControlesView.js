@@ -6,7 +6,7 @@
 	(function (views) {
 
 		function ControlesView(controlesRepository) {
-			this.addClass("constateringen"); // gasltodo create own css class
+			this.addClass("controles"); // gasltodo create own css class
 
 			var gridRow = new html.Element("div").addClass("grid-row");
 			var mygrid = new html.Grid(controlesRepository.columnDefinitionList).appendTo(gridRow);
@@ -42,15 +42,12 @@
 			});
 			controlesRepository.init(); // load data
 
-			// build the GUI elements
-
-			// info row
 			var infoRow = new html.Element("div").addClass("info-row");
 			var infoContainer = new html.Element("div").addClass("info")
-				.append(new html.Element("h3").text("DOT Controles"))
+				.append(new html.Element("h2").text("DOT Controles"))
+				.append(new html.Element("h3").text("Rollen: rol1, rol2"))
 				.appendTo(infoRow);
 
-			// command row
 			var commandRow = new html.Element("div").addClass("command-row")
 				.append(new html.ButtonBar()
 					.append(lastButton)
