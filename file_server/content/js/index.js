@@ -21,13 +21,13 @@
 
 			controles.eventbus.on("loggedin", function (user) {
 				usersRepository.authenticatedUser(user);
-				document.body.removeChild(loginView.getElement());
+				document.body.removeChild(loginView.element());
 				jStorage.set("authenticatedUser", user);
 				showApp();
 			});
 
 			controles.eventbus.on("loggedout", function () {
-				document.body.removeChild(appView.getElement());
+				document.body.removeChild(appView.element());
 				jStorage.deleteKey("authenticatedUser");
 				showLogin();
 			});

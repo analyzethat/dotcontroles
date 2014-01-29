@@ -23,7 +23,7 @@
 			var errorLabel = new html.Element("label").appendTo(loginDialog);
 
 			controles.eventbus.on("loggedin", function () {
-				loginForm.clearFields();
+				loginForm.reset();
 				errorLabel.text(" ");
 			});
 			
