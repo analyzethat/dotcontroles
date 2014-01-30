@@ -256,9 +256,24 @@ var database = (function () {
 		},
 
 		controles: (function () {
+
 			function createWhere(filters, request) {
-				var where = "";
-				return where;
+				var where = ""; //RoleId IN ("; //(1, 5)
+
+				if (filters) {
+					var filterArray = Object.keys(filters);
+
+					filterArray.forEach(function (key) {
+
+						where += (where ? "," : "RoleId IN (") + filters[key] + ")";
+						request.addParameter(key, tediousTypes.Int, filters[key]);
+
+					});
+//					console.log("\n\n\n\nwhere", where);
+					return where;
+
+				}
+
 			}
 
 			return {
@@ -292,6 +307,7 @@ var database = (function () {
 					});
 				},
 				getAll: function (offset, limit, filters, callback) {
+
 					database.createConnection(function (err, connection) {
 						if (err) {
 							return callback(err);
@@ -318,6 +334,48 @@ var database = (function () {
 						request.sqlTextOrProcedure = query;
 
 						console.log("\nquery", query);
+
+						request.on("row", function (columns) {
+							var row = {};
+
+							columns.forEach(function (column) {
+								row[column.metadata.colName] = column.value;
+							});
+
+							return callback(null, row, null);
+						});
+
+						connection.execSql(request);
+					});
+				},
+				getFilteredBy: function (offset, limit, filters, callback) {
+
+					database.createConnection(function (err, connection) {
+						if (err) {
+							return callback(err);
+						}
+
+						var where = "";
+						var query = "";
+
+						var request = new Request(query, function (err, rowcount) {
+							return callback(err, null, rowcount);
+						});
+
+						try {
+							where = createWhere(filters, request);
+						} catch (error) {
+							return callback(error);
+						}
+
+						query = "SELECT Controles.*,  (SELECT COUNT(*) FROM Constateringen WHERE ControleId = Controles.Id) AS NumberOfConstateringen FROM [Controles]"
+							+ (where ? " WHERE " + where : "")
+							+ " ORDER BY Id ASC OFFSET " + offset
+							+ " ROWS FETCH NEXT " + limit
+							+ " ROWS ONLY ";
+						request.sqlTextOrProcedure = query;
+
+						console.log("\nquery:", query);
 
 						request.on("row", function (columns) {
 							var row = {};
