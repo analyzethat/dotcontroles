@@ -1,16 +1,11 @@
 /*globals window, console*/
+
 (function (controles) {
 	"use strict";
 	(function (repositories) {
 
-		function SpecialistsRepository(ajaxAgent, dataserverUrl) {
-			if (!dataserverUrl) {
-				throw new Error("Expected a 'dataserverUrl' argument");
-			}
-			if (!ajaxAgent) {
-				throw new Error("Expected a 'ajaxAgent' argument");
-			}
-
+		function SpecialistsRepository() {
+			var ajaxAgent = superagent;
 			var self = this;
 			var state = null;
 
@@ -24,17 +19,10 @@
 			}
 
 			this.getSpecialists = function () {
-				var url = dataserverUrl + "/specialists";
+				var url = controles.URL_DATASERVER + "/specialists";
 
 				ajaxAgent.get(url, function (res) {
 					console.log("\n\nURL: ", url, res.body);
-
-					// RESULT
-//					[{"VerantwoordelijkSpecialist":null}
-//					,{"VerantwoordelijkSpecialist":"Benedikt"}
-//					,{"VerantwoordelijkSpecialist":"Jansen"}
-//					,{"VerantwoordelijkSpecialist":"Pulles"}
-//					]
 					
 					var specialists = {"all": "<alles>", null: "<leeg>"};
 
