@@ -6,7 +6,6 @@
 	(function (repositories) {
 
 		function AuthenticationRepository() {
-			var URL_DATASERVER = "http://data.dotcontroles.dev";
 			var _user = null;
 
 			this.isAuthenticated = function isAuthenticated() {
@@ -20,7 +19,7 @@
 			this.login = function (username, password, callback) {
 				var self = this;
 
-				superagent.post(URL_DATASERVER + "/login")
+				superagent.post(controles.URL_DATASERVER + "/login")
 					.type('form')
 					.send({ username: username, password: password })
 					.end(function (res) {
