@@ -1,4 +1,4 @@
-/*globals superagent, window, console, crafity*/
+/*globals jStorage, superagent, window, console, crafity*/
 
 (function (controles) {
 	"use strict";
@@ -8,6 +8,14 @@
 		function AuthenticationRepository() {
 			var URL_DATASERVER = "http://data.dotcontroles.dev";
 			var _user = null;
+
+			this.isAuthenticated = function isAuthenticated() {
+				return jStorage.get("authenticatedUser") !== null;
+			};
+
+			this.authenticatedUser = function authenticatedUser() {
+				return jStorage.get("authenticatedUser");
+			};
 
 			this.login = function (username, password, callback) {
 				var self = this;
@@ -33,9 +41,10 @@
 
 							if (res.body.user) {
 								_user = res.body.user;
+								jStorage.set("authenticatedUser", _user);
 								controles.eventbus.emit("loggedin", _user);
 							} else {
-							
+
 								controles.eventbus.emit("loginError", new Error("User not found"));
 							}
 
@@ -45,11 +54,10 @@
 			};
 
 			this.logout = function () {
+				jStorage.deleteKey("authenticatedUser");
 				_user = null;
 				console.log("_user", _user);
-							
 				controles.eventbus.emit("loggedout");
-//				this.emit("loggedout");
 			};
 
 		}
