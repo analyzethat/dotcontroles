@@ -46,7 +46,7 @@
 				if (!filters.controleId) {
 					filters.controleId = _controle.Id;
 				}
-				console.log("filters", filters);
+				console.log("\nconstateringen filters", filters);
 
 				Object.keys(filters).forEach(function (filterKey) {
 
