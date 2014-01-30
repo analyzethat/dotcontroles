@@ -43,7 +43,7 @@
 		/**
 		 * Become a child of the ListRepository object
 		 */
-		ControlesRepository.prototype = new controles.repositories.ListRepository(superagent, repositories.URL_DATASERVER);
+		ControlesRepository.prototype = new controles.repositories.ListRepository(superagent, controles.URL_DATASERVER);
 		/**
 		 * Ensure that 'instanceof' will point to the type ControlesRepository and not the prototype
 		 */
