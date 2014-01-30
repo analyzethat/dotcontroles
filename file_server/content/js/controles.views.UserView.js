@@ -10,44 +10,78 @@
 			if (!usersRepository) {
 				throw new Error("Missing argument 'usersRepository'");
 			}
+			if (!usersRepository.authenticatedUser()) {
+				throw new Error("User must be authenticated!");
+			}
 
 			var self = this;
-			var authenticatedUser = null; //usersRepository.authenticatedUser();
+			var authenticatedUser = usersRepository.authenticatedUser();
 
-			console.log("\n inside UserView ", authenticatedUser);
 			// build the GUI elements
 			var infoRow = new html.Form().addClass("clientDetails readonly");
 			var txtUsername = new html.TextField().label("Gebruikersnaam").appendTo(infoRow).readonly(true);
 			var txtName = new html.TextField().label("Naam").appendTo(infoRow);
 			var txtFamilyName = new html.TextField().label("Achternaam").appendTo(infoRow);
-			var txtEmail = new html.TextField().label("Email").appendTo(infoRow);
+			var txtEmail = null;
 			var roleContainer = new html.Element("div").appendTo(infoRow);
 			var specialismsContainer = new html.Element("div").appendTo(infoRow);
 
 			// data-binding
-			controles.eventbus.on("authenticated", function (user) {
-				authenticatedUser = user;
+			function databind(user) {
+				txtUsername.value(user.Username);
+				txtName.value(user.FirstName);
+				txtFamilyName.value(user.LastName);
 
-				txtUsername.value(authenticatedUser.Username);
-				txtName.value(authenticatedUser.FirstName);
-				txtFamilyName.value(authenticatedUser.LastName);
-				txtEmail.value(authenticatedUser.Email);
+				if (user.Email) {
+					txtEmail = new html.TextField().label("Email").appendTo(infoRow);
+					txtEmail.value(user.Email);
+				}
 
 				roleContainer.clear();
 				specialismsContainer.clear();
-				
+
 				var roleCounter = 0;
-				authenticatedUser.Roles.forEach(function (role) {
+				user.Roles.forEach(function (role) {
 					roleCounter++;
 					new html.TextField().label("Rol " + roleCounter).appendTo(roleContainer).readonly(true).value(role.Name);
 				});
 
 				var specialismCounter = 0;
-				authenticatedUser.Specialisms.forEach(function (specialism) {
+				user.Specialisms.forEach(function (specialism) {
 					specialismCounter++;
 					new html.TextField().label("Specialisme " + specialismCounter).appendTo(specialismsContainer).readonly(true).value(specialism.Name);
 				});
-			});
+
+			}
+
+			databind(authenticatedUser);
+
+//			controles.eventbus.on("authenticated", function (user) {
+//
+//				txtUsername.value(authenticatedUser.Username);
+//				txtName.value(authenticatedUser.FirstName);
+//				txtFamilyName.value(authenticatedUser.LastName);
+//
+//				if (authenticatedUser.Email) {
+//					txtEmail = new html.TextField().label("Email").appendTo(infoRow);
+//					txtEmail.value(authenticatedUser.Email);
+//				}
+//
+//				roleContainer.clear();
+//				specialismsContainer.clear();
+//
+//				var roleCounter = 0;
+//				authenticatedUser.Roles.forEach(function (role) {
+//					roleCounter++;
+//					new html.TextField().label("Rol " + roleCounter).appendTo(roleContainer).readonly(true).value(role.Name);
+//				});
+//
+//				var specialismCounter = 0;
+//				authenticatedUser.Specialisms.forEach(function (specialism) {
+//					specialismCounter++;
+//					new html.TextField().label("Specialisme " + specialismCounter).appendTo(specialismsContainer).readonly(true).value(specialism.Name);
+//				});
+//		});
 
 //			Email: 'galina@crafity.com',
 //						Roles: [
@@ -81,13 +115,9 @@
 //								LastMutationDate: null
 //							}]
 //			
-			this.addClass("detailsContainer");
-			this.save = function () {
-				if (!authenticatedUser || authenticatedUser === null) {
-					return;
-				}
 
-				usersRepository.user.save(txtName.value(), txtFamilyName.value());
+			self.save = function () {
+				usersRepository.user.saveContactData(txtName.value(), txtFamilyName.value(), txtEmail.value());
 			};
 
 			var buttonBar = new html.ButtonBar()
@@ -97,8 +127,9 @@
 						.on("click", self.save)
 				);
 
-			this.append(infoRow);
-			this.append(buttonBar);
+			self.append(infoRow);
+			self.append(buttonBar);
+			self.addClass("detailsContainer");
 		}
 
 		UserView.prototype = new html.Element("div");
@@ -106,4 +137,5 @@
 
 	}(controles.views = controles.views || {}));
 
-}(window.controles = window.controles || {}));
+}
+	(window.controles = window.controles || {}));
