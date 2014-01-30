@@ -28,18 +28,18 @@
 				console.log("ControlesView on data, rows", rows);
 				mygrid.addRows(rows);
 			});
-			
-			mygrid.on("open", function (row) {
-				//console.log("Selected", row);
-				controles.eventbus.emit("openConstateringen", row);
-			});
-			
 			controlesRepository.on("stateChanged", function () {
 				firstButton.disabled(false);
 				previousButton.disabled(!controlesRepository.hasPrevious());
 				nextButton.disabled(!controlesRepository.hasNext());
 				lastButton.disabled(false);
 			});
+
+			mygrid.on("open", function (row) {
+				//console.log("Selected", row);
+				controles.eventbus.emit("openConstateringen", row);
+			});
+
 			controlesRepository.init(); // load data
 
 			var infoRow = new html.Element("div").addClass("info-row");
