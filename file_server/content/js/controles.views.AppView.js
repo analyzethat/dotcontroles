@@ -5,23 +5,21 @@
 
 	(function (views) {
 
-		function AppView(authenticationRepository, usersRepository) {
+		function AppView(authenticationRepository){
 			if (!authenticationRepository) {
 				throw new Error("Missing argument 'authenticationRepository'");
 			}	
-			if (!usersRepository) {
-				throw new Error("Missing argument 'usersRepository'");
-			}
-
-			var specialistsRepository = new controles.repositories.SpecialistsRepository(superagent, controles.URL_DATASERVER);
 
 			var menu = new crafity.html.Menu().addClass("main").appendTo(this);
 			var viewContainer = new crafity.html.ViewContainer().addClass("app").appendTo(this);
+			
+			var usersRepository = new controles.repositories.UsersRepository(authenticationRepository.authenticatedUser());
 			var userView = new controles.views.UserView(usersRepository);
 
+			var specialistsRepository = new controles.repositories.SpecialistsRepository();
 			var constateringenRepository = null;
 			var constateringenView = null;
-			var controlesRepository = new controles.repositories.ControlesRepository();
+			var controlesRepository = new controles.repositories.ControlesRepository(authenticationRepository.authenticatedUser());
 			var controlesView = new controles.views.ControlesView(controlesRepository);
 
 			menu.addMenuPanel(new crafity.html.MenuPanel("Overzicht").addMenuItems([
@@ -48,7 +46,7 @@
 
 			controles.eventbus.on("openControles", function () {
 				console.log("Open controles");
-				viewContainer.activate(controlesView);
+				viewContainer.activate(controlesView.load());
 			});
 
 //		appContainer.toggleClass("fullscreen");
