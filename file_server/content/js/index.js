@@ -1,36 +1,24 @@
-/*globals superagent, window, document, console, moment, numeral, crafity, keyboard, Element, Repository, ConstateringenView, MenuPanel, MenuItem, controles, $, jStorage */
+/*globals superagent, window, document, console, moment, numeral, crafity, keyboard, Element, Repository, ConstateringenView, MenuPanel, MenuItem, controles, $ */
 (function (controles) {
 	"use strict";
 
+	controles.URL_DATASERVER = "http://data.dotcontroles.dev"; // TODOgasl get from config
+	
 	controles.app = {
+		
 		initialize: function () {
 			numeral.language("be-nl");
 			moment.lang("nl");
 
 			window.jStorage = $.jStorage.noConflict();
-			controles.URL_DATASERVER = "http://data.dotcontroles.dev";
 			controles.eventbus = new crafity.core.EventEmitter();
 			console.element = document.querySelector(".console");
 
 			var showLogin, showApp;
+
 			var authenticationRepository = new controles.repositories.AuthenticationRepository();
-			var usersRepository = new controles.repositories.UsersRepository(superagent, controles.URL_DATASERVER);
 			var loginView = new controles.views.LoginView(authenticationRepository);
-			var appView = new controles.views.AppView(authenticationRepository, usersRepository);
-			var authenticatedUser = jStorage.get("authenticatedUser");
-
-			controles.eventbus.on("loggedin", function (user) {
-				usersRepository.authenticatedUser(user);
-				document.body.removeChild(loginView.element());
-				jStorage.set("authenticatedUser", user);
-				showApp();
-			});
-
-			controles.eventbus.on("loggedout", function () {
-				document.body.removeChild(appView.element());
-				jStorage.deleteKey("authenticatedUser");
-				showLogin();
-			});
+			var appView = new controles.views.AppView(authenticationRepository);
 
 			showLogin = function () {
 				document.body.appendChild(loginView.render());
@@ -39,19 +27,27 @@
 
 				return loginView; // useful for chaining
 			};
-
 			showApp = function () {
 				document.body.appendChild(appView.render());
 				return appView;
 			};
+			
+			controles.eventbus.on("loggedin", function (user) {
+				document.body.removeChild(loginView.element());
+				showApp();
+			});
+			controles.eventbus.on("loggedout", function () {
+				document.body.removeChild(appView.element());
+				showLogin();
+			});
 
-			if (!authenticatedUser) {
+			if (!authenticationRepository.isAuthenticated()) {
 				showLogin();
 			} else {
-				showApp(authenticatedUser);
-				usersRepository.authenticatedUser(authenticatedUser);
+				showApp();
 			}
 		}
+		
 	};
 
 }(window.controles = window.controles || {}));
