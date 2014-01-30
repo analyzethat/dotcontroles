@@ -5,36 +5,26 @@
 
 	(function (repositories) {
 
-		function UsersRepository(URL_DATASERVER) {
-//			var URL_DATASERVER = "http://data.dotcontroles.dev";
-			var ajaxAgent = superagent;
-			var _authenticatedUser = null;
-			var _user = null;
+		function UsersRepository(authenticatedUser) {
+			var _url = this._dataserverUrl + "/users";
+			var _authenticatedUser = authenticatedUser;
+			var self = this;
 
 			/**
 			 * A getter / setter function to keep the logged in user.
 			 * @param user
 			 * @returns {*}
 			 */
-			this.authenticatedUser = function (user) {
-				if (!user) {
-					throw new Error("Expected argument 'user'");
-				}
-
-				if (user == null) {
+			this.authenticatedUser = function () {
 					return _authenticatedUser;
-				}
-				_authenticatedUser = user;
-				controles.eventbus.emit("authenticated", _authenticatedUser);
-				
+//				controles.eventbus.emit("authenticated", _authenticatedUser);
 				return this;
-//				console.log("_authenticatedUser", _authenticatedUser);
 			};
 
 			this.users = {
 				get: function (callback) {
-					ajaxAgent
-						.get(URL_DATASERVER + "users")
+					self._ajaxAgent
+						.get(_url)
 						.end(function (res) {
 							if (res.error) {
 								callback(res.error, null);
@@ -46,17 +36,11 @@
 			};
 
 			this.user = {
-				get: function () {
-					if (!_user) {
-						return _user;
-					}
-				},
-
-				save: function (firstName, lastName) {
-					ajaxAgent.post(URL_DATASERVER + "user/" + _user.id)
-						.send({firstName: firstName, lastName: lastName})
+				saveContactData: function (firstName, lastName, email) {
+					self._ajaxAgent.post(self._dataserverUrl + "user/" + _authenticatedUser.id)
+						.send({firstName: firstName, lastName: lastName, email: email})
 						.end(function (res) {
-							console.log("Result from saving user data to database: res", res);
+							console.log("\n\n\nResult from saving user data to database: res", res);
 						});
 				}
 			};
@@ -66,7 +50,7 @@
 		/**
 		 * Become a child of the ListRepository object
 		 */
-		UsersRepository.prototype = new controles.repositories.ListRepository(superagent, repositories.URL_DATASERVER);
+		UsersRepository.prototype = new controles.repositories.ListRepository(superagent, controles.URL_DATASERVER);
 		/**
 		 * Ensure that 'instanceof' will point to the type UsersRepository and not the prototype
 		 */
