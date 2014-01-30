@@ -4,8 +4,6 @@
 
 	(function (repositories) {
 
-		repositories.URL_DATASERVER = "http://data.dotcontroles.dev";
-
 		function ListRespository(ajaxAgent, dataserverUrl) {
 			if (!dataserverUrl) {
 				throw new Error("Missing argument 'dataserverUrl'");
