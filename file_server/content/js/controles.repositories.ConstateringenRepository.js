@@ -116,10 +116,11 @@
 			};
 		}
 
+		console.log("controles.URL_DATASERVER", controles.URL_DATASERVER);
 		/**
 		 * Become a child of the ListRepository object
 		 */
-		ConstateringenRepository.prototype = new controles.repositories.ListRepository(superagent, repositories.URL_DATASERVER);
+		ConstateringenRepository.prototype = new controles.repositories.ListRepository(superagent, controles.URL_DATASERVER);
 		/**
 		 * Ensure that 'instanceof' will point to the type ConstateringenRepository and not the prototype
 		 */
