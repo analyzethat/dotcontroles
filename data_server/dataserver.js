@@ -42,6 +42,30 @@ function handleServerError(err, res) {
 	return res.end(err.message + "\n" + err.stack);
 }
 
+function parseFilters(requestFilters) {
+	var filters = {};
+	var splitted = requestFilters.split(';')
+	console.log("\n\nsplitted filters:", splitted);
+	
+	splitted.forEach(function (filter) {
+		var keyValue = filter.split(":");
+
+		if (keyValue.length === 2) {
+			
+			var value = decodeURIComponent(keyValue[1]);
+			if (value.indexOf("[") === 0 && (value.indexOf("]") === value.length-1)){
+				value = value.substring(1,value.length-1);
+			}
+			filters[keyValue[0]] = value;
+			
+		} else {
+			throw new Error("Filter has multiple sections separated by colon");
+		}
+	});
+
+	return filters;
+}
+
 /**
  * Intercept every request by doing preliminary checks
  * and preparational work.
@@ -100,12 +124,9 @@ app.post("/login", function (req, res) {
 		database.users.getSpecialismsByUserId(user.Id, synchronizer.register("specialisms"));
 
 		synchronizer.on('finished', function (err, result) {
-			console.log("err", err);
 			if (err) {
 				return res.send(500, {"status": 500, "message": err.toString()});
 			}
-
-			console.log("\n\nresult", result);
 
 			body.user.Roles = result.roles || [];
 			body.user.Specialisms = result.specialisms || [];
@@ -198,39 +219,30 @@ app.get("/controles", function (req, res) {
 	var _startedReceivingRows = false;
 	var _finishedReceivingRows = false;
 
+	var queryStringFilters = null;
 	var filters = null;
-	var queryFilters = "";
-
 	if (req.query.filters) {
-		queryFilters = "&filters=" + encodeURIComponent(req.query.filters);
-		filters = {};
-		var splitted = req.query.filters.split(',')
-		splitted.forEach(function (filter) {
-			var keyValue = filter.split(":");
-
-			if (keyValue.length === 2) {
-				filters[keyValue[0]] = decodeURIComponent(keyValue[1]);
-			} else {
-				throw new Error("Filter has multiple sections separated by colon");
-			}
-		});
-		console.log("filters", filters);
+		queryStringFilters = "&filters=" + encodeURIComponent(req.query.filters);
+		filters = req.query.filters ? parseFilters(req.query.filters) : null;
 	}
+
+	console.log("\n\n\nqueryFilters", queryStringFilters);
 
 	function sendChunkInitial() {
 		var previousUrl = null;
 		if (offset > 0) {
 			if (offset - limit >= 0) {
-				previousUrl = '{"href": "/controles?offset=' + (offset - limit) + '&limit=' + limit + queryFilters + '"}';
+				previousUrl = '{"href": "/controles?offset=' + (offset - limit) + '&limit=' + limit + queryStringFilters + '"}';
 			} else {
-				previousUrl = '{"href": "/controles?offset=0&limit=' + limit + queryFilters + '"}';
+				previousUrl = '{"href": "/controles?offset=0&limit=' + limit + queryStringFilters + '"}';
 			}
 		}
+
 		var chunkInitial = '{\n\t"href": "/controles",'
 			+ '\n\t"offset": ' + offset + ','
 			+ '\n\t"limit": ' + limit + ','
 			+ '\n\t"filters": ' + JSON.stringify(filters) + ','
-			+ '\n\t"first": {"href": "/controles?offset=0&limit=' + limit + queryFilters + '"},'
+			+ '\n\t"first": {"href": "/controles?offset=0&limit=' + limit + queryStringFilters + '"},'
 			+ '\n\t"previous": ' + previousUrl + ',';
 		res.write(chunkInitial);
 	}
@@ -243,11 +255,11 @@ app.get("/controles", function (req, res) {
 		var lastOffset = Math.floor(total / limit) * limit;
 
 		if (offset + limit < total) {
-			nextUrl = '{ "href": "/controles?offset=' + (offset + limit) + '&limit=' + limit + queryFilters + '" }';
+			nextUrl = '{ "href": "/controles?offset=' + (offset + limit) + '&limit=' + limit + queryStringFilters + '" }';
 		}
 
 		var chunkTotal = '\n\t"next": ' + nextUrl + ',' +
-			'\n\t"last": { "href": "/controles?offset=' + lastOffset + '&limit=' + limit + queryFilters + '" },' +
+			'\n\t"last": { "href": "/controles?offset=' + lastOffset + '&limit=' + limit + queryStringFilters + '" },' +
 			'\n\t"total": ' + total + (_finishedReceivingRows ? "" : ",");
 
 		res.write(chunkTotal);
@@ -281,7 +293,7 @@ app.get("/controles", function (req, res) {
 	});
 
 	var hasRows = false;
-	database.controles.getAll(offset, limit, filters, function (err, row, rowcount) {
+	database.controles.getFilteredBy(offset, limit, filters, function (err, row, rowcount) {
 		if (err) {
 			throw err;
 		}
@@ -327,38 +339,27 @@ app.get("/constateringen", function (req, res) {
 	var _finishedReceivingRows = false;
 
 	var filters = null;
-	var queryFilters = "";
+	var queryStringFilters = "";
 
 	if (req.query.filters) {
-		queryFilters = "&filters=" + encodeURIComponent(req.query.filters);
-		filters = {};
-		var splitted = req.query.filters.split(',')
-		splitted.forEach(function (filter) {
-			var keyValue = filter.split(":");
-
-			if (keyValue.length === 2) {
-				filters[keyValue[0]] = decodeURIComponent(keyValue[1]);
-			} else {
-				throw new Error("Filter has multiple sections separated by colon");
-			}
-		});
-		console.log("filters", filters);
+		queryStringFilters = "&filters=" + encodeURIComponent(req.query.filters);
+		filters = req.query.filters ? parseFilters(req.query.filters) : null;
 	}
 
 	function sendChunkInitial() {
 		var previousUrl = null;
 		if (offset > 0) {
 			if (offset - limit >= 0) {
-				previousUrl = '{"href": "/constateringen?offset=' + (offset - limit) + '&limit=' + limit + queryFilters + '"}';
+				previousUrl = '{"href": "/constateringen?offset=' + (offset - limit) + '&limit=' + limit + queryStringFilters + '"}';
 			} else {
-				previousUrl = '{"href": "/constateringen?offset=0&limit=' + limit + queryFilters + '"}';
+				previousUrl = '{"href": "/constateringen?offset=0&limit=' + limit + queryStringFilters + '"}';
 			}
 		}
 		var chunkInitial = '{\n\t"href": "/constateringen",'
 			+ '\n\t"offset": ' + offset + ','
 			+ '\n\t"limit": ' + limit + ','
 			+ '\n\t"filters": ' + JSON.stringify(filters) + ','
-			+ '\n\t"first": {"href": "/constateringen?offset=0&limit=' + limit + queryFilters + '"},'
+			+ '\n\t"first": {"href": "/constateringen?offset=0&limit=' + limit + queryStringFilters + '"},'
 			+ '\n\t"previous": ' + previousUrl + ',';
 		res.write(chunkInitial);
 	}
@@ -371,11 +372,11 @@ app.get("/constateringen", function (req, res) {
 		var lastOffset = Math.floor(total / limit) * limit;
 
 		if (offset + limit < total) {
-			nextUrl = '{ "href": "/constateringen?offset=' + (offset + limit) + '&limit=' + limit + queryFilters + '" }';
+			nextUrl = '{ "href": "/constateringen?offset=' + (offset + limit) + '&limit=' + limit + queryStringFilters + '" }';
 		}
 
 		var chunkTotal = '\n\t"next": ' + nextUrl + ',' +
-			'\n\t"last": { "href": "/constateringen?offset=' + lastOffset + '&limit=' + limit + queryFilters + '" },' +
+			'\n\t"last": { "href": "/constateringen?offset=' + lastOffset + '&limit=' + limit + queryStringFilters + '" },' +
 			'\n\t"total": ' + total + (_finishedReceivingRows ? "" : ",");
 
 		res.write(chunkTotal);
