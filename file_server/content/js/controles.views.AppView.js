@@ -5,16 +5,16 @@
 
 	(function (views) {
 
-		function AppView(authenticationRepository){
+		function AppView(authenticationRepository) {
 			if (!authenticationRepository) {
 				throw new Error("Missing argument 'authenticationRepository'");
-			}	
+			}
 
 			var menu = new crafity.html.Menu().addClass("main").appendTo(this);
 			var viewContainer = new crafity.html.ViewContainer().addClass("app").appendTo(this);
-			
+
 			var usersRepository = new controles.repositories.UsersRepository(authenticationRepository.authenticatedUser());
-			var userView = new controles.views.UserView(usersRepository);
+			var userView = null;
 
 			var specialistsRepository = new controles.repositories.SpecialistsRepository();
 			var constateringenRepository = null;
@@ -23,13 +23,16 @@
 			var controlesView = new controles.views.ControlesView(controlesRepository);
 
 			menu.addMenuPanel(new crafity.html.MenuPanel("Overzicht").addMenuItems([
-					new crafity.html.MenuItem("DOT Controles", function () {
-						viewContainer.activate(controlesView);
-					}).select()
-				]));
+				new crafity.html.MenuItem("DOT Controles", function () {
+					viewContainer.activate(controlesView);
+				}).select()
+			]));
 			menu.addMenuPanel(new crafity.html.MenuPanel("Systeem").addMenuItems([
 
 				new crafity.html.MenuItem("Mijn gegevens", function () {
+					if (userView === null){
+						userView = new controles.views.UserView(usersRepository);
+					}
 					viewContainer.activate(userView);
 				}),
 				new crafity.html.MenuItem("Uitloggen", function () {
@@ -46,7 +49,8 @@
 
 			controles.eventbus.on("openControles", function () {
 				console.log("Open controles");
-				viewContainer.activate(controlesView.load());
+//				console.log("controlesView", controlesView);
+				viewContainer.activate(controlesView);
 			});
 
 //		appContainer.toggleClass("fullscreen");
