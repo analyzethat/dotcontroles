@@ -9,10 +9,24 @@
 			var _url = this._dataserverUrl + "/controles";
 			var _user = authenticatedUser;
 			var self = this;
-			
+
 			controles.eventbus.on("loggedout", function () {
 				_user = null;
 			});
+
+			function produceFilterKeyListValue(key, valueArray, id) {
+				var filtersQueryString = encodeURIComponent(key + ":[");
+
+				var first1 = true;
+				valueArray.forEach(function (value) {
+					filtersQueryString += (first1 ? "" : ",")
+						+ encodeURIComponent(encodeURIComponent(value[id]));
+					first1 = false;
+				});
+
+				filtersQueryString += encodeURIComponent("]");
+				return filtersQueryString;
+			}
 
 			this.init = function () {
 				if (!_user) {
@@ -20,18 +34,14 @@
 				}
 
 				console.log("\n\n\n_user", _user);
-				var filtersQueryString = encodeURIComponent("RoleIds:[");
-
-				var first = true;
-				_user.Roles.forEach(function (role) {
-					filtersQueryString += (first ? "": ",")
-						+ encodeURIComponent(encodeURIComponent(role.FunctionalRoleId));
-					first = false;
-				});
-				filtersQueryString += encodeURIComponent("]");
 				
+				var filtersQueryString =
+					produceFilterKeyListValue("RoleId", _user.Roles, "FunctionalRoleId")
+						+ "|"
+						+ produceFilterKeyListValue("SpecialismId", _user.Specialisms, "SpecialismId");
+
 				var filters = "&filters=" + filtersQueryString;
-				console.log("\n\n controle roles", filters);
+//				console.log("\n\n controle roles", filters);
 
 				this._ajaxAgent.get(_url + "?offset=0&limit=" + self.limit + filters, function (res) {
 					console.log("\nGET  %s  , res.body", _url, res.body);
