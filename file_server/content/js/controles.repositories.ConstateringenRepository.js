@@ -144,10 +144,10 @@
 				options: {
 					0: " ",
 					1: "Open",
-					2: "Status 2",
-					3: "Status 3",
-					4: "Status 4",
-					5: "Status 5",
+//					2: "Status 2",
+//					3: "Status 3",
+//					4: "Status 4",
+//					5: "Status 5",
 					6: "Doorgezet"
 				},
 				editable: {
