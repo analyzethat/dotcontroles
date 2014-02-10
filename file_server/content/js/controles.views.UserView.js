@@ -10,9 +10,9 @@
 			if (!usersRepository) {
 				throw new Error("Missing argument 'usersRepository'");
 			}
-			if (!usersRepository.authenticatedUser()) {
-				throw new Error("User must be authenticated!");
-			}
+//			if (!usersRepository.authenticatedUser()) {
+//				throw new Error("User must be authenticated!");
+//			}
 
 			var self = this;
 			var authenticatedUser = usersRepository.authenticatedUser();
