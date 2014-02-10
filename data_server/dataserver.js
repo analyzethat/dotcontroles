@@ -44,20 +44,24 @@ function handleServerError(err, res) {
 
 function parseFilters(requestFilters) {
 	var filters = {};
-	var splitted = requestFilters.split(';')
-	console.log("\n\nsplitted filters:", splitted);
+	var splitted = requestFilters.split('|')
 	
+	console.log("\n\nrequestFilters:", requestFilters);
+	console.log("\n\nsplitted filters by comma | :", splitted); //[ 'RoleIds:[1,3]|SpecialismIds:[9]' ]
+
 	splitted.forEach(function (filter) {
 		var keyValue = filter.split(":");
+		console.log("\nkeyValue", keyValue);
 
 		if (keyValue.length === 2) {
-			
+
 			var value = decodeURIComponent(keyValue[1]);
-			if (value.indexOf("[") === 0 && (value.indexOf("]") === value.length-1)){
-				value = value.substring(1,value.length-1);
+			// if starts a left bracket and ends with a right brackets []
+			if (value.indexOf("[") === 0 && (value.indexOf("]") === value.length - 1)) {
+				value = value.substring(1, value.length - 1);
 			}
 			filters[keyValue[0]] = value;
-			
+
 		} else {
 			throw new Error("Filter has multiple sections separated by colon");
 		}
@@ -227,6 +231,7 @@ app.get("/controles", function (req, res) {
 	}
 
 	console.log("\n\n\nqueryFilters", queryStringFilters);
+	console.log("\n\n Parsed filters", filters);
 
 	function sendChunkInitial() {
 		var previousUrl = null;
