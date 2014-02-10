@@ -1,6 +1,8 @@
 /*jslint node:true, white:true*/
 
 "use strict";
+
+var core = require("crafity-core");
 var tedious = require("tedious");
 var tediousTypes = tedious.TYPES;
 var Connection = tedious.Connection;
@@ -46,6 +48,42 @@ var database = (function () {
 					return tediousTypes.NVarChar;
 			}
 
+		},
+
+		getPropertyFor: function (name, columnDefinitionList) {
+			var res = columnDefinitionList
+				.filter(function (colDefinition, index) {
+					return (name === colDefinition.name);
+				})
+				.map(function (colDefinition, index) {
+					if (name === colDefinition.name) {
+						return colDefinition.property;
+					}
+				});
+
+			if (res.length > 2) {
+				throw new Error("Multiple properties were found for name " + name);
+			}
+
+			return (res && res.length > 0) ? res[0] : null;
+		},
+
+		getTypeFor: function (propertyName, columnDefinitionList) {
+			var res = columnDefinitionList
+				.filter(function (colDefinition, index) {
+					return (propertyName === colDefinition.property);
+				})
+				.map(function (colDefinition, index) {
+					if (propertyName === colDefinition.property) {
+						return colDefinition.type;
+					}
+				});
+
+			if (res.length > 2) {
+				throw new Error("Multiple types were found for property " + propertyName);
+			}
+
+			return (res && res.length > 0) ? res[0] : null;
 		},
 
 		users: {
@@ -257,26 +295,96 @@ var database = (function () {
 
 		controles: (function () {
 
-			function createWhere(filters, request) {
-				var where = ""; //RoleId IN ("; //(1, 5)
-
-				if (filters) {
-					var filterArray = Object.keys(filters);
-
-					filterArray.forEach(function (key) {
-
-						where += (where ? "," : "RoleId IN (") + filters[key] + ")";
-						request.addParameter(key, tediousTypes.Int, filters[key]);
-
-					});
-//					console.log("\n\n\n\nwhere", where);
-					return where;
-
+			/**
+			 * Create or enrich the WHERE clause for a query.
+			 *
+			 * @example
+			 *  createWhereFor("RoleId", filters, request);
+			 *
+			 * @param keyword
+			 * @param filters
+			 * @param request
+			 * @param whereClause
+			 * @returns {*|string}
+			 */
+			function createWhereFor(keywords, filters, request, whereClause) {
+				if (!keywords) {
+					throw new Error("Missing argument keywords for the where clause.");
 				}
+				if (!filters) {
+					throw new Error("Missing argument filters for the where clause.");
+				}
+
+				var where = whereClause || "";
+				var keywordArray = keywords.split(",");
+				var filterArray = Object.keys(filters);
+
+				console.log("\nINSIDE createWhereFor method => ");
+				console.log("\nkeywords", keywords);
+				console.log("\nkeywordArray", keywordArray);
+				console.log("\nfilters", filters);
+				console.log("\nwhereClause", whereClause);
+
+				filterArray.forEach(function (key) {
+					if (core.arrays.contains(keywordArray, key)) {
+						// decide if this is a single value
+						if (filters[key].indexOf(",") === -1) {
+							where += (where ? " AND " + key : key) + " = " + filters[key];
+						} else { // .. collection of values
+							where += (where ? " AND " + key : key) + " IN (" + filters[key] + ")";
+						}
+						var sqlType = database.getSqlDataTypeFor(database.controles.getTypeFor(key));
+						request.addParameter(key, sqlType, filters[key]);
+					}
+
+				});
+//				console.log("\n\n\n\nwhere clause containes: ", where);
+				return where;
 
 			}
 
 			return {
+				getColumnDefinitionList: function () {
+					return [
+						{
+							name: "Code",
+							property: "Code",
+							type: "String"
+						},
+						{ name: "Naam",
+							property: "Name",
+							type: "String"
+						},
+						{ name: "Type",
+							property: "Type",
+							type: "String"
+						},
+						{ name: "Rol",
+							property: "RoleId",
+							type: "Number"
+						},
+						{ name: "Aantal Constateringen",
+							property: "NumberOfConstateringen",
+							type: "Number"
+						}
+					];
+				},
+				getPropertyFor: function (name) {
+					return database.getPropertyFor(name, database.controles.getColumnDefinitionList());
+				},
+
+				getTypeFor: function (propertyName) {
+					var first = database.getTypeFor(propertyName, database.controles.getColumnDefinitionList());
+
+					console.log("first", first);
+					var res = (first !== null)
+						? first
+						: database.getTypeFor(propertyName, database.constateringen.getColumnDefinitionList()); // gasl this is tricky thing of something smarter to solve the problem
+
+					console.log("resultaat", res);
+					return res;
+				},
+
 				getTotal: function (filters, callback) {
 					database.createConnection(function (err, connection) {
 						if (err) {
@@ -291,7 +399,7 @@ var database = (function () {
 						});
 
 						try {
-							where = createWhere(filters, request);
+							where = createWhereFor("RoleId", filters, request);
 						} catch (error) {
 							return callback(error);
 						}
@@ -321,7 +429,7 @@ var database = (function () {
 						});
 
 						try {
-							where = createWhere(filters, request);
+							where = createWhereFor("RoleId", filters, request);
 						} catch (error) {
 							return callback(error);
 						}
@@ -348,6 +456,10 @@ var database = (function () {
 						connection.execSql(request);
 					});
 				},
+
+				// possible filters are:
+				// RoleIds
+				// date
 				getFilteredBy: function (offset, limit, filters, callback) {
 
 					database.createConnection(function (err, connection) {
@@ -363,12 +475,18 @@ var database = (function () {
 						});
 
 						try {
-							where = createWhere(filters, request);
+							where = createWhereFor("RoleId", filters, request);
 						} catch (error) {
 							return callback(error);
 						}
 
-						query = "SELECT Controles.*,  (SELECT COUNT(*) FROM Constateringen WHERE ControleId = Controles.Id) AS NumberOfConstateringen FROM [Controles]"
+						var subquery = "(SELECT COUNT(*) FROM Constateringen "
+							+ createWhereFor("SpecialismId", filters, request, "WHERE ControleId = Controles.Id")
+							+ ") AS NumberOfConstateringen ";
+
+						query = "SELECT Controles.*, "
+							+ subquery
+							+ "FROM [Controles]"
 							+ (where ? " WHERE " + where : "")
 							+ " ORDER BY Id ASC OFFSET " + offset
 							+ " ROWS FETCH NEXT " + limit
@@ -441,6 +559,11 @@ var database = (function () {
 				getColumnDefinitionList: function () {
 					return [
 						{
+							name: "Specialisme",
+							property: "SpecialismId",
+							type: "Number"
+						},
+						{
 							name: "Status",
 							property: "StatusId",
 							type: "Number",
@@ -489,22 +612,8 @@ var database = (function () {
 				},
 
 				getPropertyFor: function (name) {
-					var res = null;
-					res = database.constateringen.getColumnDefinitionList()
-						.filter(function (colDefinition, index) {
-							return (name === colDefinition.name);
-						})
-						.map(function (colDefinition, index) {
-							if (name === colDefinition.name) {
-								return colDefinition.property;
-							}
-						});
 
-					if (res.length > 2) {
-						throw new Error("Multiple properties were found for name " + name);
-					}
-
-					return (res && res.length > 0) ? res[0] : null;
+					return database.getPropertyFor(name, database.constateringen.getColumnDefinitionList());
 				},
 
 				getTotal: function (filters, callback) {
