@@ -5,10 +5,41 @@
 
 	(function (repositories) {
 
-		function ConstateringenRepository(specialistsRepository) {
-			var _specialists = null;
+		/**
+		 * @param authenticatedUser
+		 * @param specialistsRepository
+		 * @constructor
+		 *
+		 * @author Galina Slavova <galina@crafity.com>
+		 */
+		function ConstateringenRepository(authenticatedUser, specialistsRepository) {
+			if (!authenticatedUser) {
+				throw new Error("Missing argument 'authenticatedUser.");
+			}
+			if (!specialistsRepository) {
+				throw new Error("Missing argument 'specialistsRepository.");
+			}
+
 			var _url = this._dataserverUrl + "/constateringen";
+			var _user = authenticatedUser;
 			var _controle = null;
+			var _specialists = null;
+			var FILTER_SEPARATOR = "|";
+
+			// TODOgasl duplicate method - put in base object functionality
+			function produceFilterKeyListValue(key, valueArray, id) {
+				var filtersQueryString = encodeURIComponent(key + ":[");
+
+				var first1 = true;
+				valueArray.forEach(function (value) {
+					filtersQueryString += (first1 ? "" : ",")
+						+ encodeURIComponent(encodeURIComponent(value[id]));
+					first1 = false;
+				});
+
+				filtersQueryString += encodeURIComponent("]");
+				return filtersQueryString;
+			}
 
 			// listen to the state changed event of this repo in order to update the list of specialists
 			specialistsRepository.on("stateChanged", function (data) {
@@ -22,57 +53,65 @@
 				specialistsRepository.init();
 
 				_controle = controle;
-				this.filter({controleId: controle.Id});
+				this.filter();//{controleId: controle.Id, });
 			};
 
 			/**
 			 * Filter constateringen.
 			 *
 			 * @example
-			 * this.filter({controleId: controle.Id});
+			 * this.filter({fromDate: controle.Id});
 			 *
-			 * @param filters
+			 * @param userFilters
 			 */
-			this.filter = function (filters) {
-				if (!filters) {
-					throw new Error("Missing argument filters.");
+			this.filter = function (userFilters) {
+				if (!_user) {
+					throw new Error("_user object must have value.");
 				}
+				if (!_controle) {
+					throw new Error("_controle object must have value.");
+				}
+
+				console.log("\nINSIDE constateringen repo, userFilters: ", userFilters);
 
 				var self = this;
 				var url = _url + "?offset=0&limit=" + self.limit;
-				var filtersQueryString = ""; // a falsy value => can check against !value
 
-				// gather all filters and combine with the logical AND operator
-				if (!filters.controleId) {
-					filters.controleId = _controle.Id;
+				//	This filtering is based on:
+				//	- controle id
+				var filtersQueryString = encodeURIComponent("ControleId") + ":" + encodeURIComponent(encodeURIComponent(_controle.Id));
+
+				//	- optional filters for : 
+				// 		-- specialism(s) 
+				console.log("\n\n\n\n_user.Specialisms", _user.Specialisms);
+				if (_user.Specialisms && _user.Specialisms.length > 0) {
+					filtersQueryString += FILTER_SEPARATOR + produceFilterKeyListValue("SpecialismId", _user.Specialisms, "SpecialismId");
 				}
-				console.log("\nconstateringen filters", filters);
 
-				Object.keys(filters).forEach(function (filterKey) {
+				console.log("\nconstateringen userFilters", userFilters);
 
-					if (filterKey === "controleId" && filters[filterKey] !== null) {
-						console.log("filters[filterKey]", filters[filterKey]);
+				// go through optional filters
+				// 		-- DatumActiviteit, 
+				// 		-- VerantwoordelijkSpecialist
 
-						filtersQueryString += (filtersQueryString ? "," : "")
-							+ encodeURIComponent("ControleId")
-							+ ":" + encodeURIComponent(encodeURIComponent(filters[filterKey]));
-					}
+				if (userFilters) {
+					Object.keys(userFilters).forEach(function (filterKey) {
 
-					if (filterKey === "fromDate" && filters[filterKey] !== null) {
-						console.log("filters[filterKey]", filters[filterKey]);
+						if (filterKey === "fromDate" && userFilters[filterKey] !== null) {
 
-						filtersQueryString += (filtersQueryString ? "," : "")
-							+ encodeURIComponent(self.getPropertyFor("Datum Activiteit", self.columnDefinitionList))
-							+ ":" + encodeURIComponent(encodeURIComponent(filters[filterKey].toISOString()));
-					}
+							filtersQueryString += FILTER_SEPARATOR
+								+ encodeURIComponent(self.getPropertyFor("Datum Activiteit", self.columnDefinitionList))
+								+ ":" + encodeURIComponent(encodeURIComponent(userFilters[filterKey].toISOString()));
+						}
 
-					if (filterKey === "specialist" && filters[filterKey] !== null) {
-						filtersQueryString += (filtersQueryString ? "," : "")
-							+ encodeURIComponent(self.getPropertyFor("Specialist", self.columnDefinitionList))
-							+ ":" + encodeURIComponent(encodeURIComponent(filters[filterKey]));
-					}
+						if (filterKey === "specialist" && userFilters[filterKey] !== null) {
+							filtersQueryString += FILTER_SEPARATOR
+								+ encodeURIComponent(self.getPropertyFor("Specialist", self.columnDefinitionList))
+								+ ":" + encodeURIComponent(encodeURIComponent(userFilters[filterKey]));
+						}
 
-				});
+					});
+				}
 
 				console.log("queryString", filtersQueryString);
 				if (filtersQueryString) {
@@ -138,23 +177,46 @@
 		 */
 		ConstateringenRepository.prototype.columnDefinitionList = [
 			{
+					name: "Specialisme",
+					property: "SpecialismId",
+					type: "Number",
+					options: {
+						0: " ",
+						1: "Dummy specialism 1",
+						2: "Dummy specialism 2",
+						3: "Dummy specialism 3",
+						4: "Dummy specialism 4",
+						5: "Dummy specialism 5",
+						6: "Dummy specialism 6",
+						7: "Dummy specialism 7",
+						8: "Dummy specialism 8",
+						9: "Dummy specialism 9",
+						10: "Dummy specialism 10"
+					},
+					editable: {
+						control: "crafity.html.Selectbox",
+						"default": 2,
+						"events": ["selected"]
+					}
+				},
+			{
 				name: "Status",
 				property: "StatusId",
-				type: "Number",
-				options: {
-					0: " ",
-					1: "Open",
-//					2: "Status 2",
-//					3: "Status 3",
-//					4: "Status 4",
-//					5: "Status 5",
-					6: "Doorgezet"
-				},
-				editable: {
-					control: "crafity.html.Selectbox",
-					"default": 2,
-					"events": ["selected"]
-				}
+				type: "Number"//,
+//				options: {
+//					0: " ",
+//					1: "Open",
+////					2: "Status 2",
+////					3: "Status 3",
+////					4: "Status 4",
+////					5: "Status 5",
+//					6: "Doorgezet"
+//				},
+//				editable: {
+//					control: "crafity.html.Selectbox",
+//					"default": 2,
+//					"events": ["selected"]
+//				}
 			},
 			{ name: "Patientnummer",
 				property: "PatientNr",
