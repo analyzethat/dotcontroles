@@ -315,7 +315,7 @@ var database = (function () {
 					throw new Error("Missing argument filters for the where clause.");
 				}
 
-				var where = whereClause || "";
+				var where = "";
 				var keywordArray = keywords.split(",");
 				var filterArray = Object.keys(filters);
 
@@ -338,7 +338,10 @@ var database = (function () {
 					}
 
 				});
-//				console.log("\n\n\n\nwhere clause containes: ", where);
+
+				if (whereClause) {
+					where += (where ? " AND " + whereClause : whereClause)
+				}
 				return where;
 
 			}
@@ -372,16 +375,13 @@ var database = (function () {
 				getPropertyFor: function (name) {
 					return database.getPropertyFor(name, database.controles.getColumnDefinitionList());
 				},
-
 				getTypeFor: function (propertyName) {
 					var first = database.getTypeFor(propertyName, database.controles.getColumnDefinitionList());
 
-					console.log("first", first);
 					var res = (first !== null)
 						? first
 						: database.getTypeFor(propertyName, database.constateringen.getColumnDefinitionList()); // gasl this is tricky thing of something smarter to solve the problem
 
-					console.log("resultaat", res);
 					return res;
 				},
 
@@ -480,8 +480,8 @@ var database = (function () {
 							return callback(error);
 						}
 
-						var subquery = "(SELECT COUNT(*) FROM Constateringen "
-							+ createWhereFor("SpecialismId", filters, request, "WHERE ControleId = Controles.Id")
+						var subquery = "(SELECT COUNT(*) FROM Constateringen WHERE "
+							+ createWhereFor("SpecialismId", filters, request, "ControleId = Controles.Id")
 							+ ") AS NumberOfConstateringen ";
 
 						query = "SELECT Controles.*, "
@@ -514,41 +514,65 @@ var database = (function () {
 
 		constateringen: (function () {
 
-			function createWhere(filters, request) {
-				var where = "StatusId IN (1, 5)";
+			/**
+			 * Create or enrich the WHERE clause for a query.
+			 *
+			 * @example
+			 *  createWhereFor("RoleId", filters, request);
+			 *
+			 * @param {String} keywords Comma separated input parameters
+			 * @param {Object} filters A filter object
+			 * @param {Object} request
+			 * @param {String} whereClause A custom filter for this Where clause
+			 *
+			 * @returns {*|String} Returns the value of the where clause.
+			 */
+			function createWhereFor(keywords, filters, request, whereClause) {
+				if (!keywords) {
+					throw new Error("Missing argument keywords for the where clause.");
+				}
+				if (!filters) {
+					throw new Error("Missing argument filters for the where clause.");
+				}
 
-				if (filters) {
-					var filterArray = Object.keys(filters);
+				var where = "";
+				var keywordArray = keywords.split(",");
+				var filterArray = Object.keys(filters);
 
-					filterArray.forEach(function (key) {
+				console.log("\nINSIDE createWhereFor method => ");
+				console.log("\nkeywords", keywords);
+				console.log("\nkeywordArray", keywordArray);
+				console.log("\nfilters", filters);
+				console.log("\nCustom whereClause", whereClause);
 
-						if (key === "ControleId") {
-							where = where && where + " AND ";
-							where += "ControleId = @" + key;
-							request.addParameter(key, tediousTypes.Int, filters[key]);
+				filterArray.forEach(function (key) {
+
+					if (core.arrays.contains(keywordArray, key)) {
+
+						if (filters[key].indexOf(",") > -1) {									// decide if this is a collection of values
+							where += (where ? " AND " + key : key) + " IN (" + filters[key] + ")";
 						}
-						else if (key === "VerantwoordelijkSpecialist") {
-							where = where && where + " AND ";
-
+						else if (key === "VerantwoordelijkSpecialist") {			//... or a single value
 							if (filters[key].toLowerCase() === "null") {
-								where += "VerantwoordelijkSpecialist is null";
+								where += (where ? " AND " + key : key) + " is null";
 							} else {
-								where += "VerantwoordelijkSpecialist = @" + key;
-								request.addParameter(key, tediousTypes.NVarChar, filters[key]);
+								where += (where ? " AND " + key : key) + " = @" + key;
 							}
+						}
+						else if (key === "DatumActiviteit") {
+							where += (where ? " AND " + key : key) + " >= @" + key;
 
-						} else if (key === "DatumActiviteit") {
-							// TODO: IS THE DATE VALID???
-							where = where && where + " AND ";
-
-							where += "DatumActiviteit >= @" + key;
-							request.addParameter(key, tediousTypes.SmallDateTime, new Date(filters[key]));
 						} else {
-							throw new Error("The filter '" + key + "' is not supported.");
+							where += (where ? " AND " + key : key) + " = @" + key;
 						}
 
-					});
+						var sqlType = database.getSqlDataTypeFor(database.constateringen.getTypeFor(key));
+						request.addParameter(key, sqlType, filters[key]);
+					}
+				});
 
+				if (whereClause) {
+					where += (where ? " AND " + whereClause : whereClause)
 				}
 
 				return where;
@@ -558,6 +582,11 @@ var database = (function () {
 
 				getColumnDefinitionList: function () {
 					return [
+						{
+							name: "Controle",
+							property: "ControleId",
+							type: "Number"
+						},
 						{
 							name: "Specialisme",
 							property: "SpecialismId",
@@ -610,10 +639,15 @@ var database = (function () {
 						}
 					];
 				},
-
 				getPropertyFor: function (name) {
-
 					return database.getPropertyFor(name, database.constateringen.getColumnDefinitionList());
+				},
+				getTypeFor: function (propertyName) {
+					var result = database.getTypeFor(propertyName, database.constateringen.getColumnDefinitionList());
+					if (!result) {
+						console.log("\n\nNo type found for propertyName", propertyName);
+					}
+					return result;
 				},
 
 				getTotal: function (filters, callback) {
@@ -630,23 +664,25 @@ var database = (function () {
 						});
 
 						try {
-							where = createWhere(filters, request);
+							where = createWhereFor("ControleId", filters, request, "StatusId IN (1,5)");
+//							where = createWhere(filters, request);
 						} catch (error) {
 							return callback(error);
 						}
 
-						query += (where ? ' WHERE ' + where : "");
+						query += (where ? " WHERE " + where : "");
 
 						request.on("row", function (columns) {
 							total = columns.total.value;
 						});
-						console.log("query", query);
+						console.log("\n\nquery", query);
+
 						request.sqlTextOrProcedure = query;
 						connection.execSql(request);
 					});
 				},
 
-				getAll: function (offset, limit, filters, callback) {
+				getFilteredBy: function (offset, limit, filters, callback) {
 					database.createConnection(function (err, connection) {
 						if (err) {
 							return callback(err);
@@ -654,22 +690,27 @@ var database = (function () {
 
 						var where = "";
 						var query = "";
-
 						var request = new Request(query, function (err, rowcount) {
 							return callback(err, null, rowcount);
 						});
 
+						// Sanitize input
+						// fiter can be done only on
+						// controle id
+						// list of specialism ids
+						// datumActiviteit
+						// verantwoordelijkeSpecialist
 						try {
-							where = createWhere(filters, request);
+							where = createWhereFor("ControleId,SpecialismId,DatumActiviteit,VerantwoordelijkSpecialist", filters, request, "StatusId IN (1,5)");
 						} catch (error) {
 							return callback(error);
 						}
 
-						query = 'SELECT * FROM Constateringen'
-							+ (where ? ' WHERE ' + where : "")
-							+ ' ORDER BY Id ASC OFFSET ' + offset
-							+ ' ROWS FETCH NEXT ' + limit
-							+ ' ROWS ONLY ';
+						query = "SELECT * FROM Constateringen"
+							+ (where ? " WHERE " + where : "")
+							+ " ORDER BY Id ASC OFFSET " + offset
+							+ " ROWS FETCH NEXT " + limit
+							+ " ROWS ONLY ";
 						request.sqlTextOrProcedure = query;
 						console.log("\nquery", query);
 
