@@ -4,6 +4,14 @@
 
 	(function (repositories) {
 
+		/**
+		 * 
+		 * @param ajaxAgent
+		 * @param dataserverUrl
+		 * @constructor
+		 * 
+		 * @author Galina Slavova <galina@crafity.com>
+		 */
 		function ListRespository(ajaxAgent, dataserverUrl) {
 			if (!dataserverUrl) {
 				throw new Error("Missing argument 'dataserverUrl'");

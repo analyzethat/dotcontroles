@@ -4,6 +4,12 @@
 	"use strict";
 	(function (repositories) {
 
+		/**
+		 * 
+		 * @constructor
+		 * 
+		 * @author Galina Slavova <galina@crafity.com>
+		 */
 		function SpecialistsRepository() {
 			var ajaxAgent = superagent;
 			var self = this;

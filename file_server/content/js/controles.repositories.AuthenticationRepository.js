@@ -5,6 +5,12 @@
 
 	(function (repositories) {
 
+		/**
+		 * 
+		 * @constructor
+		 * 
+		 * @author Galina Slavova <galina@crafity.com>
+		 */
 		function AuthenticationRepository() {
 			var _user = null;
 

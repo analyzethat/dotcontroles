@@ -5,6 +5,13 @@
 
 	(function (repositories) {
 
+		/**
+		 * 
+		 * @param authenticatedUser
+		 * @constructor
+		 * 
+		 * @author Galina Slavova <galina@crafity.com>
+		 */
 		function UsersRepository(authenticatedUser) {
 			var _url = this._dataserverUrl + "/users";
 			var _authenticatedUser = authenticatedUser;
