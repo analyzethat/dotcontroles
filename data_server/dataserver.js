@@ -47,7 +47,7 @@ function parseFilters(requestFilters) {
 	var splitted = requestFilters.split('|')
 	
 	console.log("\n\nrequestFilters:", requestFilters);
-	console.log("\n\nsplitted filters by comma | :", splitted); //[ 'RoleIds:[1,3]|SpecialismIds:[9]' ]
+	console.log("\n\nsplitted filters by | :", splitted); //[ 'RoleIds:[1,3]|SpecialismIds:[9]' ]
 
 	splitted.forEach(function (filter) {
 		var keyValue = filter.split(":");
@@ -415,7 +415,7 @@ app.get("/constateringen", function (req, res) {
 	});
 
 	var hasRows = false;
-	database.constateringen.getAll(offset, limit, filters, function (err, row, rowcount) {
+	database.constateringen.getFilteredBy(offset, limit, filters, function (err, row, rowcount) {
 		if (err) {
 			throw err;
 		}
