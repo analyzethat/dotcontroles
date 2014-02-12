@@ -5,15 +5,25 @@
 
 	(function (repositories) {
 
+		/**
+		 *
+		 * @param authenticatedUser
+		 * @constructor
+		 *
+		 * @author Galina Slavova <galina@crafity.com>
+		 */
 		function ControlesRepository(authenticatedUser) {
 			var _url = this._dataserverUrl + "/controles";
 			var _user = authenticatedUser;
 			var self = this;
 
+			var FILTER_SEPARATOR = "|";
+			
 			controles.eventbus.on("loggedout", function () {
 				_user = null;
 			});
 
+			// TODOgasl duplicate method - put in base object functionality 
 			function produceFilterKeyListValue(key, valueArray, id) {
 				var filtersQueryString = encodeURIComponent(key + ":[");
 
@@ -34,11 +44,13 @@
 				}
 
 				console.log("\n\n\n_user", _user);
-				
-				var filtersQueryString =
-					produceFilterKeyListValue("RoleId", _user.Roles, "FunctionalRoleId")
-						+ "|"
-						+ produceFilterKeyListValue("SpecialismId", _user.Specialisms, "SpecialismId");
+
+				var filtersQueryString = produceFilterKeyListValue("RoleId", _user.Roles, "FunctionalRoleId");
+
+				console.log("\n\n\n\n_user.Specialisms", _user.Specialisms);
+				if (_user.Specialisms && _user.Specialisms.length > 0) {
+					filtersQueryString += FILTER_SEPARATOR + produceFilterKeyListValue("SpecialismId", _user.Specialisms, "SpecialismId");
+				}
 
 				var filters = "&filters=" + filtersQueryString;
 //				console.log("\n\n controle roles", filters);
