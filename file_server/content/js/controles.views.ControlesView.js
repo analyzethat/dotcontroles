@@ -5,6 +5,13 @@
 
 	(function (views) {
 
+		/**
+		 * 
+		 * @param controlesRepository
+		 * @constructor
+		 * 
+		 * @author Galina Slavova <galina@crafity.com>
+		 */
 		function ControlesView(controlesRepository) {
 			this.addClass("controles"); // gasltodo create own css class
 

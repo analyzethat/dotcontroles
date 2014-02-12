@@ -7,6 +7,13 @@
 
 		var html = crafity.html;
 
+		/**
+		 * 
+		 * @param authenticationRepository
+		 * @constructor
+		 * 
+		 * @author Galina Slavova <galina@crafity.com>
+		 */
 		function LoginView(authenticationRepository) {
 			if (!authenticationRepository) {
 				throw new Error("Missing argument 'authenticationRepository");

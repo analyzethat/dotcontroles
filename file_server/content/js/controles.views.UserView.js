@@ -6,6 +6,13 @@
 
 	(function (views) {
 
+		/**
+		 * 
+		 * @param usersRepository
+		 * @constructor
+		 * 
+		 * @author Galina Slavova <galina@crafity.com>
+		 */
 		function UserView(usersRepository) {
 			if (!usersRepository) {
 				throw new Error("Missing argument 'usersRepository'");

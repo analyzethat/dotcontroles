@@ -6,6 +6,15 @@
 
 	(function (views) {
 
+		/**
+		 * 
+		 * @param controle
+		 * @param constateringenRepository
+		 * @param specialistsRepository
+		 * @constructor
+		 * 
+		 * @author Galina Slavova <galina@crafity.com>
+		 */
 		function ConstateringenView(controle, constateringenRepository, specialistsRepository) {
 			var self = this;
 			var _controle = controle;

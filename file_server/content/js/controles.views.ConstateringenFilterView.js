@@ -6,6 +6,14 @@
 	(function (views) {
 	var html = crafity.html;
 
+		/**
+		 * 
+		 * @param constateringenRepository
+		 * @param specialistsRepository
+		 * @constructor
+		 * 
+		 * @author Galina Slavova <galina@crafity.com>
+		 */
 	function ConstateringenFilterView(constateringenRepository, specialistsRepository) {
 		if (!constateringenRepository) {
 			throw new Error("Missing argument constateringenRepository");
@@ -28,7 +36,6 @@
 				_state.fromDate = value;
 				constateringenRepository.filter(_state);
 			});
-
 		
 		var header = new html.Element("h3").text("Constateringen in tabel filteren op");
 //		new html.Element("span").text("\uF0B0").addClass("symbol").appendTo(header);
