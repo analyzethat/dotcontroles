@@ -5,6 +5,13 @@
 
 	(function (views) {
 
+		/**
+		 * 
+		 * @param authenticationRepository
+		 * @constructor
+		 * 
+		 * @author Galina Slavova <galina@crafity.com>
+		 */
 		function AppView(authenticationRepository) {
 			if (!authenticationRepository) {
 				throw new Error("Missing argument 'authenticationRepository'");
@@ -42,7 +49,7 @@
 
 			controles.eventbus.on("openConstateringen", function (controle) {
 				console.log("Open constateringen", controle);
-				constateringenRepository = new controles.repositories.ConstateringenRepository(specialistsRepository);
+				constateringenRepository = new controles.repositories.ConstateringenRepository(authenticationRepository.authenticatedUser(), specialistsRepository);
 				constateringenView = new controles.views.ConstateringenView(controle, constateringenRepository, specialistsRepository);
 				viewContainer.activate(constateringenView);
 			});
