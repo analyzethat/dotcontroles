@@ -7,27 +7,36 @@
 	(function (views) {
 
 		/**
-		 * 
+		 *
 		 * @param controle
 		 * @param constateringenRepository
 		 * @param specialistsRepository
 		 * @constructor
-		 * 
+		 *
 		 * @author Galina Slavova <galina@crafity.com>
 		 */
 		function ConstateringenView(controle, constateringenRepository, specialistsRepository) {
 			var self = this;
 			var _controle = controle;
+
 			this.addClass("constateringen");
 
 			// Build the GUI elements
 
 			// info row
 			var infoRow = new html.Element("div").addClass("info-row");
+
+			var userRoles = "";
+			constateringenRepository.getUserRoles().forEach(function (role) {
+				userRoles += (userRoles ? ", " : "") + role.Name;
+			});
+			
 			var infoContainer = new html.Element("div").addClass("info")
-				.append(new html.Element("h2").text("Controle code: " + controle.Code))
-				.append(new html.Element("h3").text(controle.Name))
-				.append(new html.Element("h3").text("Type: " + controle.Type))
+				.append(new html.Element("h2").text("Constateringen voor " + controle.Code))
+//				.append(new html.Element("h2").text("Code: " + controle.Code))
+				.append(new html.Element("h3").text('"' + controle.Name + '"'))
+				.append(new html.Element("h4").text("Type: " + controle.Type))
+				.append(new html.Element("h4").text("Rollen: " + userRoles))
 				.appendTo(infoRow);
 
 			var filterView = new window.controles.views.ConstateringenFilterView(constateringenRepository, specialistsRepository)
@@ -36,7 +45,7 @@
 			var gridRow = new html.Element("div").addClass("grid-row");
 			var mygrid = new html.Grid(constateringenRepository.columnDefinitionList).appendTo(gridRow)
 				.on("selected", function (column, row, value) {
-					confirm("Bevestiging status " + value + " update?");
+					confirm("Bevestiging doorzetten " + value + " update?");
 					row[column.property] = value;
 					constateringenRepository.updateStatus(row);
 				});
@@ -61,10 +70,10 @@
 				mygrid.addRows(rows);
 			});
 			constateringenRepository.on("stateChanged", function () {
-				firstButton.disabled(false);
+				firstButton.disabled(!constateringenRepository.hasPrevious());
 				previousButton.disabled(!constateringenRepository.hasPrevious());
 				nextButton.disabled(!constateringenRepository.hasNext());
-				lastButton.disabled(false);
+				lastButton.disabled(!constateringenRepository.hasNext());
 			});
 			constateringenRepository.init(controle); // load data
 

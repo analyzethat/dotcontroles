@@ -32,7 +32,6 @@
 			var specialismsContainer = new html.Element("div").appendTo(infoRow);
 
 			// data-binding
-
 			function clearFields() {
 				txtUsername.clear();
 				txtName.clear();
@@ -78,6 +77,22 @@
 
 			databind(authenticatedUser);
 
+			function save() {
+				usersRepository.user.saveContactData(txtName.value(), txtFamilyName.value(), txtEmail.value());
+			}
+
+			var buttonBar = new html.ButtonBar()
+				.append(
+					new html.Button("Opslaan")
+						.addClass("right").hide()
+						.on("click", save)
+				);
+
+			self.append(infoRow);
+			self.append(buttonBar);
+			self.addClass("detailsContainer");
+			
+			
 //			Email: 'galina@crafity.com',
 //						Roles: [
 //							{
@@ -110,21 +125,6 @@
 //								LastMutationDate: null
 //							}]
 //			
-
-			self.save = function () {
-				usersRepository.user.saveContactData(txtName.value(), txtFamilyName.value(), txtEmail.value());
-			};
-
-			var buttonBar = new html.ButtonBar()
-				.append(
-					new html.Button("Opslaan")
-						.addClass("right").hide()
-						.on("click", self.save)
-				);
-
-			self.append(infoRow);
-			self.append(buttonBar);
-			self.addClass("detailsContainer");
 		}
 
 		UserView.prototype = new html.Element("div");

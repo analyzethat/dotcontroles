@@ -34,13 +34,9 @@
 				loginForm.reset();
 				errorLabel.text(" ");
 			});
-			
 			controles.app.eventbus.on("loginError", function (err) {
 				errorLabel.text(err);
 			});
-
-//			controles.app.eventbus.on("loggedout", function () {
-//			});
 
 			function login() {
 				var isValid = loginForm.verify();
