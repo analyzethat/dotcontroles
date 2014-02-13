@@ -37,23 +37,26 @@
 				mygrid.addRows(rows);
 			});
 			controlesRepository.on("stateChanged", function () {
-				firstButton.disabled(false);
+				firstButton.disabled(!controlesRepository.hasPrevious());
 				previousButton.disabled(!controlesRepository.hasPrevious());
 				nextButton.disabled(!controlesRepository.hasNext());
-				lastButton.disabled(false);
+				lastButton.disabled(!controlesRepository.hasNext());
 			});
-
 			mygrid.on("open", function (row) {
-				//console.log("Selected", row);
 				controles.app.eventbus.emit("openConstateringen", row);
 			});
 
 			controlesRepository.init(); // load data
 
+			var userRoles = "";
+			controlesRepository.getUserRoles().forEach(function(role){
+				userRoles += (userRoles ? ", " : "") + role.Name;
+			});
+			
 			var infoRow = new html.Element("div").addClass("info-row");
-			var infoContainer = new html.Element("div").addClass("info")
+			var infoControlesContainer = new html.Element("div").addClass("info")
 				.append(new html.Element("h2").text("DOT Controles"))
-				.append(new html.Element("h3").text("Rollen: rol1, rol2"))
+				.append(new html.Element("h3").text("Rollen: " + userRoles))
 				.appendTo(infoRow);
 
 			var commandRow = new html.Element("div").addClass("command-row")
