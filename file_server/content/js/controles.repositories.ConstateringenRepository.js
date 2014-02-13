@@ -26,7 +26,6 @@
 			var _specialists = null;
 			var FILTER_SEPARATOR = "|";
 
-			
 			// TODOgasl duplicate method - put in base object functionality
 			function produceFilterKeyListValue(key, valueArray, id) {
 				var filtersQueryString = encodeURIComponent(key + ":[");
@@ -47,6 +46,11 @@
 				_specialists = data;
 			});
 
+			this.getUserRoles = function () {
+				console.log("\n\n_user.Roles", _user.Roles);
+				return _user.Roles;
+			};
+			
 			/**
 			 * Initialize.
 			 */

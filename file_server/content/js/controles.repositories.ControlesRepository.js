@@ -33,12 +33,15 @@
 				return filtersQueryString;
 			}
 
+			this.getUserRoles = function(){
+				console.log("\n\n_user.Roles", _user.Roles);
+				return _user.Roles;
+			};
+			
 			this.init = function () {
 				if (!_user) {
 					throw new Error("User is not instantiated.");
 				}
-
-				console.log("\n\n\n_user", _user);
 
 				var filtersQueryString = produceFilterKeyListValue("RoleId", _user.Roles, "FunctionalRoleId");
 
