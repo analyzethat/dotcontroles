@@ -24,8 +24,6 @@
 			 */
 			this.authenticatedUser = function () {
 					return _authenticatedUser;
-//				controles.eventbus.emit("authenticated", _authenticatedUser);
-				return this;
 			};
 
 			this.users = {
