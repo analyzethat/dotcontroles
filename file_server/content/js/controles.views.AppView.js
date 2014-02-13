@@ -54,7 +54,6 @@
 				constateringenView = new controles.views.ConstateringenView(controle, constateringenRepository, specialistsRepository);
 				viewContainer.activate(constateringenView);
 			});
-
 			controles.app.eventbus.on("openControles", function () {
 				console.log("Open controles");
 //				console.log("controlesView", controlesView);
