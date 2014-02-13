@@ -6,10 +6,11 @@
 	(function (views) {
 
 		/**
-		 * 
+		 * User's view on DOT controles.
+		 *
 		 * @param controlesRepository
 		 * @constructor
-		 * 
+		 *
 		 * @author Galina Slavova <galina@crafity.com>
 		 */
 		function ControlesView(controlesRepository) {
@@ -44,7 +45,7 @@
 
 			mygrid.on("open", function (row) {
 				//console.log("Selected", row);
-				controles.eventbus.emit("openConstateringen", row);
+				controles.app.eventbus.emit("openConstateringen", row);
 			});
 
 			controlesRepository.init(); // load data

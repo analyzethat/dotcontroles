@@ -1,4 +1,4 @@
-/*globals superagent, window, console*/
+/*globals alert, superagent, window, console*/
 
 (function (controles) {
 	"use strict";
@@ -6,10 +6,11 @@
 	(function (repositories) {
 
 		/**
-		 * 
+		 * User repository.
+		 *
 		 * @param authenticatedUser
 		 * @constructor
-		 * 
+		 *
 		 * @author Galina Slavova <galina@crafity.com>
 		 */
 		function UsersRepository(authenticatedUser) {
@@ -23,7 +24,7 @@
 			 * @returns {*}
 			 */
 			this.authenticatedUser = function () {
-					return _authenticatedUser;
+				return _authenticatedUser;
 			};
 
 			this.users = {
@@ -49,7 +50,6 @@
 						});
 				}
 			};
-
 		}
 
 		/**

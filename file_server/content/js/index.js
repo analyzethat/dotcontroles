@@ -4,70 +4,83 @@
 
 	controles.URL_DATASERVER = "http://data.dotcontroles.dev"; // TODOgasl get from config
 
-	controles.app = {
-		initialize: function () {
-			numeral.language("be-nl");
-			moment.lang("nl");
+	/**
+	 * Entry point of DOT controles client.
+	 *
+	 * @type {{initialize: initialize}}
+	 */
+	controles.app = (function () {
+		
+		var loginView = null;
+		var appView = null;
+		var authenticationRepository = null;
 
-			window.jStorage = $.jStorage.noConflict();
-			controles.eventbus = new crafity.core.EventEmitter();
-			console.element = document.querySelector(".console");
+		return {
+			eventbus: null,
 
-			var showLogin, showApp;
+			initialize: function () {
+				numeral.language("be-nl");
+				moment.lang("nl");
 
-			var authenticationRepository = new controles.repositories.AuthenticationRepository();
-			var loginView = null;
-			var appView = null;
+				window.jStorage = window.jStorage || $.jStorage.noConflict();
+				authenticationRepository = new controles.repositories.AuthenticationRepository();
+				console.element = document.querySelector(".console");
+				controles.app.eventbus = new crafity.core.EventEmitter();
 
-			showLogin = function () {
-				if (loginView === null) {
-					console.log("\n\nInstantiating loginView");
-					loginView = new controles.views.LoginView(authenticationRepository);
+				// auxiliary methods
+				function showLogin() {
+					if (loginView === null) {
+						console.log("\n\nInstantiating loginView");
+						loginView = new controles.views.LoginView(authenticationRepository);
+					}
+					document.body.appendChild(loginView.render());
+					window.loginView = loginView;
+					loginView.focus();
+
+					return loginView; // useful for chaining
 				}
-				document.body.appendChild(loginView.render());
-				window.loginView = loginView;
-				loginView.focus();
-
-				return loginView; // useful for chaining
-			};
-			showApp = function () {
-				if (appView === null) {
-					console.log("\n\nInstantiating appView");
-					appView = new controles.views.AppView(authenticationRepository);
+				function showApp() {
+					if (appView === null) {
+						console.log("\n\nInstantiating appView");
+						appView = new controles.views.AppView(authenticationRepository);
+					}
+					document.body.appendChild(appView.render());
+					return appView;
 				}
-				document.body.appendChild(appView.render());
-				return appView;
-			};
 
-			controles.eventbus.on("loggedin", function (user) {
-				if (appView === null) {
-					console.log("\n\nInstantiating appView 1");
-					appView = new controles.views.AppView(authenticationRepository);
+				// event handlers
+				controles.app.eventbus.on("loggedin", function loggedin(user) {
+					if (appView === null) {
+						console.log("\n\nInstantiating appView 1");
+						appView = new controles.views.AppView(authenticationRepository);
+					}
+					document.body.removeChild(loginView.element());
+					showApp();
+				});
+				controles.app.eventbus.on("loggedout", function loggedout() {
+					document.body.removeChild(appView.element());
+					controles.app.destroy();
+					controles.app.initialize();
+				});
+
+				if (!authenticationRepository.isAuthenticated()) {
+					console.log("\n\nNOT authenticated!");
+					showLogin();
+				} else {
+					console.log("\n\nAuthenticated!");
+					showApp();
 				}
-				document.body.removeChild(loginView.element());
-				showApp();
-			});
-			controles.eventbus.on("loggedout", function () {
-				document.body.removeChild(appView.element());
-				showLogin();
-			});
+			},
 
-			if (!authenticationRepository.isAuthenticated()) {
-				console.log("\n\nNOT authenticated!");
-//				if (loginView === null) {
-//					loginView = new controles.views.LoginView(authenticationRepository);
-//				}
-				showLogin();
-			} else {
-//				if (appView === null) {
-//					console.log("\n\nInstantiating appView 2");
-//					appView = new controles.views.AppView(authenticationRepository);
-//				}
-				console.log("\n\nAuthenticated!");
-				showApp();
+			destroy: function () {
+				loginView = null;
+				appView = null;
+				authenticationRepository = null;
+				controles.app.eventbus = null;
+				crafity.keyboard.removeAllListeners();
 			}
-		}
-
-	};
+		};
+		
+	}());
 
 }(window.controles = window.controles || {}));

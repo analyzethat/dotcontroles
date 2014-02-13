@@ -15,13 +15,8 @@
 		function ControlesRepository(authenticatedUser) {
 			var _url = this._dataserverUrl + "/controles";
 			var _user = authenticatedUser;
-			var self = this;
-
 			var FILTER_SEPARATOR = "|";
-			
-			controles.eventbus.on("loggedout", function () {
-				_user = null;
-			});
+			var self = this;
 
 			// TODOgasl duplicate method - put in base object functionality 
 			function produceFilterKeyListValue(key, valueArray, id) {
@@ -53,8 +48,6 @@
 				}
 
 				var filters = "&filters=" + filtersQueryString;
-//				console.log("\n\n controle roles", filters);
-
 				this._ajaxAgent.get(_url + "?offset=0&limit=" + self.limit + filters, function (res) {
 					console.log("\nGET  %s  , res.body", _url, res.body);
 					self.state(res.body);

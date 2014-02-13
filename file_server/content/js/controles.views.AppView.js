@@ -6,10 +6,10 @@
 	(function (views) {
 
 		/**
-		 * 
+		 *
 		 * @param authenticationRepository
 		 * @constructor
-		 * 
+		 *
 		 * @author Galina Slavova <galina@crafity.com>
 		 */
 		function AppView(authenticationRepository) {
@@ -24,10 +24,11 @@
 			var userView = null;
 
 			var specialistsRepository = new controles.repositories.SpecialistsRepository();
-			var constateringenRepository = null;
-			var constateringenView = null;
 			var controlesRepository = new controles.repositories.ControlesRepository(authenticationRepository.authenticatedUser());
 			var controlesView = new controles.views.ControlesView(controlesRepository);
+
+			var constateringenRepository = null;
+			var constateringenView = null;
 
 			menu.addMenuPanel(new crafity.html.MenuPanel("Overzicht").addMenuItems([
 				new crafity.html.MenuItem("DOT Controles", function () {
@@ -37,7 +38,7 @@
 			menu.addMenuPanel(new crafity.html.MenuPanel("Systeem").addMenuItems([
 
 				new crafity.html.MenuItem("Mijn gegevens", function () {
-					if (userView === null){
+					if (userView === null) {
 						userView = new controles.views.UserView(usersRepository);
 					}
 					viewContainer.activate(userView);
@@ -47,14 +48,14 @@
 				})
 			]));
 
-			controles.eventbus.on("openConstateringen", function (controle) {
+			controles.app.eventbus.on("openConstateringen", function (controle) {
 				console.log("Open constateringen", controle);
 				constateringenRepository = new controles.repositories.ConstateringenRepository(authenticationRepository.authenticatedUser(), specialistsRepository);
 				constateringenView = new controles.views.ConstateringenView(controle, constateringenRepository, specialistsRepository);
 				viewContainer.activate(constateringenView);
 			});
 
-			controles.eventbus.on("openControles", function () {
+			controles.app.eventbus.on("openControles", function () {
 				console.log("Open controles");
 //				console.log("controlesView", controlesView);
 				viewContainer.activate(controlesView);

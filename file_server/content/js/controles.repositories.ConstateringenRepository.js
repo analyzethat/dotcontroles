@@ -26,6 +26,7 @@
 			var _specialists = null;
 			var FILTER_SEPARATOR = "|";
 
+			
 			// TODOgasl duplicate method - put in base object functionality
 			function produceFilterKeyListValue(key, valueArray, id) {
 				var filtersQueryString = encodeURIComponent(key + ":[");
@@ -154,7 +155,6 @@
 			};
 		}
 
-		console.log("controles.URL_DATASERVER", controles.URL_DATASERVER);
 		/**
 		 * Become a child of the ListRepository object
 		 */

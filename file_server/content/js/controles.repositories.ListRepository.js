@@ -5,6 +5,7 @@
 	(function (repositories) {
 
 		/**
+		 * List repository - prototype for all repository objects based on collecitons. 
 		 * 
 		 * @param ajaxAgent
 		 * @param dataserverUrl

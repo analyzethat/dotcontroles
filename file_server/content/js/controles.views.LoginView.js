@@ -8,6 +8,7 @@
 		var html = crafity.html;
 
 		/**
+		 * Login view.
 		 * 
 		 * @param authenticationRepository
 		 * @constructor
@@ -29,17 +30,17 @@
 			var loginButton = new html.Button("login").addClass("symbol submit smaller").appendTo(loginDialog).text("\uF13E");
 			var errorLabel = new html.Element("label").appendTo(loginDialog);
 
-			controles.eventbus.on("loggedin", function () {
+			controles.app.eventbus.on("loggedin", function () {
 				loginForm.reset();
 				errorLabel.text(" ");
 			});
 			
-			controles.eventbus.on("loginError", function (err) {
+			controles.app.eventbus.on("loginError", function (err) {
 				errorLabel.text(err);
 			});
 
-			controles.eventbus.on("loggedout", function () {
-			});
+//			controles.app.eventbus.on("loggedout", function () {
+//			});
 
 			function login() {
 				var isValid = loginForm.verify();

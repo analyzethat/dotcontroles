@@ -1,4 +1,4 @@
-/*globals window, console, Element, TextField, Grid, ButtonBar, Button, Form*/
+/*globals alert, window, console, Element, TextField, Grid, ButtonBar, Button, Form*/
 
 (function (controles) {
 	"use strict";
@@ -7,19 +7,17 @@
 	(function (views) {
 
 		/**
-		 * 
+		 * Aunthenticated user's view.
+		 *
 		 * @param usersRepository
 		 * @constructor
-		 * 
+		 *
 		 * @author Galina Slavova <galina@crafity.com>
 		 */
 		function UserView(usersRepository) {
 			if (!usersRepository) {
 				throw new Error("Missing argument 'usersRepository'");
 			}
-//			if (!usersRepository.authenticatedUser()) {
-//				throw new Error("User must be authenticated!");
-//			}
 
 			var self = this;
 			var authenticatedUser = usersRepository.authenticatedUser();
@@ -34,7 +32,24 @@
 			var specialismsContainer = new html.Element("div").appendTo(infoRow);
 
 			// data-binding
+
+			function clearFields() {
+				txtUsername.clear();
+				txtName.clear();
+				txtFamilyName.clear();
+				if (txtEmail) {
+					txtEmail.clear();
+				}
+				roleContainer.clear();
+				specialismsContainer.clear();
+			}
+
 			function databind(user) {
+				if (!user || user === null) {
+					clearFields();
+					return;
+				}
+
 				txtUsername.value(user.Username);
 				txtName.value(user.FirstName);
 				txtFamilyName.value(user.LastName);
@@ -62,33 +77,6 @@
 			}
 
 			databind(authenticatedUser);
-
-//			controles.eventbus.on("authenticated", function (user) {
-//
-//				txtUsername.value(authenticatedUser.Username);
-//				txtName.value(authenticatedUser.FirstName);
-//				txtFamilyName.value(authenticatedUser.LastName);
-//
-//				if (authenticatedUser.Email) {
-//					txtEmail = new html.TextField().label("Email").appendTo(infoRow);
-//					txtEmail.value(authenticatedUser.Email);
-//				}
-//
-//				roleContainer.clear();
-//				specialismsContainer.clear();
-//
-//				var roleCounter = 0;
-//				authenticatedUser.Roles.forEach(function (role) {
-//					roleCounter++;
-//					new html.TextField().label("Rol " + roleCounter).appendTo(roleContainer).readonly(true).value(role.Name);
-//				});
-//
-//				var specialismCounter = 0;
-//				authenticatedUser.Specialisms.forEach(function (specialism) {
-//					specialismCounter++;
-//					new html.TextField().label("Specialisme " + specialismCounter).appendTo(specialismsContainer).readonly(true).value(specialism.Name);
-//				});
-//		});
 
 //			Email: 'galina@crafity.com',
 //						Roles: [
@@ -144,5 +132,4 @@
 
 	}(controles.views = controles.views || {}));
 
-}
-	(window.controles = window.controles || {}));
+}(window.controles = window.controles || {}));

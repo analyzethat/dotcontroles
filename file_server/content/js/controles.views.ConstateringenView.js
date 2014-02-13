@@ -20,7 +20,7 @@
 			var _controle = controle;
 			this.addClass("constateringen");
 
-			// build the GUI elements
+			// Build the GUI elements
 
 			// info row
 			var infoRow = new html.Element("div").addClass("info-row");
@@ -42,7 +42,7 @@
 				});
 
 			var backButton = new html.Button("Controles").on("click", function () {
-				controles.eventbus.emit("openControles");
+				controles.app.eventbus.emit("openControles");
 			});
 			var firstButton = new html.Button("Eerste").addClass("right").disabled(true).on("click", function () {
 				constateringenRepository.first();
