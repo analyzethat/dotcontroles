@@ -340,8 +340,9 @@ app.get("/constateringen", function (req, res) {
 	var _total = null;
 
 	var _finishedSendingTotal = false;
-	var _startedReceivingRows = false;
-	var _finishedReceivingRows = false;
+
+	var _startedReceivingConstateringenRows = false;
+	var _finishedReceivingConstateringenRows = false;
 
 	var filters = null;
 	var queryStringFilters = "";
@@ -382,7 +383,7 @@ app.get("/constateringen", function (req, res) {
 
 		var chunkTotal = '\n\t"next": ' + nextUrl + ',' +
 			'\n\t"last": { "href": "/constateringen?offset=' + lastOffset + '&limit=' + limit + queryStringFilters + '" },' +
-			'\n\t"total": ' + total + (_finishedReceivingRows ? "" : ",");
+			'\n\t"total": ' + total + (_finishedReceivingConstateringenRows ? "" : ",");
 
 		res.write(chunkTotal);
 	}
@@ -400,12 +401,12 @@ app.get("/constateringen", function (req, res) {
 
 		_total = total;
 
-		if (!_startedReceivingRows) {
+		if (!_startedReceivingConstateringenRows) {
 
 			// Zijn de items nog niet aan het streamen? -> Send total thingies
 			sendChunkTotal(_total);
 
-		} else if (_finishedReceivingRows) {
+		} else if (_finishedReceivingConstateringenRows) {
 
 			// Zijn de items al klaar met streamen? -> Send total thingies + finalize request
 			sendChunkTotal(_total);
@@ -420,14 +421,14 @@ app.get("/constateringen", function (req, res) {
 			throw err;
 		}
 
-		if (!_startedReceivingRows) {
+		if (!_startedReceivingConstateringenRows) {
 			res.write('\n\t"items": [');
-			_startedReceivingRows = true;
+			_startedReceivingConstateringenRows = true;
 		}
 
 		if (!row) {
-			res.write("\n\t]" + (_finishedSendingTotal ? "" : ","))
-			_finishedReceivingRows = true;
+			res.write("\n\t]" + (_finishedSendingTotal ? "" : ","));
+			_finishedReceivingConstateringenRows = true;
 
 			// Finished streaming rows. Is the total also ready to be sent?
 			if (_total) {
