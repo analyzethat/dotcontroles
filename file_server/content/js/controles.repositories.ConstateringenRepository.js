@@ -98,7 +98,6 @@
 					Object.keys(userFilters).forEach(function (filterKey) {
 
 						if (filterKey === "fromDate" && userFilters[filterKey] !== null) {
-
 							filtersQueryString += FILTER_SEPARATOR
 								+ encodeURIComponent(self.getPropertyFor("Datum Activiteit", self.columnDefinitionList))
 								+ ":" + encodeURIComponent(encodeURIComponent(userFilters[filterKey].toISOString()));
@@ -177,46 +176,37 @@
 		 */
 		ConstateringenRepository.prototype.columnDefinitionList = [
 			{
-					name: "Specialisme",
-					property: "SpecialismId",
-					type: "Number",
-					options: {
-						0: " ",
-						1: "Dummy specialism 1",
-						2: "Dummy specialism 2",
-						3: "Dummy specialism 3",
-						4: "Dummy specialism 4",
-						5: "Dummy specialism 5",
-						6: "Dummy specialism 6",
-						7: "Dummy specialism 7",
-						8: "Dummy specialism 8",
-						9: "Dummy specialism 9",
-						10: "Dummy specialism 10"
-					},
-					editable: {
-						control: "crafity.html.Selectbox",
-						"default": 2,
-						"events": ["selected"]
-					}
+				name: "Specialisme",
+				property: "SpecialismId",
+				type: "Number",
+				options: {
+					0: " ",
+					1: "Dummy specialism 1",
+					2: "Dummy specialism 2",
+					3: "Dummy specialism 3",
+					4: "Dummy specialism 4",
+					5: "Dummy specialism 5",
+					6: "Dummy specialism 6",
+					7: "Dummy specialism 7",
+					8: "Dummy specialism 8",
+					9: "Dummy specialism 9",
+					10: "Dummy specialism 10"
 				},
+				editable: {
+					control: "crafity.html.Selectbox",
+					"default": 2,
+					"events": ["selected"]
+				}
+			},
 			{
 				name: "Status",
+				property: "StatusName", //"StatusId",
+				type: "String" //"Number"
+			},
+			{
+				name: "StatusId",
 				property: "StatusId",
-				type: "Number"//,
-//				options: {
-//					0: " ",
-//					1: "Open",
-////					2: "Status 2",
-////					3: "Status 3",
-////					4: "Status 4",
-////					5: "Status 5",
-//					6: "Doorgezet"
-//				},
-//				editable: {
-//					control: "crafity.html.Selectbox",
-//					"default": 2,
-//					"events": ["selected"]
-//				}
+				type: "Number"
 			},
 			{ name: "Patientnummer",
 				property: "PatientNr",
