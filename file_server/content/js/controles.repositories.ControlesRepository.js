@@ -92,8 +92,8 @@
 				type: "String"
 			},
 			{ name: "Rol",
-				property: "RoleId",
-				type: "Number"
+				property: "RoleName", //"RoleId",
+				type: "String"
 			},
 			{ name: "Aantal Constateringen",
 				property: "NumberOfConstateringen",

@@ -457,9 +457,6 @@ var database = (function () {
 					});
 				},
 
-				// possible filters are:
-				// RoleIds
-				// date
 				getFilteredBy: function (offset, limit, filters, callback) {
 
 					database.createConnection(function (err, connection) {
@@ -481,16 +478,18 @@ var database = (function () {
 						}
 
 						var subquery = "(SELECT COUNT(*) FROM Constateringen WHERE "
-							+ createWhereFor("SpecialismId", filters, request, "ControleId = Controles.Id")
+							+ createWhereFor("SpecialismId", filters, request, "ControleId = c.Id AND StatusId IN (1,5)")
 							+ ") AS NumberOfConstateringen ";
 
-						query = "SELECT Controles.*, "
+						query = "SELECT c.*, fr.Name as RoleName, "
 							+ subquery
-							+ "FROM [Controles]"
+							+ "FROM [Controles] as c"
+							+ " INNER JOIN [FunctionalRoles] as fr ON fr.Id = c.RoleId"
 							+ (where ? " WHERE " + where : "")
 							+ " ORDER BY Id ASC OFFSET " + offset
 							+ " ROWS FETCH NEXT " + limit
 							+ " ROWS ONLY ";
+						
 						request.sqlTextOrProcedure = query;
 
 						console.log("\nquery:", query);
@@ -706,7 +705,9 @@ var database = (function () {
 							return callback(error);
 						}
 
-						query = "SELECT * FROM Constateringen"
+						query = "SELECT const.*, status.Name as StatusName" 
+							+ " FROM Constateringen as const"
+							+ " INNER JOIN [Statusses] as status ON status.Id = const.StatusId"
 							+ (where ? " WHERE " + where : "")
 							+ " ORDER BY Id ASC OFFSET " + offset
 							+ " ROWS FETCH NEXT " + limit
