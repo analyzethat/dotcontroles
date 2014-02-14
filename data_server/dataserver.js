@@ -45,7 +45,7 @@ function handleServerError(err, res) {
 function parseFilters(requestFilters) {
 	var filters = {};
 	var splitted = requestFilters.split('|')
-	
+
 	console.log("\n\nrequestFilters:", requestFilters);
 	console.log("\n\nsplitted filters by | :", splitted); //[ 'RoleIds:[1,3]|SpecialismIds:[9]' ]
 
@@ -459,7 +459,8 @@ app.get("/constateringen", function (req, res) {
  *  and object as a body
  */
 app.post("/constateringen/:id", function (req, res) {
-	console.log("\nPOST /constateringen/:id ", req.params, req.body);
+	console.log("\nPOST /constateringen/:id ", req.params);
+	console.log("\n\t req.body\n", req.body);
 
 	database.constateringen.update(req.params.id, req.body, function (err, rowcount) {
 		if (err) {

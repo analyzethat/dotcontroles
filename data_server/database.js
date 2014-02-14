@@ -489,7 +489,7 @@ var database = (function () {
 							+ " ORDER BY Id ASC OFFSET " + offset
 							+ " ROWS FETCH NEXT " + limit
 							+ " ROWS ONLY ";
-						
+
 						request.sqlTextOrProcedure = query;
 
 						console.log("\nquery:", query);
@@ -594,21 +594,17 @@ var database = (function () {
 						{
 							name: "Status",
 							property: "StatusId",
-							type: "Number",
-							options: {
-								0: " ",
-								1: "Open",
-								2: "Status 2",
-								3: "Status 3",
-								4: "Status 4",
-								5: "Status 5",
-								6: "Doorgezet"
-							},
-							editable: {
-								control: "Selectbox",
-								"default": 2,
-								"events": ["selected"]
-							}
+							type: "Number"
+						},
+						{
+							name: "LastMutationDate",
+							property: "LastMutationDate",
+							type: "Date"
+						},
+						{
+							name: "GebruikerId",
+							property: "GebruikerId",
+							type: "Number"
 						},
 						{ name: "Patientnummer",
 							property: "PatientNr",
@@ -620,9 +616,7 @@ var database = (function () {
 						},
 						{ name: "Datum Activiteit",
 							property: "DatumActiviteit",
-							type: "Date",
-							sortable: "descending",
-							format: "DD-MM-YYYY"
+							type: "Date"
 						},
 						{ name: "DBC Typering",
 							property: "DBCTypering",
@@ -705,7 +699,7 @@ var database = (function () {
 							return callback(error);
 						}
 
-						query = "SELECT const.*, status.Name as StatusName" 
+						query = "SELECT const.*, status.Name as StatusName"
 							+ " FROM Constateringen as const"
 							+ " INNER JOIN [Statusses] as status ON status.Id = const.StatusId"
 							+ (where ? " WHERE " + where : "")
@@ -786,6 +780,7 @@ var database = (function () {
 
 						var propertyKeys = Object.keys(properties);
 						var lastIndex = propertyKeys.length - 1;
+
 						var query = "UPDATE Constateringen ";
 
 						var request = new Request(query, function (err, rowcount) {
@@ -797,13 +792,17 @@ var database = (function () {
 							database.constateringen.getColumnDefinitionList().forEach(function (colDefinition, index) {
 
 								if (propertyKey === colDefinition.property) {
-									//								console.log("\nlastIndex, index", lastIndex, index);
 
-									query += (index === 0)
+									query += (indexPropertyKey === 0)
 										? "SET " + propertyKey + " = @" + propertyKey
 										: ", " + propertyKey + " = @" + propertyKey;
 
-									console.log(propertyKey, database.getSqlDataTypeFor(colDefinition.type), properties[propertyKey]);
+									if (database.constateringen.getTypeFor(propertyKey) === "Date") {
+										properties[propertyKey] = new Date(properties[propertyKey]);
+									}
+									console.log("\npropertyKey", propertyKey, database.getSqlDataTypeFor(colDefinition.type))
+									console.log("\nproperties[propertyKey]", properties[propertyKey]);
+									
 									request.addParameter(propertyKey, database.getSqlDataTypeFor(colDefinition.type), properties[propertyKey]);
 								}
 
