@@ -19,6 +19,8 @@
 			eventbus: null,
 
 			initialize: function () {
+				console.log("\n\nInitialize objects..");
+				
 				numeral.language("be-nl");
 				moment.lang("nl");
 
@@ -30,7 +32,6 @@
 				// auxiliary methods
 				function showLogin() {
 					if (loginView === null) {
-						console.log("\n\nInstantiating loginView");
 						loginView = new controles.views.LoginView(authenticationRepository);
 					}
 					document.body.appendChild(loginView.render());
@@ -41,7 +42,6 @@
 				}
 				function showApp() {
 					if (appView === null) {
-						console.log("\n\nInstantiating appView");
 						appView = new controles.views.AppView(authenticationRepository);
 					}
 					document.body.appendChild(appView.render());
@@ -51,7 +51,6 @@
 				// event handlers
 				controles.app.eventbus.on("loggedin", function loggedin(user) {
 					if (appView === null) {
-						console.log("\n\nInstantiating appView 1");
 						appView = new controles.views.AppView(authenticationRepository);
 					}
 					document.body.removeChild(loginView.element());
@@ -73,6 +72,7 @@
 			},
 
 			destroy: function () {
+				console.log("\n\nDestroy objects..");
 				loginView = null;
 				appView = null;
 				authenticationRepository = null;

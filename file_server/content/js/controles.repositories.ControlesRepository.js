@@ -33,26 +33,31 @@
 				return filtersQueryString;
 			}
 
-			this.getUserRoles = function(){
-				console.log("\n\n_user.Roles", _user.Roles);
+			this.getUserRoles = function () {
 				return _user.Roles;
 			};
-			
+
 			this.init = function () {
 				if (!_user) {
 					throw new Error("User is not instantiated.");
 				}
 
+				var self = this;
+				var url = _url + "?offset=0&limit=" + self.limit;
+
 				var filtersQueryString = produceFilterKeyListValue("RoleId", _user.Roles, "FunctionalRoleId");
 
-				console.log("\n\n\n\n_user.Specialisms", _user.Specialisms);
 				if (_user.Specialisms && _user.Specialisms.length > 0) {
 					filtersQueryString += FILTER_SEPARATOR + produceFilterKeyListValue("SpecialismId", _user.Specialisms, "SpecialismId");
 				}
 
-				var filters = "&filters=" + filtersQueryString;
-				this._ajaxAgent.get(_url + "?offset=0&limit=" + self.limit + filters, function (res) {
-					console.log("\nGET  %s  , res.body", _url, res.body);
+				if (filtersQueryString) {
+					filtersQueryString = "&filters=" + filtersQueryString;
+					url += filtersQueryString;
+				}
+				
+				this._ajaxAgent.get(url, function (res) {
+					console.log("\nGET  %s, res.body", _url, res.body);
 					self.state(res.body);
 				});
 			};
