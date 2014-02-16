@@ -551,6 +551,7 @@ var database = (function () {
 						if (filters[key].indexOf(",") > -1) {									// decide if this is a collection of values
 							where += (where ? " AND " + key : key) + " IN (" + filters[key] + ")";
 						}
+						
 						else if (key === "VerantwoordelijkSpecialist") {			//... or a single value
 							if (filters[key].toLowerCase() === "null") {
 								where += (where ? " AND " + key : key) + " is null";
@@ -558,9 +559,10 @@ var database = (function () {
 								where += (where ? " AND " + key : key) + " = @" + key;
 							}
 						}
-						else if (key === "DatumActiviteit") {
+						
+						else if (key === "DatumActiviteit" && database.constateringen.getTypeFor(key) === "Date") {
 							where += (where ? " AND " + key : key) + " >= @" + key;
-
+							filters[key] = new Date(filters[key]);
 						} else {
 							where += (where ? " AND " + key : key) + " = @" + key;
 						}
@@ -658,7 +660,6 @@ var database = (function () {
 
 						try {
 							where = createWhereFor("ControleId", filters, request, "StatusId IN (1,5)");
-//							where = createWhere(filters, request);
 						} catch (error) {
 							return callback(error);
 						}
@@ -802,7 +803,7 @@ var database = (function () {
 									}
 									console.log("\npropertyKey", propertyKey, database.getSqlDataTypeFor(colDefinition.type))
 									console.log("\nproperties[propertyKey]", properties[propertyKey]);
-									
+
 									request.addParameter(propertyKey, database.getSqlDataTypeFor(colDefinition.type), properties[propertyKey]);
 								}
 
