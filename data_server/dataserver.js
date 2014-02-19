@@ -16,7 +16,7 @@ var database = require("./database");
 
 var server;
 var TIMEOUT_IN_MINUTES = 20;
-var ORIGIN_URL = "http://dotcontroles.dev";
+var ORIGIN_URLs = ["http://dotcontroles.dev", "http://dotcontroles.crafity.com"];
 
 app.use(express.bodyParser());
 app.use(express.cookieParser());
@@ -47,7 +47,7 @@ function parseFilters(requestFilters) {
 	var splitted = requestFilters.split('|')
 
 	console.log("\n\nrequestFilters:", requestFilters);
-	console.log("\n\nsplitted filters by | :", splitted); //[ 'RoleIds:[1,3]|SpecialismIds:[9]' ]
+	console.log("\n\nsplitted filters by | :", splitted); //[ 'FunctionalRoleIds:[1,3]|SpecialismIds:[9]' ]
 
 	splitted.forEach(function (filter) {
 		var keyValue = filter.split(":");
@@ -75,15 +75,29 @@ function parseFilters(requestFilters) {
  * and preparational work.
  */
 app.use(function appendHeaders(req, res, next) {
+	if (core.arrays.contains(ORIGIN_URLs, req.headers.origin)) {
+		console.log("\nreq.headers.origin", req.headers.origin);
+	}
+
+	var headersObject = {
+//		"Origin": ORIGIN_URLs,
+//		"Access-Control-Allow-Origin": ORIGIN_URLs,
+		"x-powered-by": "Crafity",
+		"Content-Type": "application/json; charset=utf-8"
+	};
+
+//	ORIGIN_URLs.forEach(function (origin) {
+	if (core.arrays.contains(ORIGIN_URLs, req.headers.origin)) {
+		headersObject["Origin"] = req.headers.origin;
+		headersObject["Access-Control-Allow-Origin"] = req.headers.origin;
+	}
+
+//	});
+
 	// meaning of the headers below: 
 	// only the Origin Url is allowed to use this data server
 	// value of Origin must match the value of Access-Control-Allow-Origin
-	res.header({
-		"Origin": ORIGIN_URL,
-		"Access-Control-Allow-Origin": ORIGIN_URL,
-		"x-powered-by": "Crafity",
-		"Content-Type": "application/json; charset=utf-8"
-	});
+	res.header(headersObject);
 	next();
 });
 
@@ -91,7 +105,10 @@ app.use(function appendHeaders(req, res, next) {
 
 app.options("*", function (req, res) {
 	res.setHeader("Access-Control-Allow-Headers", "Access-Control-Allow-Origin, Access-Control-Allow-Methods, Access-Control-Allow-Credentials, Origin, Content-Type");
-	res.setHeader("Access-Control-Allow-Origin", ORIGIN_URL);
+	if (core.arrays.contains(ORIGIN_URLs, req.headers.origin)) {
+		res.setHeader("Access-Control-Allow-Origin", req.headers.origin);
+	}
+//	res.setHeader("Access-Control-Allow-Origin", ORIGIN_URLs);
 	res.setHeader("Access-Control-Allow-Methods", "GET, PUT, POST, DELETE");
 	res.setHeader("Access-Control-Allow-Credentials", "true");
 	res.end();
@@ -104,6 +121,9 @@ app.get("/", function (req, res) {
 });
 
 app.post("/login", function (req, res) {
+	console.log("\n\n\n\n req.headers", req.headers);
+	console.log("\n\n\n\n req.headers.referrer", req.headers.referrer);
+
 	console.log("\nPOST /login", req.params, req.body);
 	console.log("req.session", req.session);
 	console.log("req.cookies", req.cookies);
@@ -223,7 +243,7 @@ app.get("/controles", function (req, res) {
 	var _startedReceivingRows = false;
 	var _finishedReceivingRows = false;
 
-	var queryStringFilters = null;
+	var queryStringFilters = "";
 	var filters = null;
 	if (req.query.filters) {
 		queryStringFilters = "&filters=" + encodeURIComponent(req.query.filters);
@@ -334,6 +354,7 @@ app.get("/controles", function (req, res) {
 
 app.get("/constateringen", function (req, res) {
 	console.log("GET /constateringen ", req.params, req.body);
+	console.log("\nreq.query.filters", req.query.filters);
 
 	var offset = parseInt(req.query.offset || 0, 10);
 	var limit = parseInt(req.query.limit || 5, 10);
@@ -348,6 +369,8 @@ app.get("/constateringen", function (req, res) {
 	var queryStringFilters = "";
 
 	if (req.query.filters) {
+		console.log("\n\n\n NB !!! req.query.filters", req.query.filters);
+		
 		queryStringFilters = "&filters=" + encodeURIComponent(req.query.filters);
 		filters = req.query.filters ? parseFilters(req.query.filters) : null;
 	}

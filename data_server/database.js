@@ -262,7 +262,6 @@ var database = (function () {
 		},
 
 		specialists: {
-
 			getAll: function (callback) {
 				database.createConnection(function (err, connection) {
 					if (err) {
@@ -271,7 +270,7 @@ var database = (function () {
 
 					var specialist = database.constateringen.getPropertyFor("Specialist") || "VerantwoordelijkSpecialist";
 
-					var query = "SELECT DISTINCT " + specialist + " from constateringen;";
+					var query = "SELECT DISTINCT " + specialist + " from Constateringen;";
 
 					var request = new Request(query, function (err, rowcount) {
 						return callback(err, null, rowcount); // end
@@ -290,7 +289,6 @@ var database = (function () {
 
 				});
 			}
-
 		},
 
 		controles: (function () {
@@ -299,7 +297,7 @@ var database = (function () {
 			 * Create or enrich the WHERE clause for a query.
 			 *
 			 * @example
-			 *  createWhereFor("RoleId", filters, request);
+			 *  createWhereFor("FunctionalRoleId", filters, request);
 			 *
 			 * @param keyword
 			 * @param filters
@@ -311,8 +309,9 @@ var database = (function () {
 				if (!keywords) {
 					throw new Error("Missing argument keywords for the where clause.");
 				}
-				if (!filters) {
-					throw new Error("Missing argument filters for the where clause.");
+				if (!filters || filters.length === 0) {
+					return "";
+					//throw new Error("Missing argument filters for the where clause.");
 				}
 
 				var where = "";
@@ -342,7 +341,7 @@ var database = (function () {
 				if (whereClause) {
 					where += (where ? " AND " + whereClause : whereClause)
 				}
-				return where;
+				return where ? "WHERE " + where : "";
 
 			}
 
@@ -363,7 +362,7 @@ var database = (function () {
 							type: "String"
 						},
 						{ name: "Rol",
-							property: "RoleId",
+							property: "FunctionalRoleId",
 							type: "Number"
 						},
 						{ name: "Aantal Constateringen",
@@ -385,6 +384,10 @@ var database = (function () {
 					return res;
 				},
 
+				getColumnsAllowedForFilering: function () {
+					return "FunctionalRoleId,Code,Id";
+				},
+
 				getTotal: function (filters, callback) {
 					database.createConnection(function (err, connection) {
 						if (err) {
@@ -392,67 +395,25 @@ var database = (function () {
 						}
 						var total = 0;
 						var where = "";
-						var query = "SELECT count('x') as total FROM Controles";
+						var query = "SELECT count('x') as total FROM Controles ";
 
 						var request = new Request(query, function (err) {
 							return callback(err, !err && total);
 						});
 
 						try {
-							where = createWhereFor("RoleId", filters, request);
+							where = createWhereFor("FunctionalRoleId", filters, request);
 						} catch (error) {
 							return callback(error);
 						}
 
-						query += (where ? ' WHERE ' + where : "");
+						query += where;
 
 						request.on("row", function (columns) {
 							total = columns.total.value;
 						});
 						console.log("query", query);
 						request.sqlTextOrProcedure = query;
-						connection.execSql(request);
-					});
-				},
-				getAll: function (offset, limit, filters, callback) {
-
-					database.createConnection(function (err, connection) {
-						if (err) {
-							return callback(err);
-						}
-
-						var where = "";
-						var query = "";
-
-						var request = new Request(query, function (err, rowcount) {
-							return callback(err, null, rowcount);
-						});
-
-						try {
-							where = createWhereFor("RoleId", filters, request);
-						} catch (error) {
-							return callback(error);
-						}
-
-						query = "SELECT Controles.*,  (SELECT COUNT(*) FROM Constateringen WHERE ControleId = Controles.Id) AS NumberOfConstateringen FROM [Controles]"
-							+ (where ? " WHERE " + where : "")
-							+ " ORDER BY Id ASC OFFSET " + offset
-							+ " ROWS FETCH NEXT " + limit
-							+ " ROWS ONLY ";
-						request.sqlTextOrProcedure = query;
-
-						console.log("\nquery", query);
-
-						request.on("row", function (columns) {
-							var row = {};
-
-							columns.forEach(function (column) {
-								row[column.metadata.colName] = column.value;
-							});
-
-							return callback(null, row, null);
-						});
-
 						connection.execSql(request);
 					});
 				},
@@ -472,20 +433,19 @@ var database = (function () {
 						});
 
 						try {
-							where = createWhereFor("RoleId", filters, request);
+							where = createWhereFor("FunctionalRoleId", filters, request);
 						} catch (error) {
 							return callback(error);
 						}
 
-						var subquery = "(SELECT COUNT(*) FROM Constateringen WHERE "
+						var subquery = "(SELECT COUNT(*) FROM Constateringen "
 							+ createWhereFor("SpecialismId", filters, request, "ControleId = c.Id AND StatusId IN (1,5)")
 							+ ") AS NumberOfConstateringen ";
 
-						query = "SELECT c.*, fr.Name as RoleName, "
-							+ subquery
+						query = "SELECT c.*, fr.Name as RoleName, " + subquery
 							+ "FROM [Controles] as c"
-							+ " INNER JOIN [FunctionalRoles] as fr ON fr.Id = c.RoleId"
-							+ (where ? " WHERE " + where : "")
+							+ " LEFT JOIN [FunctionalRoles] as fr ON fr.Id = c.FunctionalRoleId "
+							+ where
 							+ " ORDER BY Id ASC OFFSET " + offset
 							+ " ROWS FETCH NEXT " + limit
 							+ " ROWS ONLY ";
@@ -517,7 +477,7 @@ var database = (function () {
 			 * Create or enrich the WHERE clause for a query.
 			 *
 			 * @example
-			 *  createWhereFor("RoleId", filters, request);
+			 *  createWhereFor("FunctionalRoleId", filters, request);
 			 *
 			 * @param {String} keywords Comma separated input parameters
 			 * @param {Object} filters A filter object
@@ -530,8 +490,9 @@ var database = (function () {
 				if (!keywords) {
 					throw new Error("Missing argument keywords for the where clause.");
 				}
-				if (!filters) {
-					throw new Error("Missing argument filters for the where clause.");
+				if (!filters && filters.length === 0) {
+					return "";
+					//throw new Error("Missing argument filters for the where clause.");
 				}
 
 				var where = "";
@@ -551,7 +512,7 @@ var database = (function () {
 						if (filters[key].indexOf(",") > -1) {									// decide if this is a collection of values
 							where += (where ? " AND " + key : key) + " IN (" + filters[key] + ")";
 						}
-						
+
 						else if (key === "VerantwoordelijkSpecialist") {			//... or a single value
 							if (filters[key].toLowerCase() === "null") {
 								where += (where ? " AND " + key : key) + " is null";
@@ -559,7 +520,7 @@ var database = (function () {
 								where += (where ? " AND " + key : key) + " = @" + key;
 							}
 						}
-						
+
 						else if (key === "DatumActiviteit" && database.constateringen.getTypeFor(key) === "Date") {
 							where += (where ? " AND " + key : key) + " >= @" + key;
 							filters[key] = new Date(filters[key]);
@@ -576,7 +537,7 @@ var database = (function () {
 					where += (where ? " AND " + whereClause : whereClause)
 				}
 
-				return where;
+				return where ? "WHERE " + where : "";
 			}
 
 			return {
@@ -604,8 +565,8 @@ var database = (function () {
 							type: "Date"
 						},
 						{
-							name: "GebruikerId",
-							property: "GebruikerId",
+							name: "UserId",
+							property: "UserId",
 							type: "Number"
 						},
 						{ name: "Patientnummer",
@@ -664,7 +625,7 @@ var database = (function () {
 							return callback(error);
 						}
 
-						query += (where ? " WHERE " + where : "");
+						query += " " + where;
 
 						request.on("row", function (columns) {
 							total = columns.total.value;
@@ -702,8 +663,8 @@ var database = (function () {
 
 						query = "SELECT const.*, status.Name as StatusName"
 							+ " FROM Constateringen as const"
-							+ " INNER JOIN [Statusses] as status ON status.Id = const.StatusId"
-							+ (where ? " WHERE " + where : "")
+							+ " INNER JOIN [Statuses] as status ON status.Id = const.StatusId "
+							+ where
 							+ " ORDER BY Id ASC OFFSET " + offset
 							+ " ROWS FETCH NEXT " + limit
 							+ " ROWS ONLY ";
@@ -825,7 +786,7 @@ var database = (function () {
 						}
 
 						var query = "UPDATE Constateringen SET "
-							+ " GebruikerId = @GebruikerId"
+							+ " UserId = @UserId"
 							+ ", StatusId = @StatusId"
 							+ ", ZiektegevalNr = @ZiektegevalNr" // prevent sql injection like: '; select * from logins ; --
 							+ ", DatumActiviteit = @DatumActiviteit"
@@ -838,7 +799,7 @@ var database = (function () {
 							return callback(err, rowcount);
 						});
 
-						request.addParameter('GebruikerId', tediousTypes.Int, constatering.GebruikerId);
+						request.addParameter('UserId', tediousTypes.Int, constatering.UserId);
 						request.addParameter('StatusId', tediousTypes.Int, constatering.StatusId);
 						request.addParameter('ZiektegevalNr', tediousTypes.NVarChar, constatering.ZiektegevalNr);
 						request.addParameter('DatumActiviteit', tediousTypes.SmallDateTime, new Date(constatering.DatumActiviteit));

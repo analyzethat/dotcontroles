@@ -45,7 +45,7 @@
 				var self = this;
 				var url = _url + "?offset=0&limit=" + self.limit;
 
-				var filtersQueryString = produceFilterKeyListValue("RoleId", _user.Roles, "FunctionalRoleId");
+				var filtersQueryString = produceFilterKeyListValue("FunctionalRoleId", _user.Roles, "FunctionalRoleId");
 
 				if (_user.Specialisms && _user.Specialisms.length > 0) {
 					filtersQueryString += FILTER_SEPARATOR + produceFilterKeyListValue("SpecialismId", _user.Specialisms, "SpecialismId");
@@ -93,7 +93,7 @@
 				type: "String"
 			},
 			{ name: "Rol",
-				property: "RoleName", //"RoleId",
+				property: "RoleName",
 				type: "String"
 			},
 			{ name: "Aantal Constateringen",

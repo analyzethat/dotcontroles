@@ -30,11 +30,20 @@
 			var constateringenRepository = null;
 			var constateringenView = null;
 
+			
+			var medicalSuitcaseIcon = new crafity.html.Element("div").addClass("symbol medical-suitcase").text("\uF0FA");
+			var personIcon = new crafity.html.Element("div").addClass("symbol person").text("\uF007");
+			var outIcon = new crafity.html.Element("div").addClass("symbol out").text("\uF045");
+			
 			menu.addMenuPanel(new crafity.html.MenuPanel("Overzicht").addMenuItems([
-				new crafity.html.MenuItem("DOT Controles", function () {
+				
+				new crafity.html.MenuItem("DOT Controles", function () { // F0FA
 					viewContainer.activate(controlesView);
-				}).select()
-			]));
+				}).select().append(medicalSuitcaseIcon)
+			])
+			
+			
+			);
 			menu.addMenuPanel(new crafity.html.MenuPanel("Systeem").addMenuItems([
 
 				new crafity.html.MenuItem("Mijn gegevens", function () {
@@ -42,10 +51,11 @@
 						userView = new controles.views.UserView(usersRepository);
 					}
 					viewContainer.activate(userView);
-				}),
+				}).append(personIcon),
+				
 				new crafity.html.MenuItem("Uitloggen", function () {
 					authenticationRepository.logout();
-				})
+				}).append(outIcon)
 			]));
 
 			controles.app.eventbus.on("openConstateringen", function (controle) {
