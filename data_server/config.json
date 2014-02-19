@@ -5,7 +5,7 @@
 		"server": "192.168.145.129",
 		"options": {
 			"database": "dotcontroles",
-			"instanceName": "SQLEXPRESS",
+			"instanceName": "SQLEXPRESS_2012",
 			"rowCollectionOnRequestCompletion": false
 		}
 	}
