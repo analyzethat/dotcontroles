@@ -52,8 +52,9 @@
 						constateringenRepository.assignToSpecialism(value, row);
 					}
 				});
-
-			var backButton = new html.Button("Controles").on("click", function () {
+			
+			var backIcon = new crafity.html.Element("div").addClass("symbol back").text("\uF122"); //F060
+			var backButton = new html.Button("Controles").append(backIcon).on("click", function () {
 				controles.app.eventbus.emit("openControles");
 			});
 			var firstButton = new html.Button("Eerste").addClass("right").disabled(true).on("click", function () {

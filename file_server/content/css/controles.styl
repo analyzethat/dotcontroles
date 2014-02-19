@@ -21,6 +21,19 @@ h4
 	padding: 20px
 	z-index: -10
 	border-right: #E8E8E8 1px solid
+	.menu-panel
+		h2
+			margin-bottom: 5px
+	.menuitem
+		.medical-suitcase, .person, .out
+			display: inline
+			clear: both
+			float: left
+			font-size: 12pt
+		&.selected
+			.medical-suitcase, .person, .out
+				color: blue
+
 
 .app
 	overflow-y: scroll
@@ -75,24 +88,24 @@ h4
 	.info-row
 		/*width: 100%*/
 		height: 200px
-		min-width: 1000px
+		min-width: 1100px //1000px
 		border-bottom: 1px solid #bbb
 		.info
-			width: 350px //- 510px fakticheski
+			width: 560px //350px //- 510px fakticheski
 			height: 140px //- 180px fakticheski s padding top i bottom
 			/*width: 40%*/
 			/*height: 150px*/
-			padding: 20px 140px 20px 20px
+			padding: 20px 20px 20px 40px //20px 140px 20px 20px
 			/*padding: 20px*/
 			float: left
 			/*border:	1px solid black*/
-			background: rgb(241, 241, 241);
-			box-shadow: 10px 5px 12px gray;
+			/*background: rgb(241, 241, 241);*/
+			/*box-shadow: 10px 5px 12px gray;*/
 			h2
 				margin-bottom: 20px;
 		.filter-container
 			float: left
-			min-width: 450px
+			min-width: 420px
 			height: 140px
 			/*width: 40%*/
 			padding: 20px
@@ -112,7 +125,13 @@ h4
 		/*background: $test-color*/
 		.buttonBar
 			padding-top: 20px
-
+			.back
+				color: #666
+				display: inline
+				clear: both
+				float: left
+				margin-right: 5px;
+				line-height: 17px;
 .detailsContainer
 	position: absolute
 	top: 0
