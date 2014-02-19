@@ -1,3 +1,4 @@
 .idea
 node_modules
 */.monitor
+data_server/config.json
