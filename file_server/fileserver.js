@@ -45,8 +45,8 @@ server = http.createServer(function (req, res) {
 
 		res.writeHead(200, {
 			'Content-Type': mimeType,
-			'Access-Control-Allow-Origin': "http://data.dotcontroles.dev",
-			'Origin': "http://dotcontroles.dev",
+			//'Access-Control-Allow-Origin': "http://data.dotcontroles.dev",
+			//'Origin': "http://dotcontroles.dev",
 			'Content-Encoding': 'gzip'
 		});
 
