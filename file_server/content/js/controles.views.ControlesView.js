@@ -31,7 +31,7 @@
 			var nextButton = new html.Button(">>").addClass("right").disabled(true).on("click", function () {
 				controlesRepository.next();
 			});
-
+		
 			controlesRepository.on("data", function (rows) {
 				console.log("ControlesView on data, rows", rows);
 				mygrid.addRows(rows);
@@ -54,8 +54,9 @@
 			});
 			
 			var infoRow = new html.Element("div").addClass("info-row");
+			
 			var infoControlesContainer = new html.Element("div").addClass("info")
-				.append(new html.Element("h2").text("DOT Controles"))
+				.append(new html.Element("h2").text("DOT Controles")) 
 				.append(new html.Element("h3").text("Rollen: " + userRoles))
 				.appendTo(infoRow);
 
