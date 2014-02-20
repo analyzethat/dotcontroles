@@ -36,8 +36,8 @@
 			// it is a setter
 			this._state = data;
 
-			this.emit('data', data.items);
-			this.emit('stateChanged', data._state);
+			this.emit("data", data.items);
+			this.emit("stateChanged", data._state);
 
 			return this;
 		};
