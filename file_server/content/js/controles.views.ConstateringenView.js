@@ -7,7 +7,8 @@
 	(function (views) {
 
 		/**
-		 *
+		 * Constateringen view.
+		 * 
 		 * @param controle
 		 * @param constateringenRepository
 		 * @param specialistsRepository
@@ -17,12 +18,10 @@
 		 */
 		function ConstateringenView(controle, constateringenRepository, specialistsRepository) {
 			var self = this;
-			var _controle = controle;
 
 			this.addClass("constateringen");
 
 			// Build the GUI elements
-
 			// info row
 			var infoRow = new html.Element("div").addClass("info-row");
 
@@ -33,12 +32,13 @@
 
 			var infoContainer = new html.Element("div").addClass("info")
 				.append(new html.Element("h2").text("Constateringen voor " + controle.Code))
-//				.append(new html.Element("h2").text("Code: " + controle.Code))
 				.append(new html.Element("h3").text('"' + controle.Name + '"'))
 				.append(new html.Element("h4").text("Type: " + controle.Type))
 				.append(new html.Element("h4").text("Rollen: " + userRoles))
 				.appendTo(infoRow);
-
+	// listen to the state changed event of this repo in order to update the list of specialists
+			
+			
 			var filterView = new window.controles.views.ConstateringenFilterView(constateringenRepository, specialistsRepository)
 				.appendTo(infoRow);
 
