@@ -15,8 +15,6 @@
 			var self = this;
 			var state = null;
 
-//			var dummySpecialists = {"all": "<alles>", null: "<leeg>", "Jansen": "Jansen", "Pulles": "Pulles"};
-
 			function setState(data) {
 				state = data;
 				console.log("\n\nNew update specialists: ", state);
@@ -32,10 +30,10 @@
 					
 					var specialists = {"all": "<alles>", null: "<leeg>"};
 
-					if (res.body && res.body instanceof Array) {
+					if (res.body && res.body.items && res.body.items instanceof Array) {
 						console.log("getSpecialists => res.body", res.body);
 
-						res.body.forEach(function (specialist) {
+						res.body.items.forEach(function (specialist) {
 
 								specialists[specialist.VerantwoordelijkSpecialist] = (specialist.VerantwoordelijkSpecialist !== null) 
 									? specialist.VerantwoordelijkSpecialist
@@ -43,6 +41,7 @@
 							
 						});
 					}
+					console.log("specialists", specialists);
 					setState(specialists);
 				});
 			};
