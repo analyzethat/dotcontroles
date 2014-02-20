@@ -1,3 +1,6 @@
 [submodule "file_server/content/js/lib/crafity-ui"]
 	path = file_server/content/js/lib/crafity-ui
 	url = https://github.com/Crafity/crafity-ui.git
+[submodule "file_server/content/js/lib/crafity-client"]
+	path = file_server/content/js/lib/crafity-client
+	url = https://github.com/Crafity/Crafity-Client-Modules.git
