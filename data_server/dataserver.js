@@ -172,14 +172,16 @@ app.get("/users", function (req, res) {
 		}
 
 		if (!hasRows) {
-			res.write("[");
+			res.write('{\n"href": "/users",');
+			res.write('\n"items": [\n');
 		}
 		if (row) {
 			row.href = req.url + "/" + row.Id;
-			res.write((hasRows ? "," : "") + JSON.stringify(row) + "\n");
+			res.write("\t" + (hasRows ? "," : "") + JSON.stringify(row) + "\n");
 			hasRows = true;
 		} else {
-			res.end("]");
+			res.write("\t]");
+			res.end("\n}");
 		}
 	});
 });
@@ -214,19 +216,20 @@ app.get("/specialists", function (req, res) {
 		if (err) {
 			throw err;
 		}
-
+		
 		if (!hasRows) {
-			res.write("[");
+			res.write('{\n"href": "/specialists",');
+			res.write('\n"items": [\n');
 		}
 
 		if (row) {
-//			row.href = req.url + "/" + row.Id;
 			console.log("row", row);
-			res.write((hasRows ? "," : "") + JSON.stringify(row) + "\n");
+			res.write("\t" + (hasRows ? "," : "") + JSON.stringify(row) + "\n");
 			hasRows = true;
 
 		} else {
-			res.end("]");
+			res.write("\t]");
+			res.end("\n}");
 		}
 
 	});

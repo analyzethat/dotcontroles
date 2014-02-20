@@ -93,7 +93,7 @@ var database = (function () {
 						return callback(err);
 					}
 
-					var query = "SELECT * FROM [Users]";
+					var query = "SELECT FirstName, LastName, Username, Email, APIToken FROM [Users]";
 
 					var request = new Request(query, function (err, rowcount) {
 						return callback(err, null, rowcount); // end
@@ -120,7 +120,7 @@ var database = (function () {
 						return callback(err);
 					}
 
-					var query = "SELECT * from users WHERE Id = @Id";
+					var query = "SELECT FirstName, LastName, Username, Email, APIToken from [Users] WHERE Id = @Id";
 
 					var request = new Request(query, function (err, rowcount) {
 						if (err) {
