@@ -113,6 +113,17 @@
 								+ ":" + encodeURIComponent(encodeURIComponent(userFilters[filterKey]));
 						}
 
+						//{"sortBy": e.column.property, "sortOrder": e.order }
+						if (filterKey === "sortBy" && userFilters[filterKey] !== null) {
+							filtersQueryString += FILTER_SEPARATOR
+								+ encodeURIComponent(filterKey)
+								+ ":" + encodeURIComponent(encodeURIComponent(userFilters[filterKey]));
+						}
+						if (filterKey === "sortOrder" && userFilters[filterKey] !== null) {
+							filtersQueryString += FILTER_SEPARATOR
+								+ encodeURIComponent(filterKey)
+								+ ":" + encodeURIComponent(encodeURIComponent(userFilters[filterKey]));
+						}
 					});
 				}
 
@@ -125,6 +136,7 @@
 					console.log("\n\nGET ", url);
 
 					console.log("res.body", res.body);
+
 					self.state(res.body);
 				});
 			};
@@ -168,16 +180,16 @@
 				this._ajaxAgent.post(_url + "/" + constatering.Id, body, function (res) {
 					console.log("\nNB response", res.body);
 
-					console.log(res.body.SpecialismId, body.SpecialismId);         
-					console.log(res.body.SpecialismId === body.SpecialismId);         
-					console.log(res.body.StatusId,body.StatusId);                 
-					console.log(res.body.GebruikerId,body.GebruikerId);           
-					console.log(res.body.LastMutationDate,body.LastMutationDate);
-					
+					console.log(res.body.SpecialismId, body.SpecialismId);
+					console.log(res.body.SpecialismId === body.SpecialismId);
+					console.log(res.body.StatusId, body.StatusId);
+					console.log(res.body.GebruikerId, body.GebruikerId);
+					console.log(res.body.LastMutationDate, body.LastMutationDate);
+
 					var updateSuccsesful = res.body.SpecialismId === body.SpecialismId
-															&& res.body.StatusId === body.StatusId
-															&& res.body.GebruikerId === body.GebruikerId
-															&& res.body.LastMutationDate === body.LastMutationDate;
+						&& res.body.StatusId === body.StatusId
+						&& res.body.GebruikerId === body.GebruikerId
+						&& res.body.LastMutationDate === body.LastMutationDate;
 
 					console.log("\nNB! updateSuccesful", updateSuccsesful);
 
@@ -207,7 +219,7 @@
 		 */
 		ConstateringenRepository.prototype.columnDefinitionList = [
 			{
-				name: "Afhandelend Specialisme",
+				name: "Afh. Specialisme",
 				property: "SpecialismId",
 				type: "Number",
 				options: {
@@ -244,12 +256,14 @@
 					control: "crafity.html.Selectbox",
 					"default": 2,
 					"events": ["selected"]
-				}
+				},
+				sortable: "ascending"
 			},
 			{
 				name: "Status",
 				property: "StatusName",
-				type: "String"
+				type: "String",
+				sortable: "ascending"
 			},
 			{
 				name: "Laatste Mutatie",
@@ -283,7 +297,8 @@
 			},
 			{ name: "Specialist",
 				property: "VerantwoordelijkSpecialist",
-				type: "String"
+				type: "String",
+				sortable: "ascending"
 			},
 			{ name: "Overige kenmerken",
 				property: "OverigeKenmerken",

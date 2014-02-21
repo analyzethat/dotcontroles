@@ -395,7 +395,7 @@ var database = (function () {
 						}
 						var total = 0;
 						var where = "";
-						var query = "SELECT count('x') as total FROM Controles ";
+						var query = "SELECT count('x') as total FROM Controles ";//c LEFT JOIN [FunctionalRoles] as fr ON fr.Id = c.FunctionalRoleId ";
 
 						var request = new Request(query, function (err) {
 							return callback(err, !err && total);
@@ -644,6 +644,9 @@ var database = (function () {
 						}
 
 						var where = "";
+						var orderBy = " ORDER BY ";
+						var orderByColumnName = " Id ";
+						var sortOrder = " ASC ";
 						var query = "";
 						var request = new Request(query, function (err, rowcount) {
 							return callback(err, null, rowcount);
@@ -657,6 +660,15 @@ var database = (function () {
 						// verantwoordelijkeSpecialist
 						try {
 							where = createWhereFor("ControleId,SpecialismId,DatumActiviteit,VerantwoordelijkSpecialist", filters, request, "StatusId IN (1,5)");
+
+							if (filters.sortBy && filters.sortOrder) {
+								orderByColumnName = filters.sortBy;
+								if (filters.sortOrder === "ascending") {
+									sortOrder = " ASC ";
+								} else if (filters.sortOrder === "descending") { //TODOgasl refactor this and put sorting into another category, not filters
+									sortOrder = " DESC ";
+								}
+							}
 						} catch (error) {
 							return callback(error);
 						}
@@ -665,7 +677,8 @@ var database = (function () {
 							+ " FROM Constateringen as const"
 							+ " INNER JOIN [Statuses] as status ON status.Id = const.StatusId "
 							+ where
-							+ " ORDER BY Id ASC OFFSET " + offset
+							+ orderBy + orderByColumnName + sortOrder
+							+ "OFFSET " + offset
 							+ " ROWS FETCH NEXT " + limit
 							+ " ROWS ONLY ";
 						request.sqlTextOrProcedure = query;

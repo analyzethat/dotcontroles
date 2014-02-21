@@ -1,4 +1,4 @@
-/*globals window, confirm, Element, TextField, Grid, ButtonBar, Button*/
+/*globals window, console, confirm, Element, TextField, Grid, ButtonBar, Button*/
 
 (function (controles) {
 	"use strict";
@@ -44,10 +44,17 @@
 
 			var gridRow = new html.Element("div").addClass("grid-row");
 			var mygrid = new html.Grid(constateringenRepository.columnDefinitionList).appendTo(gridRow)
+				.onsort(function (e) {
+					console.log("\nSorting ", e.column.property, e.order);
+					if (e){
+					 constateringenRepository.filter({"sortBy": e.column.property, "sortOrder": e.order });
+					}
+					
+				})
 				.on("selected", function (column, row, value) {
 
 					console.log("NB! on 'selected' event passing => Grid column, row, value", column, row, value);
-					if (confirm('Bevestiging doorzetten naar specialisme "' + value + '"?')) {
+					if (confirm('Doorzetten naar een ander specialisme bevestigen?')) { //naar een specialisme "' + value + '"?')) {
 						row[column.property] = value;
 						constateringenRepository.assignToSpecialism(value, row);
 					}

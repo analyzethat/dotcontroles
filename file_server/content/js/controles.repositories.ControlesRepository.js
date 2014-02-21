@@ -55,7 +55,7 @@
 					filtersQueryString = "&filters=" + filtersQueryString;
 					url += filtersQueryString;
 				}
-				
+
 				this._ajaxAgent.get(url, function (res) {
 					console.log("\nGET  %s, res.body", _url, res.body);
 					self.state(res.body);
@@ -82,11 +82,13 @@
 			{
 				name: "Code",
 				property: "Code",
-				type: "String"
+				type: "String",
+				sortable: "ascending"
 			},
 			{ name: "Naam",
 				property: "Name",
-				type: "String"
+				type: "String",
+				sortable: "ascending"
 			},
 			{ name: "Type",
 				property: "Type",
@@ -94,11 +96,13 @@
 			},
 			{ name: "Rol",
 				property: "RoleName",
-				type: "String"
+				type: "String",
+				sortable: "ascending"
 			},
-			{ name: "Aantal Constateringen",
+			{ name: "Constateringen",
 				property: "NumberOfConstateringen",
-				type: "Number"
+				type: "Number",
+				sortable: "descending"
 			}
 		];
 
