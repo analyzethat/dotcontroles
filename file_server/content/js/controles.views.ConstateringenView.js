@@ -1,4 +1,4 @@
-/*globals window, console, confirm, Element, TextField, Grid, ButtonBar, Button*/
+/*globals alert, window, console, confirm, Element, TextField, Grid, ButtonBar, Button*/
 
 (function (controles) {
 	"use strict";
@@ -8,7 +8,7 @@
 
 		/**
 		 * Constateringen view.
-		 * 
+		 *
 		 * @param controle
 		 * @param constateringenRepository
 		 * @param specialistsRepository
@@ -36,9 +36,8 @@
 				.append(new html.Element("h4").text("Type: " + controle.Type))
 				.append(new html.Element("h4").text("Rollen: " + userRoles))
 				.appendTo(infoRow);
-	// listen to the state changed event of this repo in order to update the list of specialists
-			
-			
+			// listen to the state changed event of this repo in order to update the list of specialists
+
 			var filterView = new window.controles.views.ConstateringenFilterView(constateringenRepository, specialistsRepository)
 				.appendTo(infoRow);
 
@@ -46,20 +45,24 @@
 			var mygrid = new html.Grid(constateringenRepository.columnDefinitionList).appendTo(gridRow)
 				.onsort(function (e) {
 					console.log("\nSorting ", e.column.property, e.order);
-					if (e){
-					 constateringenRepository.filter({"sortBy": e.column.property, "sortOrder": e.order });
+					if (e) {
+						constateringenRepository.filter({"sortBy": e.column.property, "sortOrder": e.order });
 					}
-					
 				})
-				.on("selected", function (column, row, value) {
-
-					console.log("NB! on 'selected' event passing => Grid column, row, value", column, row, value);
-					if (confirm('Doorzetten naar een ander specialisme bevestigen?')) { //naar een specialisme "' + value + '"?')) {
+				.on("selectedStatus", function (column, row, value) {
+					console.log("\ncolumn, row, value", column, row, value);
+					if (confirm("Status verandering bevestigen?")) { 
+						row[column.property] = value;
+						constateringenRepository.changeStatus(value, row);
+					}
+				})
+				.on("selectedSpecialism", function (column, row, value) {
+					if (confirm('Doorzetten naar een ander specialisme?')) {
 						row[column.property] = value;
 						constateringenRepository.assignToSpecialism(value, row);
 					}
 				});
-			
+
 			var backIcon = new crafity.html.Element("div").addClass("symbol back").text("\uF122"); //F060
 			var backButton = new html.Button("Controles").append(backIcon).on("click", function () {
 				controles.app.eventbus.emit("openControles");
