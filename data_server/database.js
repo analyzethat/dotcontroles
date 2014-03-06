@@ -36,7 +36,6 @@ var database = (function () {
 		},
 
 		getSqlDataTypeFor: function (type) {
-
 			switch (type) {
 				case "Number":
 					return tediousTypes.Int;
@@ -47,7 +46,6 @@ var database = (function () {
 				default:
 					return tediousTypes.NVarChar;
 			}
-
 		},
 
 		getPropertyFor: function (name, columnDefinitionList) {
@@ -86,6 +84,18 @@ var database = (function () {
 			return (res && res.length > 0) ? res[0] : null;
 		},
 
+		logQuery: function (queryString) {
+			console.log("\n\n******** SQL query:\n\n", queryString);
+			console.log("\n*********\n");
+		},
+		logCreateWhereFor: function (keywords, filters, request, whereClause) {
+			console.log("\n*** INSIDE createWhereFor method => ");
+			console.log("\n\tkeywords: ", keywords);
+			console.log("\n\tfilters: ", filters);
+			console.log("\n\tcustom whereClause: ", whereClause);
+
+		},
+
 		users: {
 			getAll: function (callback) {
 				database.createConnection(function (err, connection) {
@@ -93,7 +103,7 @@ var database = (function () {
 						return callback(err);
 					}
 
-					var query = "SELECT FirstName, LastName, Username, Email, APIToken FROM [Users]";
+					var query = "SELECT FirstName, LastName, Username, Email, APIToken \nFROM [Users]";
 
 					var request = new Request(query, function (err, rowcount) {
 						return callback(err, null, rowcount); // end
@@ -108,6 +118,7 @@ var database = (function () {
 						return callback(null, row, null);
 					});
 
+					database.logQuery(query);
 					connection.execSql(request);
 
 				});
@@ -120,7 +131,7 @@ var database = (function () {
 						return callback(err);
 					}
 
-					var query = "SELECT FirstName, LastName, Username, Email, APIToken from [Users] WHERE Id = @Id";
+					var query = "SELECT FirstName, LastName, Username, Email, APIToken \nFROM [Users] \nWHERE Id = @Id";
 
 					var request = new Request(query, function (err, rowcount) {
 						if (err) {
@@ -147,6 +158,7 @@ var database = (function () {
 					});
 
 					request.addParameter('Id', tediousTypes.Int, id);
+					database.logQuery(query);
 
 					connection.execSql(request);
 
@@ -160,7 +172,7 @@ var database = (function () {
 						return callback(err);
 					}
 
-					var query = "SELECT APIToken, Id, FirstName, LastName, Username, Email from Users WHERE Username = @Username AND Password = @Password";
+					var query = "SELECT APIToken, Id, FirstName, LastName, Username, Email \nFROM Users \nWHERE Username = @Username \nAND Password = @Password";
 
 					var request = new Request(query, function (err, rowcount) {
 						console.log("rowcount", rowcount);
@@ -202,9 +214,9 @@ var database = (function () {
 
 					var query =
 						"SELECT ufr.Id, ufr.UserId, ufr.FunctionalRoleId, fr.Name, fr.NeedsSpecialism, ufr.CreationDate, ufr.LastMutationDate"
-							+ " FROM [UserFunctionalRoles] as ufr"
-							+ " INNER JOIN [FunctionalRoles] as fr ON fr.Id = ufr.FunctionalRoleId"
-							+ " WHERE UserId = @Id";
+							+ " \nFROM [UserFunctionalRoles] as ufr"
+							+ " \nINNER JOIN [FunctionalRoles] as fr ON fr.Id = ufr.FunctionalRoleId"
+							+ " \nWHERE UserId = @Id";
 
 					var rows = [];
 					var request = new Request(query, function (err, rowcount) {
@@ -222,6 +234,9 @@ var database = (function () {
 					});
 
 					request.addParameter("Id", tediousTypes.Int, id);
+
+					database.logQuery(query);
+
 					connection.execSql(request);
 
 				});
@@ -235,9 +250,9 @@ var database = (function () {
 
 					var query =
 						"SELECT us.Id, us.UserId, us.SpecialismId, s.Name, s.AGBCode, us.CreationDate, us.LastMutationDate"
-							+ " FROM [UserSpecialisms] AS us"
-							+ " INNER JOIN [Specialisms] AS s ON s.Id = us.SpecialismId"
-							+ " WHERE UserId = @Id";
+							+ " \nFROM [UserSpecialisms] AS us"
+							+ " \nINNER JOIN [Specialisms] AS s ON s.Id = us.SpecialismId"
+							+ " \nWHERE UserId = @Id";
 
 					var rows = [];
 					var request = new Request(query, function (err, rowcount) {
@@ -255,6 +270,9 @@ var database = (function () {
 					});
 
 					request.addParameter("Id", tediousTypes.Int, id);
+
+					database.logQuery(query);
+
 					connection.execSql(request);
 
 				});
@@ -270,7 +288,7 @@ var database = (function () {
 
 					var specialist = database.constateringen.getPropertyFor("Specialist") || "VerantwoordelijkSpecialist";
 
-					var query = "SELECT DISTINCT " + specialist + " from Constateringen;";
+					var query = "SELECT DISTINCT " + specialist + " \nFROM [Constateringen];";
 
 					var request = new Request(query, function (err, rowcount) {
 						return callback(err, null, rowcount); // end
@@ -285,6 +303,7 @@ var database = (function () {
 						return callback(null, row, null);
 					});
 
+					database.logQuery(query);
 					connection.execSql(request);
 
 				});
@@ -318,19 +337,15 @@ var database = (function () {
 				var keywordArray = keywords.split(",");
 				var filterArray = Object.keys(filters);
 
-				console.log("\nINSIDE createWhereFor method => ");
-				console.log("\nkeywords", keywords);
-				console.log("\nkeywordArray", keywordArray);
-				console.log("\nfilters", filters);
-				console.log("\nwhereClause", whereClause);
+				database.logCreateWhereFor(keywords, filters, request, whereClause);
 
 				filterArray.forEach(function (key) {
 					if (core.arrays.contains(keywordArray, key)) {
 						// decide if this is a single value
 						if (filters[key].indexOf(",") === -1) {
-							where += (where ? " AND " + key : key) + " = " + filters[key];
+							where += (where ? " \nAND " + key : key) + " = " + filters[key];
 						} else { // .. collection of values
-							where += (where ? " AND " + key : key) + " IN (" + filters[key] + ")";
+							where += (where ? " \nAND " + key : key) + " IN (" + filters[key] + ")";
 						}
 						var sqlType = database.getSqlDataTypeFor(database.controles.getTypeFor(key));
 						request.addParameter(key, sqlType, filters[key]);
@@ -339,9 +354,9 @@ var database = (function () {
 				});
 
 				if (whereClause) {
-					where += (where ? " AND " + whereClause : whereClause)
+					where += (where ? " \nAND " + whereClause : whereClause);
 				}
-				return where ? "WHERE " + where : "";
+				return where ? "\nWHERE " + where : "";
 
 			}
 
@@ -379,7 +394,7 @@ var database = (function () {
 
 					var res = (first !== null)
 						? first
-						: database.getTypeFor(propertyName, database.constateringen.getColumnDefinitionList()); // gasl this is tricky thing of something smarter to solve the problem
+						: database.getTypeFor(propertyName, database.constateringen.getColumnDefinitionList()); // TODOgasl this is tricky thing of something smarter to solve the problem
 
 					return res;
 				},
@@ -395,7 +410,7 @@ var database = (function () {
 						}
 						var total = 0;
 						var where = "";
-						var query = "SELECT count('x') as total FROM Controles ";//c LEFT JOIN [FunctionalRoles] as fr ON fr.Id = c.FunctionalRoleId ";
+						var query = "SELECT count('x') as total \nFROM Controles ";//c LEFT JOIN [FunctionalRoles] as fr ON fr.Id = c.FunctionalRoleId ";
 
 						var request = new Request(query, function (err) {
 							return callback(err, !err && total);
@@ -412,7 +427,9 @@ var database = (function () {
 						request.on("row", function (columns) {
 							total = columns.total.value;
 						});
-						console.log("query", query);
+
+						database.logQuery(query);
+
 						request.sqlTextOrProcedure = query;
 						connection.execSql(request);
 					});
@@ -438,21 +455,19 @@ var database = (function () {
 							return callback(error);
 						}
 
-						var subquery = "(SELECT COUNT(*) FROM Constateringen "
+						var subquery = "(SELECT COUNT(*) FROM [Constateringen] "
 							+ createWhereFor("SpecialismId", filters, request, "ControleId = c.Id AND StatusId IN (1,5)")
 							+ ") AS NumberOfConstateringen ";
 
 						query = "SELECT c.*, fr.Name as RoleName, " + subquery
-							+ "FROM [Controles] as c"
-							+ " LEFT JOIN [FunctionalRoles] as fr ON fr.Id = c.FunctionalRoleId "
+							+ "\nFROM [Controles] as c"
+							+ " \nLEFT JOIN [FunctionalRoles] as fr ON fr.Id = c.FunctionalRoleId "
 							+ where
-							+ " ORDER BY Id ASC OFFSET " + offset
-							+ " ROWS FETCH NEXT " + limit
-							+ " ROWS ONLY ";
+							+ " \nORDER BY Id ASC OFFSET " + offset
+							+ " \nROWS FETCH NEXT " + limit
+							+ " \nROWS ONLY ";
 
 						request.sqlTextOrProcedure = query;
-
-						console.log("\nquery:", query);
 
 						request.on("row", function (columns) {
 							var row = {};
@@ -463,6 +478,8 @@ var database = (function () {
 
 							return callback(null, row, null);
 						});
+
+						database.logQuery(query);
 
 						connection.execSql(request);
 					});
@@ -499,11 +516,7 @@ var database = (function () {
 				var keywordArray = keywords.split(",");
 				var filterArray = Object.keys(filters);
 
-				console.log("\nINSIDE createWhereFor method => ");
-				console.log("\nkeywords", keywords);
-				console.log("\nkeywordArray", keywordArray);
-				console.log("\nfilters", filters);
-				console.log("\nCustom whereClause", whereClause);
+				database.logCreateWhereFor(keywords, filters, request, whereClause);
 
 				filterArray.forEach(function (key) {
 
@@ -537,7 +550,7 @@ var database = (function () {
 					where += (where ? " AND " + whereClause : whereClause)
 				}
 
-				return where ? "WHERE " + where : "";
+				return where ? "\nWHERE " + where : "";
 			}
 
 			return {
@@ -613,7 +626,7 @@ var database = (function () {
 						}
 						var total = 0;
 						var where = "";
-						var query = "SELECT count('x') as total FROM Constateringen";
+						var query = "SELECT count('x') as total \nFROM [Constateringen]";
 
 						var request = new Request(query, function (err) {
 							return callback(err, !err && total);
@@ -630,7 +643,8 @@ var database = (function () {
 						request.on("row", function (columns) {
 							total = columns.total.value;
 						});
-						console.log("\n\nquery", query);
+
+						database.logQuery(query);
 
 						request.sqlTextOrProcedure = query;
 						connection.execSql(request);
@@ -644,8 +658,8 @@ var database = (function () {
 						}
 
 						var where = "";
-						var orderBy = " ORDER BY ";
-						var orderByColumnName = " Id ";
+						var orderBy = " \nORDER BY ";
+						var orderByColumnName = " Id";
 						var sortOrder = " ASC ";
 						var query = "";
 						var request = new Request(query, function (err, rowcount) {
@@ -674,15 +688,14 @@ var database = (function () {
 						}
 
 						query = "SELECT const.*, status.Name as StatusName"
-							+ " FROM Constateringen as const"
-							+ " INNER JOIN [Statuses] as status ON status.Id = const.StatusId "
+							+ " \nFROM [Constateringen] as const"
+							+ " \nINNER JOIN [Statuses] as status ON status.Id = const.StatusId "
 							+ where
 							+ orderBy + orderByColumnName + sortOrder
-							+ "OFFSET " + offset
-							+ " ROWS FETCH NEXT " + limit
-							+ " ROWS ONLY ";
+							+ "\nOFFSET " + offset
+							+ " \nROWS FETCH NEXT " + limit
+							+ " \nROWS ONLY ";
 						request.sqlTextOrProcedure = query;
-						console.log("\nquery", query);
 
 						request.on("row", function (columns) {
 							var row = {};
@@ -693,6 +706,8 @@ var database = (function () {
 
 							return callback(null, row, null);
 						});
+
+						database.logQuery(query);
 
 						connection.execSql(request);
 					});
@@ -706,10 +721,9 @@ var database = (function () {
 							return callback(err);
 						}
 
-						var query = "SELECT * from constateringen WHERE Id = @Id";
+						var query = "SELECT * \nFROM [Constateringen] \nWHERE Id = @Id";
 
 						var request = new Request(query, function (err, rowcount) {
-							console.log("rowcount", rowcount);
 							if (err) {
 								throw err;
 							}
@@ -735,6 +749,7 @@ var database = (function () {
 
 						request.addParameter('Id', tediousTypes.Int, id);
 
+						database.logQuery(query);
 						connection.execSql(request);
 
 					});
@@ -748,6 +763,7 @@ var database = (function () {
 						throw new Error("Missing argument 'members'.");
 					}
 
+					
 					database.createConnection(function (err, connection) {
 						if (err) {
 							return callback(err);
@@ -756,10 +772,9 @@ var database = (function () {
 						var propertyKeys = Object.keys(properties);
 						var lastIndex = propertyKeys.length - 1;
 
-						var query = "UPDATE Constateringen ";
+						var query = "UPDATE [Constateringen] ";
 
 						var request = new Request(query, function (err, rowcount) {
-							console.log("\nquery = ", query);
 							return callback(err, rowcount);
 						});
 
@@ -769,14 +784,15 @@ var database = (function () {
 								if (propertyKey === colDefinition.property) {
 
 									query += (indexPropertyKey === 0)
-										? "SET " + propertyKey + " = @" + propertyKey
+										? "\nSET " + propertyKey + " = @" + propertyKey
 										: ", " + propertyKey + " = @" + propertyKey;
 
 									if (database.constateringen.getTypeFor(propertyKey) === "Date") {
 										properties[propertyKey] = new Date(properties[propertyKey]);
 									}
-									console.log("\npropertyKey", propertyKey, database.getSqlDataTypeFor(colDefinition.type))
-									console.log("\nproperties[propertyKey]", properties[propertyKey]);
+
+									console.log("\n***** property key-value: ", propertyKey, properties[propertyKey]);
+									console.log("\tSQL type via tedious: ", database.getSqlDataTypeFor(colDefinition.type).type);
 
 									request.addParameter(propertyKey, database.getSqlDataTypeFor(colDefinition.type), properties[propertyKey]);
 								}
@@ -784,8 +800,10 @@ var database = (function () {
 							});
 						});
 
-						query += " WHERE Id = @Id";
+						query += " \nWHERE Id = @Id";
 						request.addParameter('Id', tediousTypes.Int, id);
+
+						database.logQuery(query);
 
 						request.sqlTextOrProcedure = query;
 						connection.execSql(request);
@@ -798,7 +816,7 @@ var database = (function () {
 							return callback(err);
 						}
 
-						var query = "UPDATE Constateringen SET "
+						var query = "UPDATE [Constateringen] \nSET "
 							+ " UserId = @UserId"
 							+ ", StatusId = @StatusId"
 							+ ", ZiektegevalNr = @ZiektegevalNr" // prevent sql injection like: '; select * from logins ; --
@@ -806,7 +824,7 @@ var database = (function () {
 							+ ", DBCTypering = @DBCTypering"
 							+ ", VerantwoordelijkSpecialist = @VerantwoordelijkSpecialist"
 							+ ", OverigeKenmerken = @OverigeKenmerken"
-							+ " WHERE Id = @Id";
+							+ " \nWHERE Id = @Id";
 
 						var request = new Request(query, function (err, rowcount) {
 							return callback(err, rowcount);
@@ -820,6 +838,8 @@ var database = (function () {
 						request.addParameter('VerantwoordelijkSpecialist', tediousTypes.NVarChar, constatering.VerantwoordelijkSpecialist);
 						request.addParameter('OverigeKenmerken', tediousTypes.NVarChar, constatering.OverigeKenmerken);
 						request.addParameter('Id', tediousTypes.Int, constatering.Id);
+
+						database.logQuery(query);
 
 						connection.execSql(request);
 					});
