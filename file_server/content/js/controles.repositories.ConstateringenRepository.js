@@ -156,25 +156,20 @@
 			 * @param constatering
 			 */
 			this.assignToSpecialism = function (specialismId, constatering) {
-				console.log("Change 'afhandelend specialisme' on constatering", constatering);
-
 				// Memebers to update when changing specialism:
-				// StatusId
-				// GebruikerId
-				// DatumLaatsteMutatue
+				// StatusId, UserId, DatumLaatsteMutatue
 
 				var body = {
 					SpecialismId: specialismId,
-					StatusId: 5,
-					GebruikerId: _user.Id,
+					StatusId: 5, // TODO gasl - make this not hard coded => load the option lists / stam tabellen in the begin of the app
+					UserId: _user.Id,
 					LastMutationDate: (new Date()).toISOString()
 				};
 
-				// TODOgasl - change in table Constateringen column name from GebruikerId to UserId
 				console.log("\n Values to change!!!");
 				console.log("\n SpecialismId ", body.SpecialismId);
 				console.log("\n StatusId: ", body.StatusId);
-				console.log("\n GebruikerId: ", body.GebruikerId);
+				console.log("\n UserId: ", body.UserId);
 				console.log("\n LastMutationDate: ", body.LastMutationDate);
 
 				this._ajaxAgent.post(_url + "/" + constatering.Id, body, function (res) {
@@ -183,12 +178,37 @@
 					console.log(res.body.SpecialismId, body.SpecialismId);
 					console.log(res.body.SpecialismId === body.SpecialismId);
 					console.log(res.body.StatusId, body.StatusId);
-					console.log(res.body.GebruikerId, body.GebruikerId);
+					console.log(res.body.UserId, body.UserId);
 					console.log(res.body.LastMutationDate, body.LastMutationDate);
 
 					var updateSuccsesful = res.body.SpecialismId === body.SpecialismId
 						&& res.body.StatusId === body.StatusId
-						&& res.body.GebruikerId === body.GebruikerId
+						&& res.body.UserId === body.UserId
+						&& res.body.LastMutationDate === body.LastMutationDate;
+
+					console.log("\nNB! updateSuccesful", updateSuccsesful);
+
+					self.filter(_userFilters);
+				});
+			};
+
+			this.changeStatus = function (statusId, constatering) {
+				var body = {
+					StatusId: statusId,
+					UserId: _user.Id,
+					LastMutationDate: (new Date()).toISOString()
+				};
+
+				this._ajaxAgent.post(_url + "/" + constatering.Id, body, function (res) {
+					console.log("\nNB response", res.body);
+
+					console.log(res.body.StatusId, body.StatusId);
+					console.log(res.body.StatusId === body.StatusId);
+					console.log(res.body.UserId, body.UserId);
+					console.log(res.body.LastMutationDate, body.LastMutationDate);
+
+					var updateSuccsesful = res.body.StatusId === body.StatusId
+						&& res.body.UserId === body.UserId
 						&& res.body.LastMutationDate === body.LastMutationDate;
 
 					console.log("\nNB! updateSuccesful", updateSuccsesful);
@@ -255,15 +275,30 @@
 				editable: {
 					control: "crafity.html.Selectbox",
 					"default": 2,
-					"events": ["selected"]
+					"events": [
+						{ selected: "selectedSpecialism" }
+					]
 				},
 				sortable: "ascending"
 			},
 			{
 				name: "Status",
-				property: "StatusName",
-				type: "String",
-				sortable: "ascending"
+				property: "StatusId",
+				type: "Number",
+				sortable: "ascending",
+				options: {
+					1: "Open",
+					2: "Negeren",
+					4: "Afgehandeld",
+					5: "Doorgezet"
+				},
+				editable: {
+					control: "crafity.html.Selectbox",
+					"default": 1,
+					"events": [
+						{selected: "selectedStatus" }
+					]
+				}
 			},
 			{
 				name: "Laatste Mutatie",
