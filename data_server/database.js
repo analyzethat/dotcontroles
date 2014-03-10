@@ -3,7 +3,7 @@
 "use strict";
 
 var core = require("crafity-core");
-var tedious = require("tedious");
+var tedious = require("tedious"); // NB! supports SQL Server 2005 and higher versions
 var tediousTypes = tedious.TYPES;
 var Connection = tedious.Connection;
 var Request = tedious.Request;
@@ -549,7 +549,6 @@ var database = (function () {
 				if (whereClause) {
 					where += (where ? " AND " + whereClause : whereClause)
 				}
-
 				return where ? "\nWHERE " + where : "";
 			}
 
@@ -658,10 +657,11 @@ var database = (function () {
 						}
 
 						var where = "";
-						var orderBy = " \nORDER BY ";
-						var orderByColumnName = " Id";
+						var orderBy = " \nORDER BY";
+						var orderByColumnName = "Id";
 						var sortOrder = " ASC ";
 						var query = "";
+
 						var request = new Request(query, function (err, rowcount) {
 							return callback(err, null, rowcount);
 						});
@@ -674,7 +674,6 @@ var database = (function () {
 						// verantwoordelijkeSpecialist
 						try {
 							where = createWhereFor("ControleId,SpecialismId,DatumActiviteit,VerantwoordelijkSpecialist", filters, request, "StatusId IN (1,5)");
-
 							if (filters.sortBy && filters.sortOrder) {
 								orderByColumnName = filters.sortBy;
 								if (filters.sortOrder === "ascending") {
@@ -687,14 +686,36 @@ var database = (function () {
 							return callback(error);
 						}
 
-						query = "SELECT const.*, status.Name as StatusName"
-							+ " \nFROM [Constateringen] as const"
-							+ " \nINNER JOIN [Statuses] as status ON status.Id = const.StatusId "
-							+ where
-							+ orderBy + orderByColumnName + sortOrder
-							+ "\nOFFSET " + offset
-							+ " \nROWS FETCH NEXT " + limit
-							+ " \nROWS ONLY ";
+						var orderByClauseString = orderBy + " const." + orderByColumnName + sortOrder;
+
+						// below two sorts of queries:
+						// 1. SQL2012 compatible - to be used according to SQL server installated version
+						// 1. for lower versions of SQL2012 - to be used according to SQL server installated version
+
+						// SQL2012 compatibility						
+//						var query = "SELECT const.*, status.Name as StatusName"
+//							+ " \nFROM [Constateringen] as const"
+//							+ " \nINNER JOIN [Statuses] as status ON status.Id = const.StatusId "
+//							+ where
+//							+ orderByClauseString
+//							+ "\nOFFSET " + offset
+//							+ " \nROWS FETCH NEXT " + limit
+//							+ " \nROWS ONLY ";
+
+						// SQL 2008
+						query = "WITH OrderningTable AS "
+							+ "\n( "
+							+ "\n\tSELECT Row_Number() OVER (" + orderByClauseString + ") AS RowNumber, const.Id"
+							+ "\n\tFROM [Constateringen] AS const \n\tINNER JOIN [Statuses] AS status ON status.Id = const.StatusId"
+							+ "\n\t" + where // "\nWHERE ControleId = const.ControleId AND StatusId IN (1,5) "
+							+ "\n)"
+							+ "\nSELECT RowNumber, const.*, status.Name AS StatusName"
+							+ "\nFROM OrderningTable"
+							+ "\n\tINNER JOIN [Constateringen] AS const ON OrderningTable.Id = const.Id"
+							+ "\n\tINNER JOIN [Statuses] AS status ON status.Id = const.StatusId"
+							+ "\n\tWHERE RowNumber BETWEEN " + offset + " AND " + (offset + limit)
+							+ "\t" + orderByClauseString; //+"ORDER BY const.VerantwoordelijkSpecialist ASC, const.Id ASC";
+
 						request.sqlTextOrProcedure = query;
 
 						request.on("row", function (columns) {
@@ -708,7 +729,6 @@ var database = (function () {
 						});
 
 						database.logQuery(query);
-
 						connection.execSql(request);
 					});
 				},
@@ -763,7 +783,6 @@ var database = (function () {
 						throw new Error("Missing argument 'members'.");
 					}
 
-					
 					database.createConnection(function (err, connection) {
 						if (err) {
 							return callback(err);
