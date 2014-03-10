@@ -6,7 +6,8 @@
 	(function (views) {
 
 		/**
-		 *
+		 * AppView - the main applciation view.
+		 * 
 		 * @param authenticationRepository
 		 * @constructor
 		 *
