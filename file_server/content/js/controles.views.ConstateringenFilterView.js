@@ -31,7 +31,7 @@
 			this.addClass("filter-container form");
 
 			var specialistsOptionList = new html.SelectField().label("\uF0B0 specialist").addClass("symbol").readonly(false).addClass("filter");
-			var dateFilter = new html.DateField().label("\uF0B0 tonen vanaf datum").addClass("symbol").readonly(false).addClass("filter")
+			var dateFilter = new html.DateField().label("\uF0B0 vanaf datum activiteit").addClass("symbol").readonly(false).addClass("filter")
 				.change(function (value) {
 					_state.fromDate = value;
 					constateringenRepository.filter(_state);
