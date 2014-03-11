@@ -504,10 +504,11 @@ var database = (function () {
 			 * @returns {*|String} Returns the value of the where clause.
 			 */
 			function createWhereFor(keywords, filters, request, whereClause) {
+				console.log("filters", filters);
 				if (!keywords) {
 					throw new Error("Missing argument keywords for the where clause.");
 				}
-				if (!filters && filters.length === 0) {
+				if (!filters || filters.length === 0) {
 					return "";
 					//throw new Error("Missing argument filters for the where clause.");
 				}
@@ -604,6 +605,10 @@ var database = (function () {
 						{ name: "Overige kenmerken",
 							property: "OverigeKenmerken",
 							type: "String"
+						},
+						{ name: "Afdeling",
+							property: "VerantwoordelijkOE",
+							type: "String"
 						}
 					];
 				},
@@ -674,7 +679,7 @@ var database = (function () {
 						// verantwoordelijkeSpecialist
 						try {
 							where = createWhereFor("ControleId,SpecialismId,DatumActiviteit,VerantwoordelijkSpecialist", filters, request, "StatusId IN (1,5)");
-							if (filters.sortBy && filters.sortOrder) {
+							if (filters && filters.sortBy && filters.sortOrder) {
 								orderByColumnName = filters.sortBy;
 								if (filters.sortOrder === "ascending") {
 									sortOrder = " ASC ";
