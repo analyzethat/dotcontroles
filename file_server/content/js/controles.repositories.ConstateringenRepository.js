@@ -27,8 +27,41 @@
 			var _user = authenticatedUser;
 			var _controle = null;
 			var _specialists = null;
-			var _userFilters = null;
+
+			// user filters:
+			//
+			// fromDate
+			// specialist
+			// sortBy 
+			// sortOrder
+			var _userFilters = {
+				fromDate: null,
+				specialist: null,
+				sortBy: null,
+				sortOrder: null
+			};
+
 			var FILTER_SEPARATOR = "|";
+
+			function updateUserFilters(userFilters) {
+				if (!userFilters) {
+					return;
+				}
+				if (!_userFilters || _userFilters == null) {
+					throw new Error("_userFilters is not defined or has no value.");
+				}
+				if (!Object.keys(_userFilters) || Object.keys(_userFilters).length === 0) {
+					throw new Error("_userFilters is missing members.");
+				}
+
+				console.log("\nuserFilters: ", userFilters);
+				console.log("\n_userFilters BEFORE: ", _userFilters);
+				
+				Object.keys(userFilters).forEach(function (key) {
+					_userFilters[key] = userFilters[key];
+				});
+				console.log("\n_userFilters AFTER: ", _userFilters);
+			}
 
 			// TODOgasl duplicate method - put in base object functionality
 			function produceFilterKeyListValue(key, valueArray, id) {
@@ -81,9 +114,7 @@
 					throw new Error("_controle object must have value.");
 				}
 
-				_userFilters = userFilters;
-
-				console.log("\nINSIDE constateringen repo, userFilters: ", userFilters);
+				updateUserFilters(userFilters);
 
 				var self = this;
 				var url = _url + "?offset=0&limit=" + self.limit;
@@ -98,31 +129,31 @@
 					filtersQueryString += FILTER_SEPARATOR + produceFilterKeyListValue("SpecialismId", _user.Specialisms, "SpecialismId");
 				}
 
-				if (userFilters) {
-					Object.keys(userFilters).forEach(function (filterKey) {
+				if (_userFilters) {
+					Object.keys(_userFilters).forEach(function (filterKey) {
 
-						if (filterKey === "fromDate" && userFilters[filterKey] !== null) {
+						if (filterKey === "fromDate" && _userFilters[filterKey] !== null) {
 							filtersQueryString += FILTER_SEPARATOR
 								+ encodeURIComponent(self.getPropertyFor("Datum Activiteit", self.columnDefinitionList))
-								+ ":" + encodeURIComponent(encodeURIComponent(userFilters[filterKey].toISOString()));
+								+ ":" + encodeURIComponent(encodeURIComponent(_userFilters[filterKey].toISOString()));
 						}
 
-						if (filterKey === "specialist" && userFilters[filterKey] !== null) {
+						if (filterKey === "specialist" && _userFilters[filterKey] !== null) {
 							filtersQueryString += FILTER_SEPARATOR
 								+ encodeURIComponent(self.getPropertyFor("Specialist", self.columnDefinitionList))
-								+ ":" + encodeURIComponent(encodeURIComponent(userFilters[filterKey]));
+								+ ":" + encodeURIComponent(encodeURIComponent(_userFilters[filterKey]));
 						}
 
 						//{"sortBy": e.column.property, "sortOrder": e.order }
-						if (filterKey === "sortBy" && userFilters[filterKey] !== null) {
+						if (filterKey === "sortBy" && _userFilters[filterKey] !== null) {
 							filtersQueryString += FILTER_SEPARATOR
 								+ encodeURIComponent(filterKey)
-								+ ":" + encodeURIComponent(encodeURIComponent(userFilters[filterKey]));
+								+ ":" + encodeURIComponent(encodeURIComponent(_userFilters[filterKey]));
 						}
-						if (filterKey === "sortOrder" && userFilters[filterKey] !== null) {
+						if (filterKey === "sortOrder" && _userFilters[filterKey] !== null) {
 							filtersQueryString += FILTER_SEPARATOR
 								+ encodeURIComponent(filterKey)
-								+ ":" + encodeURIComponent(encodeURIComponent(userFilters[filterKey]));
+								+ ":" + encodeURIComponent(encodeURIComponent(_userFilters[filterKey]));
 						}
 					});
 				}
@@ -347,6 +378,10 @@
 		 */
 		repositories.ConstateringenRepository = ConstateringenRepository;
 
-	}(controles.repositories = controles.repositories || {}));
+	}
+
+		(controles.repositories = controles.repositories || {})
+		)
+	;
 
 }(window.controles = window.controles || {}));
