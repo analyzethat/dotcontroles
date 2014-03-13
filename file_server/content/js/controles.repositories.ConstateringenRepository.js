@@ -27,13 +27,6 @@
 			var _user = authenticatedUser;
 			var _controle = null;
 			var _specialists = null;
-
-			// user filters:
-			//
-			// fromDate
-			// specialist
-			// sortBy 
-			// sortOrder
 			var _userFilters = {
 				fromDate: null,
 				specialist: null,
@@ -56,7 +49,7 @@
 
 				console.log("\nuserFilters: ", userFilters);
 				console.log("\n_userFilters BEFORE: ", _userFilters);
-				
+
 				Object.keys(userFilters).forEach(function (key) {
 					_userFilters[key] = userFilters[key];
 				});
@@ -379,9 +372,6 @@
 		repositories.ConstateringenRepository = ConstateringenRepository;
 
 	}
-
-		(controles.repositories = controles.repositories || {})
-		)
-	;
+	(controles.repositories = controles.repositories || {}));
 
 }(window.controles = window.controles || {}));
