@@ -459,13 +459,28 @@ var database = (function () {
 							+ createWhereFor("SpecialismId", filters, request, "ControleId = c.Id AND StatusId IN (1,5)")
 							+ ") AS NumberOfConstateringen ";
 
-						query = "SELECT c.*, fr.Name as RoleName, " + subquery
-							+ "\nFROM [Controles] as c"
-							+ " \nLEFT JOIN [FunctionalRoles] as fr ON fr.Id = c.FunctionalRoleId "
-							+ where
-							+ " \nORDER BY Id ASC OFFSET " + offset
-							+ " \nROWS FETCH NEXT " + limit
-							+ " \nROWS ONLY ";
+						/* SQL 2008 */
+						query = "WITH OrderningTable AS "
+							+ "\n( "
+							+ "\n\tSELECT Row_Number() OVER (order by c.id asc) AS RowNumber, c.Id"
+							+ "\n\tFROM [Controles] AS c"
+							+ "\n\t" + where // "\nWHERE ControleId = const.ControleId AND StatusId IN (1,5) "
+							+ "\n)"
+							+ "\nSELECT c.*, fr.Name as RoleName, " + subquery
+							+ "\nFROM [OrderningTable]"
+							+ "\n\tINNER JOIN [Controles] as c ON OrderningTable.Id = c.Id"
+							+ "\n\tLEFT JOIN [FunctionalRoles] as fr ON fr.Id = c.FunctionalRoleId "
+							+ "\n\t" + where + " and RowNumber BETWEEN " + offset + " AND " + (offset + limit)
+							+ "\t ORDER BY Id ASC";
+
+						/* SQL 2012 */
+						//query = "SELECT c.*, fr.Name as RoleName, " + subquery
+						//	+ "\nFROM [Controles] as c"
+						//	+ " \nLEFT JOIN [FunctionalRoles] as fr ON fr.Id = c.FunctionalRoleId "
+						//	+ where
+						//	+ " \nORDER BY Id ASC OFFSET " + offset
+						//	+ " \nROWS FETCH NEXT " + limit
+						//	+ " \nROWS ONLY ";
 
 						request.sqlTextOrProcedure = query;
 
