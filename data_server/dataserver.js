@@ -32,9 +32,9 @@ app.use(express.cookieSession({
 //}));
 
 // Auxiliary methods
-function createConnection() {
-	return new Connection(configSQLServer);
-}
+//function createConnection() {
+//	return new Connection(configSQLServer);
+//}
 
 function handleServerError(err, res) {
 	console.log(err.message, err.stack);
