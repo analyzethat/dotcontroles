@@ -5,21 +5,17 @@
 	(function (repositories) {
 
 		/**
-		 * List repository - prototype for all repository objects based on collecitons. 
-		 * 
+		 * List repository - prototype for all repository objects based on collecitons.
+		 *
 		 * @param ajaxAgent
 		 * @param dataserverUrl
 		 * @constructor
-		 * 
+		 *
 		 * @author Galina Slavova <galina@crafity.com>
 		 */
 		function ListRespository(ajaxAgent, dataserverUrl) {
-			if (!dataserverUrl) {
-				throw new Error("Missing argument 'dataserverUrl'");
-			}
-			if (!ajaxAgent) {
-				throw new Error("Missing argument 'ajaxAgent'");
-			}
+			if (!dataserverUrl) { throw new Error("Missing argument 'dataserverUrl'"); }
+			if (!ajaxAgent) { throw new Error("Missing argument 'ajaxAgent'"); }
 
 			this._ajaxAgent = ajaxAgent;
 			this._dataserverUrl = dataserverUrl;
@@ -29,9 +25,7 @@
 		ListRespository.prototype.limit = 12;
 
 		ListRespository.prototype.state = function state(data) {
-			if (data === undefined) {
-				return this._state;
-			}
+			if (data === undefined) { return this._state; }
 
 			// it is a setter
 			this._state = data;
@@ -41,6 +35,7 @@
 
 			return this;
 		};
+		
 		ListRespository.prototype.getPropertyFor = function (name, columnDefinitionList) {
 			var res = columnDefinitionList
 				.filter(function (colDefinition) {
@@ -50,13 +45,11 @@
 					return colDefinition.property;
 				});
 
-			if (res.length > 1) {
-				throw new Error("Multiple properties were found for name " + name);
-			}
+			if (res.length > 1) { throw new Error("Multiple properties were found for name " + name); }
 
 			return (res && res.length > 0) ? res[0] : null;
 		};
-		
+
 		ListRespository.prototype.hasPrevious = function () {
 			return this.state().previous !== null;
 		};
