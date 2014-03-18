@@ -31,11 +31,7 @@ app.use(express.cookieSession({
 //	cookie: { maxAge: new Date(new Date().setMinutes(new Date().getMinutes() + TIMEOUT_IN_MINUTES)) }
 //}));
 
-// Auxiliary methods
-//function createConnection() {
-//	return new Connection(configSQLServer);
-//}
-
+/* Auxiliary methods */
 function handleServerError(err, res) {
 	console.log(err.message, err.stack);
 	res.writeHead(500);
@@ -46,12 +42,12 @@ function parseFilters(requestFilters) {
 	var filters = {};
 	var splitted = requestFilters.split('|');
 
-//	console.log("\n\nrequestFilters:", requestFilters);
-//	console.log("\n\nsplitted filters by | :", splitted); //[ 'FunctionalRoleIds:[1,3]|SpecialismIds:[9]' ]
+	//	console.log("\n\nrequestFilters:", requestFilters);
+	//	console.log("\n\nsplitted filters by | :", splitted); //[ 'FunctionalRoleIds:[1,3]|SpecialismIds:[9]' ]
 
 	splitted.forEach(function (filter) {
 		var keyValue = filter.split(":");
-//		console.log("\nkeyValue", keyValue);
+		//		console.log("\nkeyValue", keyValue);
 
 		if (keyValue.length === 2) {
 
@@ -62,7 +58,8 @@ function parseFilters(requestFilters) {
 			}
 			filters[keyValue[0]] = value;
 
-		} else {
+		}
+		else {
 			throw new Error("Filter has multiple sections separated by colon");
 		}
 	});
@@ -70,31 +67,24 @@ function parseFilters(requestFilters) {
 	console.log("\n\nParsed query filters: ", filters);
 	return filters;
 }
-// END Auxiliary method
+/* End auxiliary methods */
 
 /**
  * Intercept every request by doing preliminary checks
  * and preparational work.
  */
 app.use(function appendHeaders(req, res, next) {
-	if (core.arrays.contains(ORIGIN_URLs, req.headers.origin)) {
-//		console.log("\nreq.headers.origin", req.headers.origin);
-	}
-
 	var headersObject = {
-//		"Origin": ORIGIN_URLs,
-//		"Access-Control-Allow-Origin": ORIGIN_URLs,
 		"x-powered-by": "Crafity",
 		"Content-Type": "application/json; charset=utf-8"
 	};
 
-//	ORIGIN_URLs.forEach(function (origin) {
 	if (core.arrays.contains(ORIGIN_URLs, req.headers.origin)) {
+		console.log("\nreq.headers.origin", req.headers.origin);
+		
 		headersObject["Origin"] = req.headers.origin;
 		headersObject["Access-Control-Allow-Origin"] = req.headers.origin;
 	}
-
-//	});
 
 	// meaning of the headers below: 
 	// only the Origin Url is allowed to use this data server
@@ -103,19 +93,22 @@ app.use(function appendHeaders(req, res, next) {
 	next();
 });
 
-
+/**
+ * Regardless the HTTP verb set the proper cross domain headers properly.
+ */
 app.options("*", function (req, res) {
 	res.setHeader("Access-Control-Allow-Headers", "Access-Control-Allow-Origin, Access-Control-Allow-Methods, Access-Control-Allow-Credentials, Origin, Content-Type");
+	
 	if (core.arrays.contains(ORIGIN_URLs, req.headers.origin)) {
 		res.setHeader("Access-Control-Allow-Origin", req.headers.origin);
 	}
-//	res.setHeader("Access-Control-Allow-Origin", ORIGIN_URLs);
 	res.setHeader("Access-Control-Allow-Methods", "GET, PUT, POST, DELETE");
 	res.setHeader("Access-Control-Allow-Credentials", "true");
+	
 	res.end();
 });
 
-// ROUTINGS
+/* Beging ROUTINGS */
 app.get("/", function (req, res) {
 	var body = { name: "Data server", version: "0.1" };
 	res.send(200, body);
@@ -140,7 +133,7 @@ app.post("/login", function (req, res) {
 				"message": "User '" + req.body.username + "' is not found."
 			});
 		}
-//		console.log("\n\nuser", user);
+		//		console.log("\n\nuser", user);
 
 		var synchronizer = new Synchronizer();
 		var body = { href: req.url, user: user };
@@ -180,7 +173,8 @@ app.get("/users", function (req, res) {
 			row.href = req.url + "/" + row.Id;
 			res.write("\t" + (hasRows ? "," : "") + JSON.stringify(row) + "\n");
 			hasRows = true;
-		} else {
+		}
+		else {
 			res.write("\t]");
 			res.end("\n}");
 		}
@@ -209,6 +203,30 @@ app.get("/users/:id", function (req, res) {
 
 });
 
+app.get("/specialisms", function (req, res) {
+	console.log("\n**************************** GET /specialisms *********************\n", req.params, req.body);
+
+	var hasRows = false;
+
+	database.specialisms.getAll(function (err, row, rowcount) {
+		if (err) { throw err; }
+
+		if (!hasRows) {
+			res.write('{\n"href": "/specialisms",');
+			res.write('\n"items": [\n');
+		}
+		if (row) {
+			row.href = req.url + "/" + row.Id;
+			res.write("\t" + (hasRows ? "," : "") + JSON.stringify(row) + "\n");
+			hasRows = true;
+		}
+		else {
+			res.write("\t]");
+			res.end("\n}");
+		}
+	});
+});
+
 app.get("/specialists", function (req, res) {
 	console.log("\n**************************** GET /specialists *********************\n", req.params, req.body);
 
@@ -227,7 +245,8 @@ app.get("/specialists", function (req, res) {
 			res.write("\t" + (hasRows ? "," : "") + JSON.stringify(row) + "\n");
 			hasRows = true;
 
-		} else {
+		}
+		else {
 			res.write("\t]");
 			res.end("\n}");
 		}
@@ -258,7 +277,8 @@ app.get("/controles", function (req, res) {
 		if (offset > 0) {
 			if (offset - limit >= 0) {
 				previousUrl = '{"href": "/controles?offset=' + (offset - limit) + '&limit=' + limit + queryStringFilters + '"}';
-			} else {
+			}
+			else {
 				previousUrl = '{"href": "/controles?offset=0&limit=' + limit + queryStringFilters + '"}';
 			}
 		}
@@ -308,7 +328,8 @@ app.get("/controles", function (req, res) {
 			// Zijn de items nog niet aan het streamen? -> Send total thingies
 			sendChunkTotal(_total);
 
-		} else if (_finishedReceivingRows) {
+		}
+		else if (_finishedReceivingRows) {
 
 			// Zijn de items al klaar met streamen? -> Send total thingies + finalize request
 			sendChunkTotal(_total);
@@ -342,7 +363,8 @@ app.get("/controles", function (req, res) {
 				sendChunkLast();
 			}
 
-		} else {
+		}
+		else {
 			// Streamen...
 			res.write("\n\t\t" + (hasRows ? "," : "") + JSON.stringify(row));
 			hasRows = true;
@@ -378,7 +400,8 @@ app.get("/constateringen", function (req, res) {
 		if (offset > 0) {
 			if (offset - limit >= 0) {
 				previousUrl = '{"href": "/constateringen?offset=' + (offset - limit) + '&limit=' + limit + queryStringFilters + '"}';
-			} else {
+			}
+			else {
 				previousUrl = '{"href": "/constateringen?offset=0&limit=' + limit + queryStringFilters + '"}';
 			}
 		}
@@ -427,7 +450,8 @@ app.get("/constateringen", function (req, res) {
 			// Zijn de items nog niet aan het streamen? -> Send total thingies
 			sendChunkTotal(_total);
 
-		} else if (_finishedReceivingConstateringenRows) {
+		}
+		else if (_finishedReceivingConstateringenRows) {
 
 			// Zijn de items al klaar met streamen? -> Send total thingies + finalize request
 			sendChunkTotal(_total);
@@ -461,7 +485,8 @@ app.get("/constateringen", function (req, res) {
 				sendChunkLast();
 			}
 
-		} else {
+		}
+		else {
 			// Streaming...
 			res.write("\n\t\t" + (hasRows ? "," : "") + JSON.stringify(row));
 			hasRows = true;
@@ -530,6 +555,8 @@ app.get("*", function (req, res) {
 
 	res.send(404, { status: 404, message: "Unknown request" });
 });
+
+/* End ROUTINGS */
 
 console.log("Serving content on http://localhost:" + port);
 
