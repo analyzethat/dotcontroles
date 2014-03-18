@@ -16,9 +16,9 @@
 			var _url = this._dataserverUrl + "/controles";
 			var _user = authenticatedUser;
 			var FILTER_SEPARATOR = "|";
-			var self = this;
 
 			// TODOgasl duplicate method - put in base object functionality 
+			/* Auxiliary methods */
 			function produceFilterKeyListValue(key, valueArray, id) {
 				var filtersQueryString = encodeURIComponent(key + ":[");
 
@@ -32,15 +32,13 @@
 				filtersQueryString += encodeURIComponent("]");
 				return filtersQueryString;
 			}
-
-			this.getUserRoles = function () {
-				return _user.Roles;
-			};
-
+			/* End auxiliary methods */
+			
+			/**
+			 * Initialize.
+			 */
 			this.init = function () {
-				if (!_user) {
-					throw new Error("User is not instantiated.");
-				}
+				if (!_user) { throw new Error("User is not instantiated."); }
 
 				var self = this;
 				var url = _url + "?offset=0&limit=" + self.limit;
@@ -57,9 +55,13 @@
 				}
 
 				this._ajaxAgent.get(url, function (res) {
-					console.log("\nGET  %s, res.body", _url, res.body);
+					console.log("\nGET  '%s', res.body", _url, res.body);
 					self.state(res.body);
 				});
+			};
+
+			this.getUserRoles = function () {
+				return _user.Roles;
 			};
 		}
 
