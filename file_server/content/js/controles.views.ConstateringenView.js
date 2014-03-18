@@ -1,4 +1,4 @@
-/*globals alert, window, console, confirm, Element, TextField, Grid, ButtonBar, Button*/
+/*globals alert, window, console, confirm, Element, TextField, Grid, ButtonBar, Button, crafity*/
 
 (function (controles) {
 	"use strict";
@@ -17,12 +17,13 @@
 		 * @author Galina Slavova <galina@crafity.com>
 		 */
 		function ConstateringenView(controle, constateringenRepository, specialistsRepository) {
-			var self = this;
+			if (!controle) { throw new Error("Missing argument 'conrtole'"); }
+			if (!constateringenRepository) { throw new Error("Missing argument 'constateringenRepository'"); }
+			if (!specialistsRepository) { throw new Error("Missing argument 'specialistsRepository'"); }
 
 			this.addClass("constateringen");
 
-			// Build the GUI elements
-			// info row
+			/* Build the GUI elements */
 			var infoRow = new html.Element("div").addClass("info-row");
 
 			var userRoles = "";
@@ -51,7 +52,7 @@
 				})
 				.on("selectedStatus", function (column, row, value) {
 					console.log("\ncolumn, row, value", column, row, value);
-					if (confirm("Status verandering bevestigen?")) { 
+					if (confirm("Status verandering bevestigen?")) {
 						row[column.property] = value;
 						constateringenRepository.changeStatus(value, row);
 					}
@@ -80,7 +81,11 @@
 				constateringenRepository.next();
 			});
 
+			/* event handlers */
 			constateringenRepository.on("data", function (rows) {
+				console.log("constateringenRepository.columnDefinitionList", constateringenRepository.columnDefinitionList);
+				mygrid.clearColumns();
+				mygrid.addColumns(constateringenRepository.columnDefinitionList);
 				mygrid.addRows(rows);
 			});
 			constateringenRepository.on("stateChanged", function () {
@@ -89,6 +94,7 @@
 				nextButton.disabled(!constateringenRepository.hasNext());
 				lastButton.disabled(!constateringenRepository.hasNext());
 			});
+
 			constateringenRepository.init(controle); // load data
 
 			// command row
