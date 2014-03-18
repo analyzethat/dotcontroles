@@ -279,6 +279,34 @@ var database = (function () {
 			}
 		},
 
+		specialisms: {
+			getAll: function (callback) {
+				database.createConnection(function (err, connection) {
+					if (err) {
+						return callback(err);
+					}
+
+					var query = "SELECT [Id],[Name],[AGBCode] \nFROM [Specialisms];";
+
+					var request = new Request(query, function (err, rowcount) {
+						return callback(err, null, rowcount); // end
+					});
+
+					request.on("row", function (columns) {
+						var row = {};
+
+						columns.forEach(function (column) {
+							row[column.metadata.colName] = column.value;
+						});
+						return callback(null, row, null);
+					});
+
+					database.logQuery(query);
+					connection.execSql(request);
+				});
+			}
+		},
+
 		specialists: {
 			getAll: function (callback) {
 				database.createConnection(function (err, connection) {
@@ -344,7 +372,8 @@ var database = (function () {
 						// decide if this is a single value
 						if (filters[key].indexOf(",") === -1) {
 							where += (where ? " \nAND " + key : key) + " = " + filters[key];
-						} else { // .. collection of values
+						}
+						else { // .. collection of values
 							where += (where ? " \nAND " + key : key) + " IN (" + filters[key] + ")";
 						}
 						var sqlType = database.getSqlDataTypeFor(database.controles.getTypeFor(key));
@@ -545,7 +574,8 @@ var database = (function () {
 						else if (key === "VerantwoordelijkSpecialist") {			//... or a single value
 							if (filters[key].toLowerCase() === "null") {
 								where += (where ? " AND " + key : key) + " is null";
-							} else {
+							}
+							else {
 								where += (where ? " AND " + key : key) + " = @" + key;
 							}
 						}
@@ -553,7 +583,8 @@ var database = (function () {
 						else if (key === "DatumActiviteit" && database.constateringen.getTypeFor(key) === "Date") {
 							where += (where ? " AND " + key : key) + " >= @" + key;
 							filters[key] = new Date(filters[key]);
-						} else {
+						}
+						else {
 							where += (where ? " AND " + key : key) + " = @" + key;
 						}
 
@@ -698,7 +729,8 @@ var database = (function () {
 								orderByColumnName = filters.sortBy;
 								if (filters.sortOrder === "ascending") {
 									sortOrder = " ASC ";
-								} else if (filters.sortOrder === "descending") { //TODOgasl refactor this and put sorting into another category, not filters
+								}
+								else if (filters.sortOrder === "descending") { //TODOgasl refactor this and put sorting into another category, not filters
 									sortOrder = " DESC ";
 								}
 							}
@@ -713,14 +745,14 @@ var database = (function () {
 						// 1. for lower versions of SQL2012 - to be used according to SQL server installated version
 
 						// SQL2012 compatibility						
-//						var query = "SELECT const.*, status.Name as StatusName"
-//							+ " \nFROM [Constateringen] as const"
-//							+ " \nINNER JOIN [Statuses] as status ON status.Id = const.StatusId "
-//							+ where
-//							+ orderByClauseString
-//							+ "\nOFFSET " + offset
-//							+ " \nROWS FETCH NEXT " + limit
-//							+ " \nROWS ONLY ";
+						//						var query = "SELECT const.*, status.Name as StatusName"
+						//							+ " \nFROM [Constateringen] as const"
+						//							+ " \nINNER JOIN [Statuses] as status ON status.Id = const.StatusId "
+						//							+ where
+						//							+ orderByClauseString
+						//							+ "\nOFFSET " + offset
+						//							+ " \nROWS FETCH NEXT " + limit
+						//							+ " \nROWS ONLY ";
 
 						// SQL 2008
 						query = "WITH OrderningTable AS "
@@ -751,6 +783,7 @@ var database = (function () {
 						database.logQuery(query);
 						connection.execSql(request);
 					});
+
 				},
 
 				getById: function (id, callback) {
@@ -830,8 +863,8 @@ var database = (function () {
 										properties[propertyKey] = new Date(properties[propertyKey]);
 									}
 
-									console.log("\n***** property key-value: ", propertyKey, properties[propertyKey]);
-									console.log("\tSQL type via tedious: ", database.getSqlDataTypeFor(colDefinition.type).type);
+//									console.log("\n**** property key-value: ", propertyKey, properties[propertyKey]);
+//									console.log("\tSQL type via tedious: ", database.getSqlDataTypeFor(colDefinition.type).type);
 
 									request.addParameter(propertyKey, database.getSqlDataTypeFor(colDefinition.type), properties[propertyKey]);
 								}
