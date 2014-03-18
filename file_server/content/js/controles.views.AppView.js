@@ -23,6 +23,7 @@
 			var userView = null;
 
 			var specialismsRepository = new controles.repositories.SpecialismsRepository().init();
+			var statusesRepository = new controles.repositories.StatusesRepository().init();
 			var specialistsRepository = new controles.repositories.SpecialistsRepository();
 			var controlesRepository = new controles.repositories.ControlesRepository(authenticationRepository.authenticatedUser());
 			var controlesView = new controles.views.ControlesView(controlesRepository);
@@ -52,7 +53,7 @@
 			]));
 
 			controles.app.eventbus.on("openConstateringen", function (controle) {
-				constateringenRepository = new controles.repositories.ConstateringenRepository(authenticationRepository.authenticatedUser(), specialistsRepository, specialismsRepository.getSimpleSpecialismList());
+				constateringenRepository = new controles.repositories.ConstateringenRepository(authenticationRepository.authenticatedUser(), specialistsRepository, specialismsRepository.getSimpleSpecialismList(), statusesRepository.getSpecialStatusList());
 				constateringenView = new controles.views.ConstateringenView(controle, constateringenRepository, specialistsRepository);
 				viewContainer.activate(constateringenView);
 			});

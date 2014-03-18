@@ -14,10 +14,11 @@
 		 *
 		 * @author Galina Slavova <galina@crafity.com>
 		 */
-		function ConstateringenRepository(authenticatedUser, specialistsRepository, specialismList) {
-			if (!authenticatedUser) { throw new Error("Missing argument 'authenticatedUser."); }
-			if (!specialistsRepository) { throw new Error("Missing argument 'specialistsRepository."); }
-			if (!specialismList) { throw new Error("Missing argument 'specialismList."); }
+		function ConstateringenRepository(authenticatedUser, specialistsRepository, specialismList, statusList) {
+			if (!authenticatedUser) { throw new Error("Missing argument 'authenticatedUser'."); }
+			if (!specialistsRepository) { throw new Error("Missing argument 'specialistsRepository'."); }
+			if (!specialismList) { throw new Error("Missing argument 'specialismList'."); }
+			if (!statusList) { throw new Error("Missing argument 'statusList'."); }
 
 			var self = this;
 			var _url = this._dataserverUrl + "/constateringen";
@@ -25,6 +26,7 @@
 			var _controle = null;
 			var _specialists = null;
 			var _specialismList = specialismList;
+			var _statusList = statusList;
 			var _userFilters = {
 				fromDate: null,
 				specialist: null,
@@ -36,6 +38,7 @@
 
 			/* Auxiliary methods */
 			self.columnDefinitionList[0].options = _specialismList;
+			self.columnDefinitionList[2].options = _statusList;
 
 			function updateUserFilters(userFilters) {
 				if (!userFilters) return;
@@ -52,7 +55,6 @@
 				});
 				console.log("\n_userFilters AFTER: ", _userFilters);
 			}
-
 			function produceFilterKeyListValue(key, valueArray, id) { // TODOgasl duplicate method - put in base object functionality
 				if (!key) { throw new Error("Missing argument 'key'"); }
 				if (!valueArray || valueArray.length === 0) { throw new Error("Missing argument 'valueArray'"); }
@@ -78,10 +80,9 @@
 
 			/**
 			 * Get all user roles.
-			 * @returns {body.user.Roles|*}
+			 * @returns {body.user.Roles}
 			 */
 			this.getUserRoles = function () {
-//				console.debug("\n\n_user.Roles", _user.Roles);
 				return _user.Roles;
 			};
 
@@ -157,8 +158,6 @@
 
 				this._ajaxAgent.get(url, function (res) {
 					console.log("\nGET  '%s', res.body", url, res.body);
-
-					console.debug("\n\nUPDATED  columnDefinitionList[0].options %o", self.columnDefinitionList[0].options);
 					self.state(res.body);
 				});
 			};
@@ -272,36 +271,6 @@
 				property: "SpecialismId",
 				type: "Number",
 				options: null,
-				//				{
-				//					0: " ",
-				//					1: "Oogheelkunde",
-				//					2: "KNO",
-				//					3: "Heelkunde",
-				//					4: "Plastische chirurgi",
-				//					5: "Orthopedie",
-				//					6: "Urologie",
-				//					7: "Gynaecologie",
-				//					8: "Neurochirurgie",
-				//					9: "Dermatologie",
-				//					10: "Inwendige Geneeskunde",
-				//					11: "Kindergeneeskunde Algemeen",
-				//					12: "Kindergeneeskunde Neonatologie",
-				//					13: "Maag-, Darm-, en Leverziekten",
-				//					14: "Cardiologie",
-				//					15: "Longgeneeskunde",
-				//					16: "Reumatologie",
-				//					17: "Allergologie",
-				//					18: "Revalidatiegeneeskunde",
-				//					19: "Cardio-pulmonale chirurgie",
-				//					20: "Consultatieve Psychiatrie",
-				//					21: "Neurologie",
-				//					22: "Klinische Geriatrie",
-				//					23: "Radiotherapie",
-				//					24: "Radiologie",
-				//					25: "Anesthesiologie",
-				//					26: "Klinische Genetica",
-				//					27: "Audiologie"
-				//				}
 				editable: {
 					control: "crafity.html.Selectbox",
 					"default": 2,
@@ -313,20 +282,20 @@
 			},
 			{
 				name: "Status",
+				property: "StatusName",
+				type: "String"
+			},
+			{
+				name: "Naar Status",
 				property: "StatusId",
 				type: "Number",
-				sortable: "ascending",
-				options: {
-					1: "Open",
-					2: "Negeren",
-					4: "Afgehandeld",
-					5: "Doorgezet"
-				},
+//				sortable: "ascending",
+				options: null,
 				editable: {
 					control: "crafity.html.Selectbox",
-					"default": 1,
+					"default": 4,
 					"events": [
-						{selected: "selectedStatus" }
+						{ selected: "selectedStatus" }
 					]
 				}
 			},
@@ -337,11 +306,6 @@
 				sortable: "descending",
 				format: "DD-MM-YYYY"
 			},
-			//			{
-			//				name: "StatusId",
-			//				property: "StatusId",
-			//				type: "Number"
-			//			},
 			{ name: "Patientnummer",
 				property: "PatientNr",
 				type: "String"

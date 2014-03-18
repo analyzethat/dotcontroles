@@ -227,6 +227,30 @@ app.get("/specialisms", function (req, res) {
 	});
 });
 
+app.get("/statuses", function (req, res) {
+	console.log("\n**************************** GET /statuses *********************\n", req.params, req.body);
+
+	var hasRows = false;
+
+	database.statuses.getAll(function (err, row, rowcount) {
+		if (err) { throw err; }
+
+		if (!hasRows) {
+			res.write('{\n"href": "/statuses",');
+			res.write('\n"items": [\n');
+		}
+		if (row) {
+			row.href = req.url + "/" + row.Id;
+			res.write("\t" + (hasRows ? "," : "") + JSON.stringify(row) + "\n");
+			hasRows = true;
+		}
+		else {
+			res.write("\t]");
+			res.end("\n}");
+		}
+	});
+});
+
 app.get("/specialists", function (req, res) {
 	console.log("\n**************************** GET /specialists *********************\n", req.params, req.body);
 

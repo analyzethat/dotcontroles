@@ -337,7 +337,35 @@ var database = (function () {
 				});
 			}
 		},
+		
+		statuses: {
+			getAll: function (callback) {
+				database.createConnection(function (err, connection) {
+					if (err) {
+						return callback(err);
+					}
 
+					var query = "SELECT [Id] ,[Name] \nFROM [Statuses]";
+
+					var request = new Request(query, function (err, rowcount) {
+						return callback(err, null, rowcount); // end
+					});
+
+					request.on("row", function (columns) {
+						var row = {};
+
+						columns.forEach(function (column) {
+							row[column.metadata.colName] = column.value;
+						});
+						return callback(null, row, null);
+					});
+
+					database.logQuery(query);
+					connection.execSql(request);
+				});
+			}
+		},
+		
 		controles: (function () {
 
 			/**
