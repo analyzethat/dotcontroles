@@ -1,4 +1,4 @@
-/*globals alert, window, console, Element, TextField, Grid, ButtonBar, Button, Form*/
+/*globals alert, window, console, Element, TextField, Grid, ButtonBar, Button, Form, crafity*/
 
 (function (controles) {
 	"use strict";
@@ -15,9 +15,7 @@
 		 * @author Galina Slavova <galina@crafity.com>
 		 */
 		function UserView(usersRepository) {
-			if (!usersRepository) {
-				throw new Error("Missing argument 'usersRepository'");
-			}
+			if (!usersRepository) { throw new Error("Missing argument 'usersRepository'"); }
 
 			var self = this;
 			var authenticatedUser = usersRepository.authenticatedUser();
@@ -36,9 +34,7 @@
 				txtUsername.clear();
 				txtName.clear();
 				txtFamilyName.clear();
-				if (txtEmail) {
-					txtEmail.clear();
-				}
+				if (txtEmail) { txtEmail.clear(); }
 				roleContainer.clear();
 				specialismsContainer.clear();
 			}
@@ -81,50 +77,13 @@
 				usersRepository.user.saveContactData(txtName.value(), txtFamilyName.value(), txtEmail.value());
 			}
 
-			var buttonBar = new html.ButtonBar()
-				.append(
-					new html.Button("Opslaan")
-						.addClass("right").hide()
-						.on("click", save)
-				);
+			var buttonBar = new html.ButtonBar().append(
+				new html.Button("Opslaan").addClass("right").hide().on("click", save)
+			);
 
 			self.append(infoRow);
 			self.append(buttonBar);
 			self.addClass("detailsContainer");
-			
-			
-//			Email: 'galina@crafity.com',
-//						Roles: [
-//							{
-//								Id: 1,
-//								UserId: 1,
-//								FunctionalRoleId: 1,
-//								Name: "Specialist",
-//								NeedsSpecialism: true,
-//								CreationDate: "2014-01-14 00:00:00",
-//								LastMutationDate: null
-//							},
-//							{
-//								Id: 2,
-//								UserId: 1,
-//								FunctionalRoleId: 3,
-//								Name: "Zorgadministratie",
-//								NeedsSpecialism: false,
-//								CreationDate: "2014-01-14 00:00:00",
-//								LastMutationDate: null
-//							}
-//						],
-//						Specialisms: [
-//							{
-//								Id: 2,
-//								UserId: 1,
-//								SpecialismId: 9,
-//								Name: "Dermatologie",
-//								AGBCode: "0310",
-//								CreationDate: "2014-01-14 00:00:00",
-//								LastMutationDate: null
-//							}]
-//			
 		}
 
 		UserView.prototype = new html.Element("div");

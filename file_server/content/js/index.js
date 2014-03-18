@@ -2,8 +2,7 @@
 (function (controles) {
 	"use strict";
 
-//	controles.URL_DATASERVER = "http://data.dotcontroles.dev"; // TODOgasl get from config
-	controles.URL_DATASERVER = "http://data." + document.location.host; // TODOgasl get from config
+	controles.URL_DATASERVER = "http://data." + document.location.host;
 
 	/**
 	 * Entry point of DOT controles client.
