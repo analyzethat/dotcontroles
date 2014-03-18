@@ -33,7 +33,7 @@
 			});
 		
 			controlesRepository.on("data", function (rows) {
-				console.log("ControlesView on data, rows", rows);
+				console.debug("\n\nControlesView on data, rows", rows);
 				mygrid.addRows(rows);
 			});
 			controlesRepository.on("stateChanged", function () {
