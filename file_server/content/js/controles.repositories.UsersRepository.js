@@ -14,9 +14,9 @@
 		 * @author Galina Slavova <galina@crafity.com>
 		 */
 		function UsersRepository(authenticatedUser) {
-			var _url = this._dataserverUrl + "/users";
 			var _authenticatedUser = authenticatedUser;
 			var self = this;
+			//var _url = this._dataserverUrl + "/users";
 
 			/**
 			 * A getter / setter function to keep the logged in user.
@@ -27,28 +27,26 @@
 				return _authenticatedUser;
 			};
 
-			this.users = {
-				get: function (callback) {
-					self._ajaxAgent
-						.get(_url)
-						.end(function (res) {
-							if (res.error) {
-								callback(res.error, null);
-							} else {
-								callback(null, res.body);
-							}
-						});
-				}
-			};
+			//			this.users = {
+			//				get: function (callback) {
+			//					self._ajaxAgent
+			//						.get(_url)
+			//						.end(function (res) {
+			//							if (res.error) {
+			//								callback(res.error, null);
+			//							} else {
+			//								callback(null, res.body);
+			//							}
+			//						});
+			//				}
+			//			};
 
-			this.user = {
-				saveContactData: function (firstName, lastName, email) {
-					self._ajaxAgent.post(self._dataserverUrl + "user/" + _authenticatedUser.id)
-						.send({firstName: firstName, lastName: lastName, email: email})
-						.end(function (res) {
-							console.log("\n\n\nResult from saving user data to database: res", res);
-						});
-				}
+			this.saveContactData = function (firstName, lastName, email) {
+				self._ajaxAgent.post(self._dataserverUrl + "user/" + _authenticatedUser.id)
+					.send({firstName: firstName, lastName: lastName, email: email})
+					.end(function (res) {
+						console.log("\n\n\nResult from saving user data to database: res", res);
+					});
 			};
 		}
 
@@ -70,5 +68,3 @@
 	}(controles.repositories = controles.repositories || {}));
 
 }(window.controles = window.controles || {}));
-
-
