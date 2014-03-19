@@ -16,6 +16,7 @@
 		function AppView(authenticationRepository) {
 			if (!authenticationRepository) { throw new Error("Missing argument 'authenticationRepository'"); }
 
+			/* Build the GUI elements */
 			var menu = new crafity.html.Menu().addClass("main").appendTo(this);
 			var viewContainer = new crafity.html.ViewContainer().addClass("app").appendTo(this);
 
@@ -36,10 +37,10 @@
 			var outIcon = new crafity.html.Element("div").addClass("symbol out").text("\uF045");
 
 			menu.addMenuPanel(new crafity.html.MenuPanel("Overzicht").addMenuItems([
-					new crafity.html.MenuItem("DOT Controles", function () { // F0FA
-						viewContainer.activate(controlesView);
-					}).select().append(medicalSuitcaseIcon)
-				]));
+				new crafity.html.MenuItem("DOT Controles", function () { // F0FA
+					viewContainer.activate(controlesView);
+				}).select().append(medicalSuitcaseIcon)
+			]));
 			menu.addMenuPanel(new crafity.html.MenuPanel("Systeem").addMenuItems([
 
 				new crafity.html.MenuItem("Mijn gegevens", function () {
@@ -52,13 +53,20 @@
 				}).append(outIcon)
 			]));
 
+			/* event handlers */
 			controles.app.eventbus.on("openConstateringen", function (controle) {
-				constateringenRepository = new controles.repositories.ConstateringenRepository(authenticationRepository.authenticatedUser(), specialistsRepository, specialismsRepository.getSimpleSpecialismList(), statusesRepository.getSpecialStatusList());
+				constateringenRepository = new controles.repositories.ConstateringenRepository(
+					authenticationRepository.authenticatedUser(),
+					specialistsRepository,
+					specialismsRepository.getSimpleSpecialismList(),
+					statusesRepository.getSpecialStatusList());
+				
 				constateringenView = new controles.views.ConstateringenView(controle, constateringenRepository, specialistsRepository);
 				viewContainer.activate(constateringenView);
 			});
+			
 			controles.app.eventbus.on("openControles", function () {
-				viewContainer.activate(controlesView);
+				viewContainer.activate(controlesView.refresh());
 			});
 
 			//		appContainer.toggleClass("fullscreen");
