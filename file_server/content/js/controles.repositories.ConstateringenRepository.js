@@ -289,7 +289,6 @@
 				name: "Naar Status",
 				property: "StatusId",
 				type: "Number",
-//				sortable: "ascending",
 				options: null,
 				editable: {
 					control: "crafity.html.Selectbox",
