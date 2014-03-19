@@ -17,7 +17,7 @@
 		 * @author Galina Slavova <galina@crafity.com>
 		 */
 		function ConstateringenView(controle, constateringenRepository, specialistsRepository) {
-			if (!controle) { throw new Error("Missing argument 'conrtole'"); }
+			if (!controle) { throw new Error("Missing argument 'controle'"); }
 			if (!constateringenRepository) { throw new Error("Missing argument 'constateringenRepository'"); }
 			if (!specialistsRepository) { throw new Error("Missing argument 'specialistsRepository'"); }
 
@@ -26,16 +26,16 @@
 			/* Build the GUI elements */
 			var infoRow = new html.Element("div").addClass("info-row");
 
-			var userRoles = "";
+			var userRolesString = "";
 			constateringenRepository.getUserRoles().forEach(function (role) {
-				userRoles += (userRoles ? ", " : "") + role.Name;
+				userRolesString += (userRolesString ? ", " : "") + role.Name;
 			});
 
 			var infoContainer = new html.Element("div").addClass("info")
 				.append(new html.Element("h2").text("Constateringen voor " + controle.Code))
 				.append(new html.Element("h3").text('"' + controle.Name + '"'))
 				.append(new html.Element("h4").text("Type: " + controle.Type))
-				.append(new html.Element("h4").text("Rollen: " + userRoles))
+				.append(new html.Element("h4").text("Rollen: " + userRolesString))
 				.appendTo(infoRow);
 			// listen to the state changed event of this repo in order to update the list of specialists
 
@@ -81,6 +81,19 @@
 				constateringenRepository.next();
 			});
 
+			// command row
+			var commandRow = new html.Element("div").addClass("command-row")
+				.append(new html.ButtonBar()
+					.append(backButton)
+					.append(lastButton)
+					.append(nextButton)
+					.append(previousButton)
+					.append(firstButton));
+
+			this.append(infoRow)
+				.append(gridRow)
+				.append(commandRow);
+			
 			/* event handlers */
 			constateringenRepository.on("data", function (rows) {
 				console.log("constateringenRepository.columnDefinitionList", constateringenRepository.columnDefinitionList);
@@ -97,18 +110,6 @@
 
 			constateringenRepository.init(controle); // load data
 
-			// command row
-			var commandRow = new html.Element("div").addClass("command-row")
-				.append(new html.ButtonBar()
-					.append(backButton)
-					.append(lastButton)
-					.append(nextButton)
-					.append(previousButton)
-					.append(firstButton));
-
-			this.append(infoRow)
-				.append(gridRow)
-				.append(commandRow);
 		}
 
 		ConstateringenView.prototype = new html.Element("div");

@@ -14,10 +14,13 @@
 		 * @author Galina Slavova <galina@crafity.com>
 		 */
 		function ControlesView(controlesRepository) {
+			if (!controlesRepository) { throw new Error("Missing argument 'controlesRepository'"); }
+
+			/* Build the GUI elements */
 			this.addClass("controles"); // gasltodo create own css class
 
 			var gridRow = new html.Element("div").addClass("grid-row");
-			var mygrid = new html.Grid(controlesRepository.columnDefinitionList).appendTo(gridRow);
+			var grid = new html.Grid(controlesRepository.columnDefinitionList).appendTo(gridRow);
 
 			var firstButton = new html.Button("Eerste").addClass("right").disabled(true).on("click", function () {
 				controlesRepository.first();
@@ -31,34 +34,17 @@
 			var nextButton = new html.Button(">>").addClass("right").disabled(true).on("click", function () {
 				controlesRepository.next();
 			});
-		
-			controlesRepository.on("data", function (rows) {
-				console.debug("\n\nControlesView on data, rows", rows);
-				mygrid.addRows(rows);
-			});
-			controlesRepository.on("stateChanged", function () {
-				firstButton.disabled(!controlesRepository.hasPrevious());
-				previousButton.disabled(!controlesRepository.hasPrevious());
-				nextButton.disabled(!controlesRepository.hasNext());
-				lastButton.disabled(!controlesRepository.hasNext());
-			});
-			mygrid.on("open", function (row) {
-				controles.app.eventbus.emit("openConstateringen", row);
+
+			var userRolesString = "";
+			controlesRepository.getUserRoles().forEach(function (role) {
+				userRolesString += (userRolesString ? ", " : "") + role.Name;
 			});
 
-			controlesRepository.init(); // load data
-
-			var userRoles = "";
-			controlesRepository.getUserRoles().forEach(function(role){
-				userRoles += (userRoles ? ", " : "") + role.Name;
-			});
-			
-			var infoRow = new html.Element("div").addClass("info-row");
-			
-			var infoControlesContainer = new html.Element("div").addClass("info")
-				.append(new html.Element("h2").text("DOT Controles")) 
-				.append(new html.Element("h3").text("Rollen: " + userRoles))
-				.appendTo(infoRow);
+			var infoRow = new html.Element("div").addClass("info-row")
+				.append(new html.Element("div").addClass("info")
+					.append(new html.Element("h2").text("DOT Controles"))
+					.append(new html.Element("h3").text("Rollen: " + userRolesString))
+				);
 
 			var commandRow = new html.Element("div").addClass("command-row")
 				.append(new html.ButtonBar()
@@ -70,6 +56,28 @@
 			this.append(infoRow)
 				.append(gridRow)
 				.append(commandRow);
+
+			/* event handlers */
+			grid.on("open", function (row) {
+				controles.app.eventbus.emit("openConstateringen", row);
+			});
+			controlesRepository.on("data", function (rows) {
+				console.debug("\n\nControlesView on data, rows", rows);
+				grid.addRows(rows);
+			});
+			controlesRepository.on("stateChanged", function () {
+				firstButton.disabled(!controlesRepository.hasPrevious());
+				previousButton.disabled(!controlesRepository.hasPrevious());
+				nextButton.disabled(!controlesRepository.hasNext());
+				lastButton.disabled(!controlesRepository.hasNext());
+			});
+
+			this.refresh = function () {
+				controlesRepository.init();
+				return this;
+			};
+
+			this.refresh();
 		}
 
 		ControlesView.prototype = new html.Element("div");

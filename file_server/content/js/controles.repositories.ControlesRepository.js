@@ -33,11 +33,26 @@
 				return filtersQueryString;
 			}
 			/* End auxiliary methods */
-			
+
+			/**
+			 * Get the roles of the authenticated user.
+			 * @returns {body.user.Roles|*}
+			 */
+			this.getUserRoles = function () {
+				return _user.Roles;
+			};
+
 			/**
 			 * Initialize.
 			 */
 			this.init = function () {
+				this.filter();
+			};
+
+			/**
+			 * Ajax call for filtered controle list.
+			 */
+			this.filter = function () {
 				if (!_user) { throw new Error("User is not instantiated."); }
 
 				var self = this;
@@ -58,10 +73,6 @@
 					console.log("\nGET  '%s', res.body", _url, res.body);
 					self.state(res.body);
 				});
-			};
-
-			this.getUserRoles = function () {
-				return _user.Roles;
 			};
 		}
 
