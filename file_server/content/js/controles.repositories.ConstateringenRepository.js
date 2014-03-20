@@ -55,7 +55,8 @@
 				});
 				console.log("\n_userFilters AFTER: ", _userFilters);
 			}
-			function produceFilterKeyListValue(key, valueArray, id) { // TODOgasl duplicate method - put in base object functionality
+			
+			function produceFilterKeyListValue(key, valueArray, id) { 
 				if (!key) { throw new Error("Missing argument 'key'"); }
 				if (!valueArray || valueArray.length === 0) { throw new Error("Missing argument 'valueArray'"); }
 
@@ -110,10 +111,10 @@
 				if (!_user) { throw new Error("_user object must have value."); }
 				if (!_controle) { throw new Error("_controle object must have value."); }
 
-				updateUserFilters(userFilters);
-
 				var self = this;
 				var url = _url + "?offset=0&limit=" + self.limit;
+
+				updateUserFilters(userFilters);
 
 				// Constateringen are filtered by:
 				//	1. the system:
@@ -255,13 +256,7 @@
 		 */
 		ConstateringenRepository.prototype.constructor = controles.repositories.ConstateringenRepository;
 		/**
-		 * The constateringen columns are placed in an Array of zero or more column definition objects
-		 *
-		 *  Description | Status | Price | Creation Date | Specialist | Id
-		 *
-		 *  Status int | PatientNr str | ZiektegevalNr str | DatumActiviteit date
-		 *  | DBCTypering str | VerantwoordelijkSpecialist str | OverigeKenmerken str | Id int | GebruikersId int
-		 *
+		 * The column definition list targets the GUI presentation of the html Grid columns.
 		 *
 		 * @type {Array}
 		 */

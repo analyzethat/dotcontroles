@@ -20,7 +20,13 @@
 			this.addClass("controles"); // gasltodo create own css class
 
 			var gridRow = new html.Element("div").addClass("grid-row");
-			var grid = new html.Grid(controlesRepository.columnDefinitionList).appendTo(gridRow);
+			var grid = new html.Grid(controlesRepository.columnDefinitionList).appendTo(gridRow)
+				.onsort(function (e) {
+					console.log("\nSorting ", e.column.property, e.order);
+					if (e) {
+						controlesRepository.filter({"sortBy": e.column.property, "sortOrder": e.order });
+					}
+				});
 
 			var firstButton = new html.Button("Eerste").addClass("right").disabled(true).on("click", function () {
 				controlesRepository.first();

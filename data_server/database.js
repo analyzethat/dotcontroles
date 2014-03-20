@@ -48,6 +48,15 @@ var database = (function () {
 			}
 		},
 
+		getColumnDefinitionPropertyListFor: function (columnDefinitionList) {
+			var propertyList = columnDefinitionList
+				.map(function (colDefinition, index) {
+					if (colDefinition.property) { return colDefinition.property; }
+				});
+			
+			return propertyList;
+		},
+
 		getPropertyFor: function (name, columnDefinitionList) {
 			var res = columnDefinitionList
 				.filter(function (colDefinition, index) {
@@ -84,13 +93,33 @@ var database = (function () {
 			return (res && res.length > 0) ? res[0] : null;
 		},
 
+		getSqlKeywordForSortOrder: function (ascOrDescKeyword) {
+			if (!ascOrDescKeyword || ascOrDescKeyword === null) { throw new Error("Missing argument 'ascOrDescKeyword"); }
+
+			var ascending = " ASC ";
+			if (ascOrDescKeyword === "ascending") { return ascending; }
+			else if (ascOrDescKeyword === "descending") { return " DESC "; }
+
+			return ascending;
+		},
+
+		isNativeColumn: function (sortByColumn, columnDefinitionList) {
+			if (database.getColumnDefinitionPropertyListFor(columnDefinitionList).indexOf(sortByColumn) > -1) {
+				return true;
+			}
+			else {
+				return false;
+			}
+		},
+
 		logQuery: function (queryString) {
 			console.log("\n\n******** SQL query:\n\n", queryString);
 			console.log("\n*********\n");
 		},
+
 		logCreateWhereFor: function (keywords, filters, request, whereClause) {
 			console.log("\n*** INSIDE createWhereFor method => ");
-			console.log("\n\tkeywords: ", keywords);
+			console.log("\n\t native columns: ", keywords);
 			console.log("\n\tfilters: ", filters);
 			console.log("\n\tcustom whereClause: ", whereClause);
 
@@ -123,6 +152,7 @@ var database = (function () {
 
 				});
 			},
+
 			getById: function (id, callback) {
 				var isFound = false;
 
@@ -337,7 +367,7 @@ var database = (function () {
 				});
 			}
 		},
-		
+
 		statuses: {
 			getAll: function (callback) {
 				database.createConnection(function (err, connection) {
@@ -365,7 +395,7 @@ var database = (function () {
 				});
 			}
 		},
-		
+
 		controles: (function () {
 
 			/**
@@ -380,20 +410,57 @@ var database = (function () {
 			 * @param whereClause
 			 * @returns {*|string}
 			 */
-			function createWhereFor(keywords, filters, request, whereClause) {
-				if (!keywords) {
-					throw new Error("Missing argument keywords for the where clause.");
-				}
+				//			function createWhereFor(keywords, filters, request, whereClause) {
+				//				if (!keywords) {
+				//					throw new Error("Missing argument keywords for the where clause.");
+				//				}
+				//				if (!filters || filters.length === 0) {
+				//					return "";
+				//					//throw new Error("Missing argument filters for the where clause.");
+				//				}
+				//
+				//				var where = "";
+				//				var keywordArray = keywords.split(",");
+				//				var filterArray = Object.keys(filters);
+				//
+				//				database.logCreateWhereFor(keywords, filters, request, whereClause);
+				//
+				//				filterArray.forEach(function (key) {
+				//					if (core.arrays.contains(keywordArray, key)) {
+				//						// decide if this is a single value
+				//						if (filters[key].indexOf(",") === -1) {
+				//							where += (where ? " \nAND " + key : key) + " = " + filters[key];
+				//						}
+				//						else { // .. collection of values
+				//							where += (where ? " \nAND " + key : key) + " IN (" + filters[key] + ")";
+				//						}
+				//						var sqlType = database.getSqlDataTypeFor(database.controles.getTypeFor(key));
+				//						request.addParameter(key, sqlType, filters[key]);
+				//					}
+				//
+				//				});
+				//
+				//				if (whereClause) {
+				//					where += (where ? " \nAND " + whereClause : whereClause);
+				//				}
+				//
+				//				console.log("\n\nCONSTRUCTED WHERE", where);
+				//				return where ? "\nWHERE " + where : "";
+				//
+				//			}
+
+			function createWhereFor1(columnDefinitionList, filters, request, whereClause) {
+				if (!columnDefinitionList) { throw new Error("Missing argument 'columnDefinitionList' for the where clause."); }
 				if (!filters || filters.length === 0) {
-					return "";
-					//throw new Error("Missing argument filters for the where clause.");
+					return "";	//throw new Error("Missing argument filters for the where clause."); 
 				}
 
 				var where = "";
-				var keywordArray = keywords.split(",");
+				var keywordArray = database.getColumnDefinitionPropertyListFor(columnDefinitionList);
+
 				var filterArray = Object.keys(filters);
 
-				database.logCreateWhereFor(keywords, filters, request, whereClause);
+				database.logCreateWhereFor(keywordArray, filters, request, whereClause);
 
 				filterArray.forEach(function (key) {
 					if (core.arrays.contains(keywordArray, key)) {
@@ -413,13 +480,25 @@ var database = (function () {
 				if (whereClause) {
 					where += (where ? " \nAND " + whereClause : whereClause);
 				}
-				return where ? "\nWHERE " + where : "";
 
+				console.log("\n\nCONSTRUCTED WHERE", where);
+				return where ? "\nWHERE " + where : "";
 			}
 
 			return {
+				/**
+				 * This column definition list reflects only native columns of Controles sql table, not calculated.
+				 *
+				 * @example  [Id],[Code],[Name],[Type],[FunctionalRoleId]
+				 * @returns {*[]}
+				 */
 				getColumnDefinitionList: function () {
 					return [
+						{
+							name: "Id",
+							property: "Id",
+							type: "Number"
+						},
 						{
 							name: "Code",
 							property: "Code",
@@ -433,12 +512,8 @@ var database = (function () {
 							property: "Type",
 							type: "String"
 						},
-						{ name: "Rol",
+						{ name: "Rol Id",
 							property: "FunctionalRoleId",
-							type: "Number"
-						},
-						{ name: "Aantal Constateringen",
-							property: "NumberOfConstateringen",
 							type: "Number"
 						}
 					];
@@ -456,25 +531,20 @@ var database = (function () {
 					return res;
 				},
 
-				getColumnsAllowedForFilering: function () {
-					return "FunctionalRoleId,Code,Id";
-				},
-
 				getTotal: function (filters, callback) {
 					database.createConnection(function (err, connection) {
-						if (err) {
-							return callback(err);
-						}
+						if (err) { return callback(err); }
 						var total = 0;
 						var where = "";
-						var query = "SELECT count('x') as total \nFROM Controles ";//c LEFT JOIN [FunctionalRoles] as fr ON fr.Id = c.FunctionalRoleId ";
+						var query = "SELECT count('x') as total \nFROM Controles ";
 
 						var request = new Request(query, function (err) {
 							return callback(err, !err && total);
 						});
 
 						try {
-							where = createWhereFor("FunctionalRoleId", filters, request);
+							//							where = createWhereFor("FunctionalRoleId", filters, request);
+							where = createWhereFor1(database.controles.getColumnDefinitionList(), filters, request);
 						} catch (error) {
 							return callback(error);
 						}
@@ -493,13 +563,15 @@ var database = (function () {
 				},
 
 				getFilteredBy: function (offset, limit, filters, callback) {
-
 					database.createConnection(function (err, connection) {
 						if (err) {
 							return callback(err);
 						}
 
 						var where = "";
+						var orderBy = " \nORDER BY";
+						var orderByColumnName = "Id";
+						var sortOrder = " ASC ";
 						var query = "";
 
 						var request = new Request(query, function (err, rowcount) {
@@ -507,28 +579,46 @@ var database = (function () {
 						});
 
 						try {
-							where = createWhereFor("FunctionalRoleId", filters, request);
+							//							where = createWhereFor("FunctionalRoleId", filters, request);
+							where = createWhereFor1(database.controles.getColumnDefinitionList(), filters, request);
+
+							// construct custom ORDER BY clause
+							if (filters && filters.sortBy && filters.sortOrder) {
+
+								sortOrder = database.getSqlKeywordForSortOrder(filters.sortOrder);
+
+								// 1. sanitize column name => otherwise throw exception!
+								if (database.isNativeColumn(filters.sortBy, database.controles.getColumnDefinitionList())) { orderByColumnName = filters.sortBy; }
+								else { throw new Error("The sortBy column name is not froma native column in controles table.");}
+							}
+
 						} catch (error) {
 							return callback(error);
 						}
 
+						// go on from here
+						var orderByClauseString = orderBy + " c." + orderByColumnName + sortOrder;
+
+						//						var testWhere = createWhereFor("SpecialismId", filters, request, "ControleId = c.Id AND StatusId IN (1,5)");
+						var subqueryWhereClause = createWhereFor1(database.constateringen.getColumnDefinitionList(), filters, request, "ControleId = c.Id AND StatusId IN (1,5)");
+
 						var subquery = "(SELECT COUNT(*) FROM [Constateringen] "
-							+ createWhereFor("SpecialismId", filters, request, "ControleId = c.Id AND StatusId IN (1,5)")
+							+ subqueryWhereClause
 							+ ") AS NumberOfConstateringen ";
 
 						/* SQL 2008 */
 						query = "WITH OrderningTable AS "
 							+ "\n( "
-							+ "\n\tSELECT Row_Number() OVER (order by c.id asc) AS RowNumber, c.Id"
+							+ "\n\tSELECT Row_Number() OVER (" + orderByClauseString + ") AS RowNumber, c.Id"
 							+ "\n\tFROM [Controles] AS c"
-							+ "\n\t" + where // "\nWHERE ControleId = const.ControleId AND StatusId IN (1,5) "
+							+ "\n\t" + where
 							+ "\n)"
 							+ "\nSELECT c.*, fr.Name as RoleName, " + subquery
 							+ "\nFROM [OrderningTable]"
 							+ "\n\tINNER JOIN [Controles] as c ON OrderningTable.Id = c.Id"
 							+ "\n\tLEFT JOIN [FunctionalRoles] as fr ON fr.Id = c.FunctionalRoleId "
 							+ "\n\t" + where + " and RowNumber BETWEEN " + offset + " AND " + (offset + limit)
-							+ "\t ORDER BY Id ASC";
+							+ "\t" + orderByClauseString; //"\t ORDER BY Id ASC";
 
 						/* SQL 2012 */
 						//query = "SELECT c.*, fr.Name as RoleName, " + subquery
@@ -561,6 +651,53 @@ var database = (function () {
 		}()),
 
 		constateringen: (function () {
+			//test
+			function createWhereFor1(keywords, filters, request, whereClause) {
+				console.log("filters", filters);
+				if (!keywords) { throw new Error("Missing argument keywords for the where clause."); }
+				if (!filters || filters.length === 0) {
+					return "";	//throw new Error("Missing argument filters for the where clause.");
+				}
+
+				var where = "";
+				var keywordArray = keywords.split(",");
+				var filterKeyArray = Object.keys(filters);
+				database.logCreateWhereFor(keywords, filters, request, whereClause);
+
+				filterKeyArray.forEach(function (filterKey) {
+
+					if (core.arrays.contains(keywordArray, filterKey)) {
+
+						if (filters[filterKey].indexOf(",") > -1) {									// decide if this is a collection of values
+							where += (where ? " AND " + filterKey : filterKey) + " IN (" + filters[filterKey] + ")";
+						}
+						else if (filterKey === "VerantwoordelijkSpecialist") {			//... or a single value
+							if (filters[filterKey].toLowerCase() === "null") {
+								where += (where ? " AND " + filterKey : filterKey) + " is null";
+							}
+							else {
+								where += (where ? " AND " + filterKey : filterKey) + " = @" + filterKey;
+							}
+						}
+
+						else if (filterKey === "DatumActiviteit" && database.constateringen.getTypeFor(filterKey) === "Date") {
+							where += (where ? " AND " + filterKey : filterKey) + " >= @" + filterKey;
+							filters[filterKey] = new Date(filters[filterKey]);
+						}
+						else {
+							where += (where ? " AND " + filterKey : filterKey) + " = @" + filterKey;
+						}
+
+						var sqlType = database.getSqlDataTypeFor(database.constateringen.getTypeFor(filterKey));
+						request.addParameter(filterKey, sqlType, filters[filterKey]);
+					}
+				});
+
+				if (whereClause) {
+					where += (where ? " AND " + whereClause : whereClause)
+				}
+				return where ? "\nWHERE " + where : "";
+			}
 
 			/**
 			 * Create or enrich the WHERE clause for a query.
@@ -577,21 +714,17 @@ var database = (function () {
 			 */
 			function createWhereFor(keywords, filters, request, whereClause) {
 				console.log("filters", filters);
-				if (!keywords) {
-					throw new Error("Missing argument keywords for the where clause.");
-				}
+				if (!keywords) { throw new Error("Missing argument keywords for the where clause."); }
 				if (!filters || filters.length === 0) {
-					return "";
-					//throw new Error("Missing argument filters for the where clause.");
+					return "";	//throw new Error("Missing argument filters for the where clause.");
 				}
 
 				var where = "";
 				var keywordArray = keywords.split(",");
-				var filterArray = Object.keys(filters);
-
+				var filterKeyArray = Object.keys(filters);
 				database.logCreateWhereFor(keywords, filters, request, whereClause);
 
-				filterArray.forEach(function (key) {
+				filterKeyArray.forEach(function (key) {
 
 					if (core.arrays.contains(keywordArray, key)) {
 
@@ -629,8 +762,31 @@ var database = (function () {
 
 			return {
 
+				/**
+				 * This column definition list reflects only native columns of Constateringen sql table, not calculated.
+				 *
+				 * @example  [Id]
+				 *     ,[ControleId]
+				 *     ,[SpecialismId]
+				 *     ,[StatusId]
+				 *     ,[ZiektegevalNr]
+				 *     ,[DatumActiviteit]
+				 *     ,[DBCTypering]
+				 *     ,[VerantwoordelijkSpecialist]
+				 *     ,[OverigeKenmerken]
+				 *     ,[UserId]
+				 *     ,[LastMutationDate]
+				 *     ,[VerantwoordelijkOE]
+				 *
+				 * @returns {*[]}
+				 */
 				getColumnDefinitionList: function () {
 					return [
+						{
+							name: "Id",
+							property: "Id",
+							type: "Number"
+						},
 						{
 							name: "Controle",
 							property: "ControleId",
@@ -645,20 +801,6 @@ var database = (function () {
 							name: "Status",
 							property: "StatusId",
 							type: "Number"
-						},
-						{
-							name: "LastMutationDate",
-							property: "LastMutationDate",
-							type: "Date"
-						},
-						{
-							name: "UserId",
-							property: "UserId",
-							type: "Number"
-						},
-						{ name: "Patientnummer",
-							property: "PatientNr",
-							type: "String"
 						},
 						{ name: "Ziektegeval",
 							property: "ZiektegevalNr",
@@ -678,6 +820,20 @@ var database = (function () {
 						},
 						{ name: "Overige kenmerken",
 							property: "OverigeKenmerken",
+							type: "String"
+						},
+						{
+							name: "UserId",
+							property: "UserId",
+							type: "Number"
+						},
+						{
+							name: "LastMutationDate",
+							property: "LastMutationDate",
+							type: "Date"
+						},
+						{ name: "Patientnummer",
+							property: "PatientNr",
 							type: "String"
 						},
 						{ name: "Afdeling",
@@ -752,13 +908,18 @@ var database = (function () {
 						// datumActiviteit
 						// verantwoordelijkeSpecialist
 						try {
+							//							filters { ControleId: '1',
+							//							  SpecialismId: '9',
+							//							  sortBy: 'LastMutationDate',
+							//							  sortOrder: 'ascending' }
+							//							
 							where = createWhereFor("ControleId,SpecialismId,DatumActiviteit,VerantwoordelijkSpecialist", filters, request, "StatusId IN (1,5)");
 							if (filters && filters.sortBy && filters.sortOrder) {
 								orderByColumnName = filters.sortBy;
 								if (filters.sortOrder === "ascending") {
 									sortOrder = " ASC ";
 								}
-								else if (filters.sortOrder === "descending") { //TODOgasl refactor this and put sorting into another category, not filters
+								else if (filters.sortOrder === "descending") {
 									sortOrder = " DESC ";
 								}
 							}
@@ -770,9 +931,9 @@ var database = (function () {
 
 						// below two sorts of queries:
 						// 1. SQL2012 compatible - to be used according to SQL server installated version
-						// 1. for lower versions of SQL2012 - to be used according to SQL server installated version
+						// 1. for lower versions (SQL 2008) - to be used according to SQL server installated version
 
-						// SQL2012 compatibility						
+						/* SQL 2012 */
 						//						var query = "SELECT const.*, status.Name as StatusName"
 						//							+ " \nFROM [Constateringen] as const"
 						//							+ " \nINNER JOIN [Statuses] as status ON status.Id = const.StatusId "
@@ -782,12 +943,12 @@ var database = (function () {
 						//							+ " \nROWS FETCH NEXT " + limit
 						//							+ " \nROWS ONLY ";
 
-						// SQL 2008
+						/* SQL 2008 */
 						query = "WITH OrderningTable AS "
 							+ "\n( "
 							+ "\n\tSELECT Row_Number() OVER (" + orderByClauseString + ") AS RowNumber, const.Id"
 							+ "\n\tFROM [Constateringen] AS const \n\tINNER JOIN [Statuses] AS status ON status.Id = const.StatusId"
-							+ "\n\t" + where // "\nWHERE ControleId = const.ControleId AND StatusId IN (1,5) "
+							+ "\n\t" + where
 							+ "\n)"
 							+ "\nSELECT RowNumber, const.*, status.Name AS StatusName"
 							+ "\nFROM OrderningTable"
@@ -811,7 +972,6 @@ var database = (function () {
 						database.logQuery(query);
 						connection.execSql(request);
 					});
-
 				},
 
 				getById: function (id, callback) {
@@ -891,8 +1051,8 @@ var database = (function () {
 										properties[propertyKey] = new Date(properties[propertyKey]);
 									}
 
-//									console.log("\n**** property key-value: ", propertyKey, properties[propertyKey]);
-//									console.log("\tSQL type via tedious: ", database.getSqlDataTypeFor(colDefinition.type).type);
+									//									console.log("\n**** property key-value: ", propertyKey, properties[propertyKey]);
+									//									console.log("\tSQL type via tedious: ", database.getSqlDataTypeFor(colDefinition.type).type);
 
 									request.addParameter(propertyKey, database.getSqlDataTypeFor(colDefinition.type), properties[propertyKey]);
 								}

@@ -13,13 +13,38 @@
 		 * @author Galina Slavova <galina@crafity.com>
 		 */
 		function ControlesRepository(authenticatedUser) {
+			if (!authenticatedUser) { throw new Error("Missing argument 'authenticatedUser'."); }
+
 			var _url = this._dataserverUrl + "/controles";
 			var _user = authenticatedUser;
+			var _userFilters = {
+						sortBy: null,
+						sortOrder: null
+					};
+			
 			var FILTER_SEPARATOR = "|";
 
-			// TODOgasl duplicate method - put in base object functionality 
 			/* Auxiliary methods */
+			function updateUserFilters(userFilters) {
+					if (!userFilters) return;
+	
+					if (!_userFilters || _userFilters === null) { throw new Error("_userFilters is not defined or has no value."); }
+					if (!Object.keys(_userFilters) || Object.keys(_userFilters).length === 0) {
+						throw new Error("_userFilters is missing members.");
+					}
+	
+					console.log("\nuserFilters: ", userFilters);
+					console.log("\n_userFilters BEFORE: ", _userFilters);
+					Object.keys(userFilters).forEach(function (key) {
+						_userFilters[key] = userFilters[key];
+					});
+					console.log("\n_userFilters AFTER: ", _userFilters);
+				}
+			
 			function produceFilterKeyListValue(key, valueArray, id) {
+				if (!key) { throw new Error("Missing argument 'key'"); }
+				if (!valueArray || valueArray.length === 0) { throw new Error("Missing argument 'valueArray'"); }
+
 				var filtersQueryString = encodeURIComponent(key + ":[");
 
 				var first1 = true;
@@ -30,8 +55,10 @@
 				});
 
 				filtersQueryString += encodeURIComponent("]");
+				
 				return filtersQueryString;
 			}
+
 			/* End auxiliary methods */
 
 			/**
@@ -52,18 +79,38 @@
 			/**
 			 * Ajax call for filtered controle list.
 			 */
-			this.filter = function () {
+			this.filter = function (userFilters) {
 				if (!_user) { throw new Error("User is not instantiated."); }
 
 				var self = this;
 				var url = _url + "?offset=0&limit=" + self.limit;
 
+				updateUserFilters(userFilters);
+
+				
 				var filtersQueryString = produceFilterKeyListValue("FunctionalRoleId", _user.Roles, "FunctionalRoleId");
 
 				if (_user.Specialisms && _user.Specialisms.length > 0) {
 					filtersQueryString += FILTER_SEPARATOR + produceFilterKeyListValue("SpecialismId", _user.Specialisms, "SpecialismId");
 				}
 
+				
+				// 2. and the user
+				if (_userFilters) {
+					Object.keys(_userFilters).forEach(function (filterKey) {
+						if (filterKey === "sortBy" && _userFilters[filterKey] !== null) {
+							filtersQueryString += FILTER_SEPARATOR
+								+ encodeURIComponent(filterKey)
+								+ ":" + encodeURIComponent(encodeURIComponent(_userFilters[filterKey]));
+						}
+						if (filterKey === "sortOrder" && _userFilters[filterKey] !== null) {
+							filtersQueryString += FILTER_SEPARATOR
+								+ encodeURIComponent(filterKey)
+								+ ":" + encodeURIComponent(encodeURIComponent(_userFilters[filterKey]));
+						}
+					});
+				}
+				
 				if (filtersQueryString) {
 					filtersQueryString = "&filters=" + filtersQueryString;
 					url += filtersQueryString;
@@ -85,7 +132,7 @@
 		 */
 		ControlesRepository.prototype.constructor = controles.repositories.ControlesRepository;
 		/**
-		 * The controles columns are placed in an Array of zero or more column definition objects
+		 * The column definition list targets the GUI presentation of the html Grid columns.
 		 *
 		 *  Code | Name | Type
 		 *
@@ -105,17 +152,16 @@
 			},
 			{ name: "Type",
 				property: "Type",
-				type: "String"
-			},
-			{ name: "Rol",
-				property: "RoleName",
 				type: "String",
 				sortable: "ascending"
 			},
+			{ name: "Rol",
+				property: "RoleName",
+				type: "String"
+			},
 			{ name: "Constateringen",
 				property: "NumberOfConstateringen",
-				type: "Number",
-				sortable: "descending"
+				type: "Number"
 			}
 		];
 
