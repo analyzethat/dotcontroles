@@ -53,7 +53,7 @@ var database = (function () {
 				.map(function (colDefinition, index) {
 					if (colDefinition.property) { return colDefinition.property; }
 				});
-			
+
 			return propertyList;
 		},
 
@@ -404,56 +404,16 @@ var database = (function () {
 			 * @example
 			 *  createWhereFor("FunctionalRoleId", filters, request);
 			 *
-			 * @param keyword
+			 * @param columnDefinitionList
 			 * @param filters
 			 * @param request
 			 * @param whereClause
 			 * @returns {*|string}
 			 */
-				//			function createWhereFor(keywords, filters, request, whereClause) {
-				//				if (!keywords) {
-				//					throw new Error("Missing argument keywords for the where clause.");
-				//				}
-				//				if (!filters || filters.length === 0) {
-				//					return "";
-				//					//throw new Error("Missing argument filters for the where clause.");
-				//				}
-				//
-				//				var where = "";
-				//				var keywordArray = keywords.split(",");
-				//				var filterArray = Object.keys(filters);
-				//
-				//				database.logCreateWhereFor(keywords, filters, request, whereClause);
-				//
-				//				filterArray.forEach(function (key) {
-				//					if (core.arrays.contains(keywordArray, key)) {
-				//						// decide if this is a single value
-				//						if (filters[key].indexOf(",") === -1) {
-				//							where += (where ? " \nAND " + key : key) + " = " + filters[key];
-				//						}
-				//						else { // .. collection of values
-				//							where += (where ? " \nAND " + key : key) + " IN (" + filters[key] + ")";
-				//						}
-				//						var sqlType = database.getSqlDataTypeFor(database.controles.getTypeFor(key));
-				//						request.addParameter(key, sqlType, filters[key]);
-				//					}
-				//
-				//				});
-				//
-				//				if (whereClause) {
-				//					where += (where ? " \nAND " + whereClause : whereClause);
-				//				}
-				//
-				//				console.log("\n\nCONSTRUCTED WHERE", where);
-				//				return where ? "\nWHERE " + where : "";
-				//
-				//			}
-
 			function createWhereFor1(columnDefinitionList, filters, request, whereClause) {
 				if (!columnDefinitionList) { throw new Error("Missing argument 'columnDefinitionList' for the where clause."); }
-				if (!filters || filters.length === 0) {
-					return "";	//throw new Error("Missing argument filters for the where clause."); 
-				}
+				if (!request) { throw new Error("Missing argument 'request'."); }
+				if (!filters || filters.length === 0) { return ""; }
 
 				var where = "";
 				var keywordArray = database.getColumnDefinitionPropertyListFor(columnDefinitionList);
@@ -465,8 +425,9 @@ var database = (function () {
 				filterArray.forEach(function (key) {
 					if (core.arrays.contains(keywordArray, key)) {
 						// decide if this is a single value
-						if (filters[key].indexOf(",") === -1) {
-							where += (where ? " \nAND " + key : key) + " = " + filters[key];
+						//						if (filters[key].indexOf(",") === -1) {
+						if (filters[key] && filters[key].toString().indexOf(",") === -1) {
+							where += (where ? " \nAND " + key : key) + " = @" + key;//filters[key];
 						}
 						else { // .. collection of values
 							where += (where ? " \nAND " + key : key) + " IN (" + filters[key] + ")";
@@ -481,7 +442,6 @@ var database = (function () {
 					where += (where ? " \nAND " + whereClause : whereClause);
 				}
 
-				console.log("\n\nCONSTRUCTED WHERE", where);
 				return where ? "\nWHERE " + where : "";
 			}
 
@@ -536,14 +496,13 @@ var database = (function () {
 						if (err) { return callback(err); }
 						var total = 0;
 						var where = "";
-						var query = "SELECT count('x') as total \nFROM Controles ";
+						var query = "SELECT count('x') as total \nFROM [Controles] ";
 
 						var request = new Request(query, function (err) {
 							return callback(err, !err && total);
 						});
 
 						try {
-							//							where = createWhereFor("FunctionalRoleId", filters, request);
 							where = createWhereFor1(database.controles.getColumnDefinitionList(), filters, request);
 						} catch (error) {
 							return callback(error);
@@ -564,9 +523,7 @@ var database = (function () {
 
 				getFilteredBy: function (offset, limit, filters, callback) {
 					database.createConnection(function (err, connection) {
-						if (err) {
-							return callback(err);
-						}
+						if (err) { return callback(err); }
 
 						var where = "";
 						var orderBy = " \nORDER BY";
@@ -579,17 +536,17 @@ var database = (function () {
 						});
 
 						try {
-							//							where = createWhereFor("FunctionalRoleId", filters, request);
 							where = createWhereFor1(database.controles.getColumnDefinitionList(), filters, request);
 
 							// construct custom ORDER BY clause
 							if (filters && filters.sortBy && filters.sortOrder) {
 
-								sortOrder = database.getSqlKeywordForSortOrder(filters.sortOrder);
-
-								// 1. sanitize column name => otherwise throw exception!
+								// sanitize column name => otherwise throw exception!
 								if (database.isNativeColumn(filters.sortBy, database.controles.getColumnDefinitionList())) { orderByColumnName = filters.sortBy; }
 								else { throw new Error("The sortBy column name is not froma native column in controles table.");}
+
+								// assign the custom sort order coming from the client
+								sortOrder = database.getSqlKeywordForSortOrder(filters.sortOrder);
 							}
 
 						} catch (error) {
@@ -599,7 +556,6 @@ var database = (function () {
 						// go on from here
 						var orderByClauseString = orderBy + " c." + orderByColumnName + sortOrder;
 
-						//						var testWhere = createWhereFor("SpecialismId", filters, request, "ControleId = c.Id AND StatusId IN (1,5)");
 						var subqueryWhereClause = createWhereFor1(database.constateringen.getColumnDefinitionList(), filters, request, "ControleId = c.Id AND StatusId IN (1,5)");
 
 						var subquery = "(SELECT COUNT(*) FROM [Constateringen] "
@@ -651,54 +607,6 @@ var database = (function () {
 		}()),
 
 		constateringen: (function () {
-			//test
-			function createWhereFor1(keywords, filters, request, whereClause) {
-				console.log("filters", filters);
-				if (!keywords) { throw new Error("Missing argument keywords for the where clause."); }
-				if (!filters || filters.length === 0) {
-					return "";	//throw new Error("Missing argument filters for the where clause.");
-				}
-
-				var where = "";
-				var keywordArray = keywords.split(",");
-				var filterKeyArray = Object.keys(filters);
-				database.logCreateWhereFor(keywords, filters, request, whereClause);
-
-				filterKeyArray.forEach(function (filterKey) {
-
-					if (core.arrays.contains(keywordArray, filterKey)) {
-
-						if (filters[filterKey].indexOf(",") > -1) {									// decide if this is a collection of values
-							where += (where ? " AND " + filterKey : filterKey) + " IN (" + filters[filterKey] + ")";
-						}
-						else if (filterKey === "VerantwoordelijkSpecialist") {			//... or a single value
-							if (filters[filterKey].toLowerCase() === "null") {
-								where += (where ? " AND " + filterKey : filterKey) + " is null";
-							}
-							else {
-								where += (where ? " AND " + filterKey : filterKey) + " = @" + filterKey;
-							}
-						}
-
-						else if (filterKey === "DatumActiviteit" && database.constateringen.getTypeFor(filterKey) === "Date") {
-							where += (where ? " AND " + filterKey : filterKey) + " >= @" + filterKey;
-							filters[filterKey] = new Date(filters[filterKey]);
-						}
-						else {
-							where += (where ? " AND " + filterKey : filterKey) + " = @" + filterKey;
-						}
-
-						var sqlType = database.getSqlDataTypeFor(database.constateringen.getTypeFor(filterKey));
-						request.addParameter(filterKey, sqlType, filters[filterKey]);
-					}
-				});
-
-				if (whereClause) {
-					where += (where ? " AND " + whereClause : whereClause)
-				}
-				return where ? "\nWHERE " + where : "";
-			}
-
 			/**
 			 * Create or enrich the WHERE clause for a query.
 			 *
@@ -712,23 +620,23 @@ var database = (function () {
 			 *
 			 * @returns {*|String} Returns the value of the where clause.
 			 */
-			function createWhereFor(keywords, filters, request, whereClause) {
+			function createWhereFor2(columnDefinitionList, filters, request, whereClause) {
 				console.log("filters", filters);
-				if (!keywords) { throw new Error("Missing argument keywords for the where clause."); }
+				if (!columnDefinitionList) { throw new Error("Missing argument 'columnDefinitionList'."); }
+				if (!request) { throw new Error("Missing argument 'request'."); }
 				if (!filters || filters.length === 0) {
-					return "";	//throw new Error("Missing argument filters for the where clause.");
+					return "";
 				}
 
 				var where = "";
-				var keywordArray = keywords.split(",");
+				var keywordArray = database.getColumnDefinitionPropertyListFor(columnDefinitionList);
 				var filterKeyArray = Object.keys(filters);
-				database.logCreateWhereFor(keywords, filters, request, whereClause);
+
+				database.logCreateWhereFor(keywordArray, filters, request, whereClause);
 
 				filterKeyArray.forEach(function (key) {
-
 					if (core.arrays.contains(keywordArray, key)) {
-
-						if (filters[key].indexOf(",") > -1) {									// decide if this is a collection of values
+						if (filters[key] && filters[key].toString().indexOf(",") > -1) {									// decide if this is a collection of values
 							where += (where ? " AND " + key : key) + " IN (" + filters[key] + ")";
 						}
 
@@ -855,9 +763,7 @@ var database = (function () {
 
 				getTotal: function (filters, callback) {
 					database.createConnection(function (err, connection) {
-						if (err) {
-							return callback(err);
-						}
+						if (err) { return callback(err); }
 						var total = 0;
 						var where = "";
 						var query = "SELECT count('x') as total \nFROM [Constateringen]";
@@ -867,7 +773,7 @@ var database = (function () {
 						});
 
 						try {
-							where = createWhereFor("ControleId", filters, request, "StatusId IN (1,5)");
+							where = createWhereFor2(database.constateringen.getColumnDefinitionList(), filters, request, "StatusId IN (1,5)");
 						} catch (error) {
 							return callback(error);
 						}
@@ -887,9 +793,7 @@ var database = (function () {
 
 				getFilteredBy: function (offset, limit, filters, callback) {
 					database.createConnection(function (err, connection) {
-						if (err) {
-							return callback(err);
-						}
+						if (err) { return callback(err); }
 
 						var where = "";
 						var orderBy = " \nORDER BY";
@@ -901,27 +805,20 @@ var database = (function () {
 							return callback(err, null, rowcount);
 						});
 
-						// Sanitize input
-						// fiter can be done only on
-						// controle id
-						// list of specialism ids
-						// datumActiviteit
-						// verantwoordelijkeSpecialist
 						try {
-							//							filters { ControleId: '1',
-							//							  SpecialismId: '9',
-							//							  sortBy: 'LastMutationDate',
-							//							  sortOrder: 'ascending' }
-							//							
-							where = createWhereFor("ControleId,SpecialismId,DatumActiviteit,VerantwoordelijkSpecialist", filters, request, "StatusId IN (1,5)");
+							where = createWhereFor2(database.constateringen.getColumnDefinitionList(), filters, request, "StatusId IN (1,5)");
+
+							// construct custom ORDER BY clause
 							if (filters && filters.sortBy && filters.sortOrder) {
-								orderByColumnName = filters.sortBy;
-								if (filters.sortOrder === "ascending") {
-									sortOrder = " ASC ";
-								}
-								else if (filters.sortOrder === "descending") {
-									sortOrder = " DESC ";
-								}
+
+								// sanitize column name => otherwise throw exception!
+								if (database.isNativeColumn(filters.sortBy, database.constateringen.getColumnDefinitionList())) { orderByColumnName = filters.sortBy; }
+								else { throw new Error("The sortBy column name is not froma native column in controles table.");}
+
+								//								orderByColumnName = filters.sortBy;
+
+								// assign the custom sort order coming from the client
+								sortOrder = database.getSqlKeywordForSortOrder(filters.sortOrder);
 							}
 						} catch (error) {
 							return callback(error);
@@ -1072,9 +969,7 @@ var database = (function () {
 
 				updateAllProperties: function (constatering, callback) {
 					database.createConnection(function (err, connection) {
-						if (err) {
-							return callback(err);
-						}
+						if (err) { return callback(err); }
 
 						var query = "UPDATE [Constateringen] \nSET "
 							+ " UserId = @UserId"
