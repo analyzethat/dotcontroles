@@ -1,4 +1,4 @@
-/*globals window, superagent, console, crafity */
+/*globals window, superagent, crafity */
 (function (controles) {
 	"use strict";
 

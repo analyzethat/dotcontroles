@@ -12,15 +12,13 @@ var http = require('http')
 
 /* Auxiliary method */
 function handleError(err, res) {
-	console.log(err.message, err.stack);
+	console.error(err.stack || err.toString());
 	res.writeHead(500);
 	return res.end(err.message + "\n" + err.stack);
 }
 
 server = http.createServer(function (req, res) {
 	"use strict";
-	console.log("Requesting:", req.url);
-
 	try {
 		
 		var filePath = "./content" + (req.url === "/" ? "/index.html" : req.url.split('?')[0]);
@@ -34,7 +32,6 @@ server = http.createServer(function (req, res) {
 
 		var fileStream = fs.createReadStream(filePath);
 		fileStream.on('error', function (err) {
-			console.log("arguments", arguments);
 			if (err.message.indexOf("ENOENT, open '") === 0) {
 				res.writeHead(404);
 			} else {

@@ -21,8 +21,6 @@
 			/* Auxiliary methods */
 			function setState(data) {
 				state = data;
-				console.log("\n\nNew update specialists: ", state);
-
 				self.emit('stateChanged', state);
 			}
 
@@ -41,7 +39,7 @@
 			 */
 			this.getSpecialists = function () {
 				ajaxAgent.get(_url, function (res) {
-					console.log("\nGET  %s, res.body", _url, res.body);
+					if (config.logger.level > 2) { console.log("\nGET  %s, res.body", _url, res.body); }
 
 					var specialists = {"all": "<alles>", null: "<leeg>"};
 

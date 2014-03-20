@@ -41,7 +41,7 @@
 					.type('form')
 					.send(body)
 					.end(function (res) {
-						console.log("\nPOST  url %s, \nreq.body %o \nres.body %o", _url, body, res.body);
+						if (config.logger.level > 2) { console.log("\nPOST  url %s, \nreq.body %o \nres.body %o", _url, body, res.body); }
 
 						if (res.error) {
 							if (res.body && res.body.status === 404) {
@@ -77,7 +77,6 @@
 			this.logout = function () {
 				jStorage.deleteKey("authenticatedUser");
 				_user = null;
-				console.log("\n\n\n AFTER logging out -> _user", _user);
 				controles.app.eventbus.emit("loggedout");
 			};
 		}

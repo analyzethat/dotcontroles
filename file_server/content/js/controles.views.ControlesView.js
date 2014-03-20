@@ -22,7 +22,7 @@
 			var gridRow = new html.Element("div").addClass("grid-row");
 			var grid = new html.Grid(controlesRepository.columnDefinitionList).appendTo(gridRow)
 				.onsort(function (e) {
-					console.log("\nSorting ", e.column.property, e.order);
+					if (config.logger.level > 2) { console.log("\nSorting ", e.column.property, e.order); }
 					if (e) {
 						controlesRepository.filter({"sortBy": e.column.property, "sortOrder": e.order });
 					}
@@ -68,7 +68,6 @@
 				controles.app.eventbus.emit("openConstateringen", row);
 			});
 			controlesRepository.on("data", function (rows) {
-				console.debug("\n\nControlesView on data, rows", rows);
 				grid.addRows(rows);
 			});
 			controlesRepository.on("stateChanged", function () {

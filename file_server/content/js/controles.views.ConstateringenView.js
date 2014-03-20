@@ -45,13 +45,12 @@
 			var gridRow = new html.Element("div").addClass("grid-row");
 			var mygrid = new html.Grid(constateringenRepository.columnDefinitionList).appendTo(gridRow)
 				.onsort(function (e) {
-					console.log("\nSorting ", e.column.property, e.order);
+					if (config.logger.level > 2) { console.log("\nSorting ", e.column.property, e.order); }
 					if (e) {
 						constateringenRepository.filter({"sortBy": e.column.property, "sortOrder": e.order });
 					}
 				})
 				.on("selectedStatus", function (column, row, value) {
-					console.log("\ncolumn, row, value", column, row, value);
 					if (confirm("Status verandering bevestigen?")) {
 						row[column.property] = value;
 						constateringenRepository.changeStatus(value, row);
@@ -96,7 +95,6 @@
 			
 			/* event handlers */
 			constateringenRepository.on("data", function (rows) {
-				console.log("constateringenRepository.columnDefinitionList", constateringenRepository.columnDefinitionList);
 				mygrid.addRows(rows);
 			});
 			constateringenRepository.on("stateChanged", function () {

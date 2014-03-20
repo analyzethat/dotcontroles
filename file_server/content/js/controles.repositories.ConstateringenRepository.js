@@ -48,12 +48,9 @@
 					throw new Error("_userFilters is missing members.");
 				}
 
-				console.log("\nuserFilters: ", userFilters);
-				console.log("\n_userFilters BEFORE: ", _userFilters);
 				Object.keys(userFilters).forEach(function (key) {
 					_userFilters[key] = userFilters[key];
 				});
-				console.log("\n_userFilters AFTER: ", _userFilters);
 			}
 			
 			function produceFilterKeyListValue(key, valueArray, id) { 
@@ -158,7 +155,7 @@
 				}
 
 				this._ajaxAgent.get(url, function (res) {
-					console.log("\nGET  '%s', res.body", url, res.body);
+					if (config.logger.level > 2) { console.log("\nGET  '%s', res.body", url, res.body); }
 					self.state(res.body);
 				});
 			};
@@ -170,7 +167,7 @@
 			 */
 			this.updateAllProperties = function (constatering) {
 				this._ajaxAgent.put(_url + "/" + constatering.Id, constatering, function (res) {
-					console.log("res", res);
+					if (config.logger.level > 2) { console.log("res", res); }
 				});
 			};
 
@@ -190,27 +187,11 @@
 					LastMutationDate: (new Date()).toISOString()
 				};
 
-				console.log("\n Values to change!!!");
-				console.log("\n SpecialismId ", body.SpecialismId);
-				console.log("\n StatusId: ", body.StatusId);
-				console.log("\n UserId: ", body.UserId);
-				console.log("\n LastMutationDate: ", body.LastMutationDate);
-
 				this._ajaxAgent.post(_url + "/" + constatering.Id, body, function (res) {
-					console.log("\nNB response", res.body);
-
-					console.log(res.body.SpecialismId, body.SpecialismId);
-					console.log(res.body.SpecialismId === body.SpecialismId);
-					console.log(res.body.StatusId, body.StatusId);
-					console.log(res.body.UserId, body.UserId);
-					console.log(res.body.LastMutationDate, body.LastMutationDate);
-
 					var updateSuccsesful = res.body.SpecialismId === body.SpecialismId
 						&& res.body.StatusId === body.StatusId
 						&& res.body.UserId === body.UserId
 						&& res.body.LastMutationDate === body.LastMutationDate;
-
-					console.log("\nNB! updateSuccesful", updateSuccsesful);
 
 					self.filter(_userFilters);
 				});
@@ -229,18 +210,6 @@
 				};
 
 				this._ajaxAgent.post(_url + "/" + constatering.Id, body, function (res) {
-
-					console.log("\nNB response", res.body);
-					console.log(res.body.StatusId, body.StatusId);
-					console.log(res.body.StatusId === body.StatusId);
-					console.log(res.body.UserId, body.UserId);
-					console.log(res.body.LastMutationDate, body.LastMutationDate);
-
-					var updateSuccsesful = res.body.StatusId === body.StatusId
-						&& res.body.UserId === body.UserId
-						&& res.body.LastMutationDate === body.LastMutationDate;
-
-					console.log("\nNB! updateSuccesful", updateSuccsesful);
 
 					self.filter(_userFilters);
 				});

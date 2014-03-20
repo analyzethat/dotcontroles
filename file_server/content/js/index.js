@@ -1,4 +1,10 @@
 /*globals superagent, window, document, console, moment, numeral, crafity, keyboard, Element, Repository, ConstateringenView, MenuPanel, MenuItem, controles, $ */
+var config = {
+	logger: {
+		level: 1
+	}
+};
+
 (function (controles) {
 	"use strict";
 
@@ -19,7 +25,7 @@
 			eventbus: null,
 
 			initialize: function () {
-				console.log("\n\nInitialize objects..");
+				if (config.logger.level > 2) { console.log("\n\nInitialize objects.."); }
 				
 				numeral.language("be-nl");
 				moment.lang("nl");
@@ -63,16 +69,16 @@
 				});
 
 				if (!authenticationRepository.isAuthenticated()) {
-					console.log("\n\nNOT authenticated!");
+					if (config.logger.level > 2) { console.log("\n\nNOT authenticated!"); }
 					showLogin();
 				} else {
-					console.log("\n\nAuthenticated!");
+					if (config.logger.level > 2) { console.log("\n\nAuthenticated!"); }
 					showApp();
 				}
 			},
 
 			destroy: function () {
-				console.log("\n\nDestroy objects..");
+				if (config.logger.level > 2) { console.log("\n\nDestroy objects.."); }
 				loginView = null;
 				appView = null;
 				authenticationRepository = null;

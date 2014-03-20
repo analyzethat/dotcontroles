@@ -50,7 +50,7 @@
 			this.getSpecialisms = function () {
 				
 				ajaxAgent.get(_url, function (res) {
-					console.log("\nGET  '%s', res.body", _url, res.body);
+					if (config.logger.level > 2) { console.log("\nGET  '%s', res.body", _url, res.body); }
 					
 					if (res.body && res.body.items && res.body.items instanceof Array) {
 						_specialisms = res.body.items;

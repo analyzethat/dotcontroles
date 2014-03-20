@@ -1,4 +1,4 @@
-/*globals superagent, window, document, console, moment, numeral, crafity, keyboard, Element, Repository, ConstateringenView, MenuPanel, MenuItem, controles */
+/*globals superagent, window, document, moment, numeral, crafity, keyboard, Element, Repository, ConstateringenView, MenuPanel, MenuItem, controles */
 
 (function (controles) {
 	"use strict";

@@ -1,4 +1,4 @@
-/*globals alert, window, console, Element, TextField, Grid, ButtonBar, Button, Form, crafity*/
+/*globals alert, window, Element, TextField, Grid, ButtonBar, Button, Form, crafity*/
 
 (function (controles) {
 	"use strict";

@@ -8,8 +8,15 @@ var tediousTypes = tedious.TYPES;
 var Connection = tedious.Connection;
 var Request = tedious.Request;
 var fs = require("fs");
-
-var configSQLServer = null;
+var config = JSON.parse(fs.readFileSync("config.json").toString());
+/*
+ * Logging Level codes
+ * 1. Error 
+ * 2. Error + Warning
+ * 3. Error + Warning + Info
+ */
+var loggerLevel = config.logger.level;
+var configSQLServer = config.configSQLServer;
 
 // default configuration
 //var configSQLServer = {
@@ -24,8 +31,6 @@ var configSQLServer = null;
 //};
 
 var database = (function () {
-
-	configSQLServer = JSON.parse(fs.readFileSync("config.json").toString()).configSQLServer;
 
 	return {
 
@@ -113,15 +118,19 @@ var database = (function () {
 		},
 
 		logQuery: function (queryString) {
-			console.log("\n\n******** SQL query:\n\n", queryString);
-			console.log("\n*********\n");
+			if (loggerLevel > 2) {
+				console.log("\n\n******** SQL query:\n\n", queryString);
+				console.log("\n*********\n");
+			}
 		},
 
 		logCreateWhereFor: function (keywords, filters, request, whereClause) {
-			console.log("\n*** INSIDE createWhereFor method => ");
-			console.log("\n\t native columns: ", keywords);
-			console.log("\n\tfilters: ", filters);
-			console.log("\n\tcustom whereClause: ", whereClause);
+			if (loggerLevel > 2) {
+				console.log("\n*** INSIDE createWhereFor method => ");
+				console.log("\n\t native columns: ", keywords);
+				console.log("\n\tfilters: ", filters);
+				console.log("\n\tcustom whereClause: ", whereClause);
+			}
 
 		},
 
@@ -205,7 +214,7 @@ var database = (function () {
 					var query = "SELECT APIToken, Id, FirstName, LastName, Username, Email \nFROM Users \nWHERE Username = @Username \nAND Password = @Password";
 
 					var request = new Request(query, function (err, rowcount) {
-						console.log("rowcount", rowcount);
+						if (loggerLevel > 2) {console.log("rowcount", rowcount); }
 						if (err) {
 							throw err;
 						}
@@ -505,6 +514,7 @@ var database = (function () {
 						try {
 							where = createWhereFor1(database.controles.getColumnDefinitionList(), filters, request);
 						} catch (error) {
+
 							return callback(error);
 						}
 
@@ -621,7 +631,7 @@ var database = (function () {
 			 * @returns {*|String} Returns the value of the where clause.
 			 */
 			function createWhereFor2(columnDefinitionList, filters, request, whereClause) {
-				console.log("filters", filters);
+				if (loggerLevel > 2) {console.log("filters", filters); }
 				if (!columnDefinitionList) { throw new Error("Missing argument 'columnDefinitionList'."); }
 				if (!request) { throw new Error("Missing argument 'request'."); }
 				if (!filters || filters.length === 0) {
@@ -755,7 +765,7 @@ var database = (function () {
 				},
 				getTypeFor: function (propertyName) {
 					var result = database.getTypeFor(propertyName, database.constateringen.getColumnDefinitionList());
-					if (!result) {
+					if (!result && loggerLevel > 2) {
 						console.log("\n\nNo type found for propertyName", propertyName);
 					}
 					return result;
@@ -947,9 +957,6 @@ var database = (function () {
 									if (database.constateringen.getTypeFor(propertyKey) === "Date") {
 										properties[propertyKey] = new Date(properties[propertyKey]);
 									}
-
-									//									console.log("\n**** property key-value: ", propertyKey, properties[propertyKey]);
-									//									console.log("\tSQL type via tedious: ", database.getSqlDataTypeFor(colDefinition.type).type);
 
 									request.addParameter(propertyKey, database.getSqlDataTypeFor(colDefinition.type), properties[propertyKey]);
 								}

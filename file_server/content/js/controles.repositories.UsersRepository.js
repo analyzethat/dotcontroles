@@ -45,7 +45,7 @@
 				self._ajaxAgent.post(self._dataserverUrl + "user/" + _authenticatedUser.id)
 					.send({firstName: firstName, lastName: lastName, email: email})
 					.end(function (res) {
-						console.log("\n\n\nResult from saving user data to database: res", res);
+						if (config.logger.level > 2) { console.log("\n\n\nResult from saving user data to database: res", res); }
 					});
 			};
 		}

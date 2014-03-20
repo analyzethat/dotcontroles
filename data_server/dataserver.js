@@ -11,6 +11,14 @@ var zlib = require("zlib"); // todo_gasl implement this
 var mime = require("mime");
 var core = require("crafity-core");
 var Synchronizer = core.Synchronizer;
+var config = JSON.parse(fs.readFileSync("config.json").toString());
+/*
+ * Logging Level codes
+ * 1. Error 
+ * 2. Error + Warning
+ * 3. Error + Warning + Info
+ */
+var loggerLevel = config.logger.level;
 
 var database = require("./database");
 
@@ -33,7 +41,7 @@ app.use(express.cookieSession({
 
 /* Auxiliary methods */
 function handleServerError(err, res) {
-	console.log(err.message, err.stack);
+	if (loggerLevel > 0) { console.error(err.stack || err.toString()); }
 	res.writeHead(500);
 	return res.end(err.message + "\n" + err.stack);
 }
@@ -42,12 +50,8 @@ function parseFilters(requestFilters) {
 	var filters = {};
 	var splitted = requestFilters.split('|');
 
-	//	console.log("\n\nrequestFilters:", requestFilters);
-	//	console.log("\n\nsplitted filters by | :", splitted); //[ 'FunctionalRoleIds:[1,3]|SpecialismIds:[9]' ]
-
 	splitted.forEach(function (filter) {
 		var keyValue = filter.split(":");
-		//		console.log("\nkeyValue", keyValue);
 
 		if (keyValue.length === 2) {
 
@@ -64,7 +68,6 @@ function parseFilters(requestFilters) {
 		}
 	});
 
-	console.log("\n\nParsed query filters: ", filters);
 	return filters;
 }
 /* End auxiliary methods */
@@ -80,8 +83,6 @@ app.use(function appendHeaders(req, res, next) {
 	};
 
 	if (core.arrays.contains(ORIGIN_URLs, req.headers.origin)) {
-		console.log("\nreq.headers.origin", req.headers.origin);
-		
 		headersObject["Origin"] = req.headers.origin;
 		headersObject["Access-Control-Allow-Origin"] = req.headers.origin;
 	}
@@ -98,13 +99,13 @@ app.use(function appendHeaders(req, res, next) {
  */
 app.options("*", function (req, res) {
 	res.setHeader("Access-Control-Allow-Headers", "Access-Control-Allow-Origin, Access-Control-Allow-Methods, Access-Control-Allow-Credentials, Origin, Content-Type");
-	
+
 	if (core.arrays.contains(ORIGIN_URLs, req.headers.origin)) {
 		res.setHeader("Access-Control-Allow-Origin", req.headers.origin);
 	}
 	res.setHeader("Access-Control-Allow-Methods", "GET, PUT, POST, DELETE");
 	res.setHeader("Access-Control-Allow-Credentials", "true");
-	
+
 	res.end();
 });
 
@@ -115,16 +116,14 @@ app.get("/", function (req, res) {
 });
 
 app.post("/login", function (req, res) {
-	console.log("\n\n req.headers", req.headers);
-	console.log("\n\n req.headers.referrer", req.headers.referrer);
-
-	console.log("\n**************************** POST /login *********************\n", req.params, req.body);
-	console.log("\nreq.session", req.session);
-	console.log("\nreq.cookies", req.cookies);
+	if (loggerLevel > 2) { console.log("\n**************************** POST /login *********************\n", req.params, req.body); }
+	//console.log("\nreq.session", req.session);
+	//console.log("\nreq.cookies", req.cookies);
 	req.session.user = req.body.username;
 
 	database.users.getByCredentials(req.body.username, req.body.password, function (err, user) {
 		if (err) {
+			if (loggerLevel > 0) { console.error(err.stack || err.toString()); }
 			return res.send(500, {"status": 500, "message": err.message});
 		}
 		if (!user) {
@@ -133,7 +132,6 @@ app.post("/login", function (req, res) {
 				"message": "User '" + req.body.username + "' is not found."
 			});
 		}
-		//		console.log("\n\nuser", user);
 
 		var synchronizer = new Synchronizer();
 		var body = { href: req.url, user: user };
@@ -143,6 +141,7 @@ app.post("/login", function (req, res) {
 
 		synchronizer.on('finished', function (err, result) {
 			if (err) {
+				if (loggerLevel > 0) { console.error(err.stack || err.toString()); }
 				return res.send(500, {"status": 500, "message": err.toString()});
 			}
 
@@ -156,13 +155,14 @@ app.post("/login", function (req, res) {
 });
 
 app.get("/users", function (req, res) {
-	console.log("\n**************************** GET /users *********************\n", req.params, req.body);
+	if (loggerLevel > 2) { console.log("\n**************************** GET /users *********************\n", req.params, req.body); }
 
 	var hasRows = false;
 
 	database.users.getAll(function (err, row, rowcount) {
 		if (err) {
-			throw err;
+			if (loggerLevel > 0) { console.error(err.stack || err.toString()); }
+			return res.end();
 		}
 
 		if (!hasRows) {
@@ -182,11 +182,12 @@ app.get("/users", function (req, res) {
 });
 
 app.get("/users/:id", function (req, res) {
-	console.log("\n**************************** GET /users/:id *********************\n", req.params, req.body);
+	if (loggerLevel > 2) { console.log("\n**************************** GET /users/:id *********************\n", req.params, req.body); }
 
 	database.users.getById(req.params.id, function (err, row) {
 		if (err) {
-			throw err;
+			if (loggerLevel > 0) { console.error(err.stack || err.toString()); }
+			return res.end();
 		}
 
 		if (!row) {
@@ -204,12 +205,15 @@ app.get("/users/:id", function (req, res) {
 });
 
 app.get("/specialisms", function (req, res) {
-	console.log("\n**************************** GET /specialisms *********************\n", req.params, req.body);
+	if (loggerLevel > 2) { console.log("\n**************************** GET /specialisms *********************\n", req.params, req.body); }
 
 	var hasRows = false;
 
 	database.specialisms.getAll(function (err, row, rowcount) {
-		if (err) { throw err; }
+		if (err) {
+			if (loggerLevel > 0) { console.error(err.stack || err.toString()); }
+			return res.end();
+		}
 
 		if (!hasRows) {
 			res.write('{\n"href": "/specialisms",');
@@ -228,12 +232,15 @@ app.get("/specialisms", function (req, res) {
 });
 
 app.get("/statuses", function (req, res) {
-	console.log("\n**************************** GET /statuses *********************\n", req.params, req.body);
+	if (loggerLevel > 2) { console.log("\n**************************** GET /statuses *********************\n", req.params, req.body); }
 
 	var hasRows = false;
 
 	database.statuses.getAll(function (err, row, rowcount) {
-		if (err) { throw err; }
+		if (err) {
+			if (loggerLevel > 0) { console.error(err.stack || err.toString()); }
+			return res.end();
+		}
 
 		if (!hasRows) {
 			res.write('{\n"href": "/statuses",');
@@ -252,12 +259,13 @@ app.get("/statuses", function (req, res) {
 });
 
 app.get("/specialists", function (req, res) {
-	console.log("\n**************************** GET /specialists *********************\n", req.params, req.body);
+	if (loggerLevel > 2) { console.log("\n**************************** GET /specialists *********************\n", req.params, req.body); }
 
 	var hasRows = false;
 	database.specialists.getAll(function (err, row, rowcount) {
 		if (err) {
-			throw err;
+			if (loggerLevel > 0) { console.error(err.stack || err.toString()); }
+			return res.end();
 		}
 
 		if (!hasRows) {
@@ -279,7 +287,7 @@ app.get("/specialists", function (req, res) {
 });
 
 app.get("/controles", function (req, res) {
-	console.log("\n**************************** GET /controles *********************\n", req.params, req.body);
+	if (loggerLevel > 2) { console.log("\n**************************** GET /controles *********************\n", req.params, req.body); }
 
 	var offset = parseInt(req.query.offset || 0, 10);
 	var limit = parseInt(req.query.limit || 5, 10);
@@ -342,7 +350,8 @@ app.get("/controles", function (req, res) {
 
 	database.controles.getTotal(filters, function (err, total) {
 		if (err) {
-			throw err;
+			if (loggerLevel > 0) { console.error(err.stack || err.toString()); }
+			return res.end();
 		}
 
 		_total = total;
@@ -365,7 +374,8 @@ app.get("/controles", function (req, res) {
 	var hasRows = false;
 	database.controles.getFilteredBy(offset, limit, filters, function (err, row, rowcount) {
 		if (err) {
-			throw err;
+			if (loggerLevel > 0) { console.error(err.stack || err.toString()); }
+			return res.end();
 		}
 
 		if (!_startedReceivingRows) {
@@ -399,8 +409,10 @@ app.get("/controles", function (req, res) {
 });
 
 app.get("/constateringen", function (req, res) {
-	console.log("\n**************************** GET /constateringen *********************\n", req.params, req.body);
-	console.log("\nreq.query.filters", req.query.filters);
+	if (loggerLevel > 2) {
+		console.log("\n**************************** GET /constateringen *********************\n", req.params, req.body);
+		console.log("\nreq.query.filters", req.query.filters);
+	}
 
 	var offset = parseInt(req.query.offset || 0, 10);
 	var limit = parseInt(req.query.limit || 5, 10);
@@ -464,7 +476,8 @@ app.get("/constateringen", function (req, res) {
 
 	database.constateringen.getTotal(filters, function (err, total) {
 		if (err) {
-			throw err;
+			if (loggerLevel > 0) { console.error(err.stack || err.toString()); }
+			return res.end();
 		}
 
 		_total = total;
@@ -487,7 +500,8 @@ app.get("/constateringen", function (req, res) {
 	var hasRows = false;
 	database.constateringen.getFilteredBy(offset, limit, filters, function (err, row, rowcount) {
 		if (err) {
-			throw err;
+			if (loggerLevel > 0) { console.error(err.stack || err.toString()); }
+			return res.end();
 		}
 
 		if (!_startedReceivingConstateringenRows) {
@@ -529,16 +543,18 @@ app.get("/constateringen", function (req, res) {
  *  and object as a body
  */
 app.post("/constateringen/:id", function (req, res) {
-	console.log("\n**************************** POST /constateringen/:id *********************\n", req.params, req.body);
+	if (loggerLevel > 2) { console.log("\n**************************** POST /constateringen/:id *********************\n", req.params, req.body); }
 
 	database.constateringen.update(req.params.id, req.body, function (err, rowcount) {
 		if (err) {
-			throw err;
+			if (loggerLevel > 0) { console.error(err.stack || err.toString()); }
+			return res.end();
 		}
 
 		database.constateringen.getById(req.params.id, function (err, constatering) {
 			if (err) {
-				throw err;
+				if (loggerLevel > 0) { console.error(err.stack || err.toString()); }
+				return res.end();
 			}
 
 			if (!constatering) {
@@ -565,7 +581,7 @@ app.post("/constateringen/:id", function (req, res) {
  *  and object as a body
  */
 app.put("/constateringen/:id", function (req, res) {
-	console.log("\n************* PUT /constateringen/:id *********************\n", req.params, req.body);
+	if (loggerLevel > 2) { console.log("\n************* PUT /constateringen/:id *********************\n", req.params, req.body); }
 
 	database.constateringen.updateAllProperties(req.body, function () {
 		res.end();
@@ -575,7 +591,7 @@ app.put("/constateringen/:id", function (req, res) {
 
 // By default 404 Route (ALWAYS Keep this as the last route)
 app.get("*", function (req, res) {
-	console.log("\n************* GET * *********************\n", req.params, req.body);
+	if (loggerLevel > 2) { console.log("\n************* GET * *********************\n", req.params, req.body); }
 
 	res.send(404, { status: 404, message: "Unknown request" });
 });

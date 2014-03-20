@@ -1,4 +1,4 @@
-/*globals window, console, html, Element, TextField, Grid, ButtonBar, Button, Form*/
+/*globals window, html, Element, TextField, Grid, ButtonBar, Button, Form*/
 
 (function (controles) {
 	"use strict";

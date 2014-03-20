@@ -33,12 +33,9 @@
 						throw new Error("_userFilters is missing members.");
 					}
 	
-					console.log("\nuserFilters: ", userFilters);
-					console.log("\n_userFilters BEFORE: ", _userFilters);
 					Object.keys(userFilters).forEach(function (key) {
 						_userFilters[key] = userFilters[key];
 					});
-					console.log("\n_userFilters AFTER: ", _userFilters);
 				}
 			
 			function produceFilterKeyListValue(key, valueArray, id) {
@@ -117,7 +114,7 @@
 				}
 
 				this._ajaxAgent.get(url, function (res) {
-					console.log("\nGET  '%s', res.body", _url, res.body);
+					if (config.logger.level > 2) { console.log("\nGET  '%s', res.body", _url, res.body); }
 					self.state(res.body);
 				});
 			};
