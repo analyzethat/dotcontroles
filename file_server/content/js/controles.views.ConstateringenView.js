@@ -97,8 +97,6 @@
 			/* event handlers */
 			constateringenRepository.on("data", function (rows) {
 				console.log("constateringenRepository.columnDefinitionList", constateringenRepository.columnDefinitionList);
-				mygrid.clearColumns();
-				mygrid.addColumns(constateringenRepository.columnDefinitionList);
 				mygrid.addRows(rows);
 			});
 			constateringenRepository.on("stateChanged", function () {

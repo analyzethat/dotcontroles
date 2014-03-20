@@ -273,7 +273,7 @@
 						{ selected: "selectedSpecialism" }
 					]
 				},
-				sortable: "ascending"
+				sortable: "none"
 			},
 			{
 				name: "Status",
@@ -297,7 +297,7 @@
 				name: "Laatste Mutatie",
 				property: "LastMutationDate",
 				type: "Date",
-				sortable: "descending",
+				sortable: "none",
 				format: "DD-MM-YYYY"
 			},
 			{ name: "Patientnummer",
@@ -311,7 +311,7 @@
 			{ name: "Datum Activiteit",
 				property: "DatumActiviteit",
 				type: "Date",
-				sortable: "descending",
+				sortable: "none",
 				format: "DD-MM-YYYY"
 			},
 			{ name: "DBC Typering",
@@ -321,7 +321,7 @@
 			{ name: "Specialist",
 				property: "VerantwoordelijkSpecialist",
 				type: "String",
-				sortable: "ascending"
+				sortable: "none"
 			},
 			{ name: "Overige kenmerken",
 				property: "OverigeKenmerken",

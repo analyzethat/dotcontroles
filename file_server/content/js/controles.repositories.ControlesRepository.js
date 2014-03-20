@@ -148,12 +148,12 @@
 			{ name: "Naam",
 				property: "Name",
 				type: "String",
-				sortable: "ascending"
+				sortable: "none"
 			},
 			{ name: "Type",
 				property: "Type",
 				type: "String",
-				sortable: "ascending"
+				sortable: "none"
 			},
 			{ name: "Rol",
 				property: "RoleName",
