@@ -7,6 +7,9 @@
 			"database": "dotcontroles",
 			"instanceName": "SQLEXPRESS_2012",
 			"rowCollectionOnRequestCompletion": false
-		}
+		},
+		"logger": {
+    	"level": 1
+    }
 	}
 }
