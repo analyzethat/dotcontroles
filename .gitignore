@@ -1,3 +1,6 @@
 .idea
 */.monitor
 data_server/config.json
+data_server/dataserver.js.logs
+file_server/fileserver.js.logs
+file_server/static.js.logs
