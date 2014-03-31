@@ -9,6 +9,7 @@ var Connection = tedious.Connection;
 var Request = tedious.Request;
 var fs = require("fs");
 var config = JSON.parse(fs.readFileSync("config.json").toString());
+
 /*
  * Logging Level codes
  * 1. Error 
