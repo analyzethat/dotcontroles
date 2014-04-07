@@ -37,8 +37,8 @@
 			var FILTER_SEPARATOR = "|";
 
 			/* Auxiliary methods */
-			self.columnDefinitionList[0].options = _specialismList;
-			self.columnDefinitionList[2].options = _statusList;
+			self.columnDefinitionList[0].options = _specialismList; // fills options property of first element of columndefinitionlist
+			self.columnDefinitionList[1].options = _statusList; // fills options property of element of columndefinitionlist
 
 			function updateUserFilters(userFilters) {
 				if (!userFilters) return;
@@ -231,7 +231,7 @@
 		 */
 		ConstateringenRepository.prototype.columnDefinitionList = [
 			{
-				name: "Afh. Specialisme",
+				name: "Afhandelend OE",
 				property: "SpecialismId",
 				type: "Number",
 				options: null,
@@ -244,11 +244,11 @@
 				},
 				sortable: "none"
 			},
-			{
-				name: "Status",
-				property: "StatusName",
-				type: "String"
-			},
+//			{
+//				name: "Status",
+//				property: "StatusName",
+//				type: "String"
+//			},
 			{
 				name: "Naar Status",
 				property: "StatusId",

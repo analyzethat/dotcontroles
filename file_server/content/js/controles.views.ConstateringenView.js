@@ -51,7 +51,7 @@
 					}
 				})
 				.on("selectedStatus", function (column, row, value) {
-					if (confirm("Status verandering bevestigen?")) {
+					if (confirm("Status verandering bevestigen?")) { // bevastigingsscherm bij wijziging status
 						row[column.property] = value;
 						constateringenRepository.changeStatus(value, row);
 					}

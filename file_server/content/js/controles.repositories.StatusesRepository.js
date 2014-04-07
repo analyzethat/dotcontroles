@@ -29,7 +29,12 @@
 
 				var simpleList = {};
 				_statuses.forEach(function (status) {
-					if (status.Name.toLowerCase() === "negeren" || status.Name.toLowerCase() === "afgehandeld") {
+					if (
+                        status.Name.toLowerCase() === "negeren" ||
+                        status.Name.toLowerCase() === "afgehandeld" ||
+                        status.Name.toLowerCase() === "open"||
+                        status.Name.toLowerCase() === "doorgezet")
+                    {
 						simpleList[status.Id] = status.Name;
 					}
 				});
