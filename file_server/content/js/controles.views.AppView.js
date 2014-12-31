@@ -25,29 +25,36 @@
 
 			var specialismsRepository = new controles.repositories.SpecialismsRepository().init();
 			var statusesRepository = new controles.repositories.StatusesRepository().init();
+            var controleListRepository = new controles.repositories.ControleListRepository().init();
 			var specialistsRepository = new controles.repositories.SpecialistsRepository();
 			var controlesRepository = new controles.repositories.ControlesRepository(authenticationRepository.authenticatedUser());
-			var controlesView = new controles.views.ControlesView(controlesRepository);
+            var controleRepository = new controles.repositories.ControleRepository(authenticationRepository.authenticatedUser());
+            var controlesView = new controles.views.ControlesView(controlesRepository);
+            var controleView = new controles.views.ControleView(controleRepository, controleListRepository); //controleRepository
 
 			var constateringenRepository = null;
 			var constateringenView = null;
 
 			var medicalSuitcaseIcon = new crafity.html.Element("div").addClass("symbol medical-suitcase").text("\uF0FA");
 			var personIcon = new crafity.html.Element("div").addClass("symbol person").text("\uF007");
-			var outIcon = new crafity.html.Element("div").addClass("symbol out").text("\uF045");
+            var editIcon = new crafity.html.Element("div").addClass("symbol edit").text("\uF044");
+            var outIcon = new crafity.html.Element("div").addClass("symbol out").text("\uF045");
 
 			menu.addMenuPanel(new crafity.html.MenuPanel("Overzicht").addMenuItems([
 				new crafity.html.MenuItem("DOT Controles", function () { // F0FA
 					viewContainer.activate(controlesView);
 				}).select().append(medicalSuitcaseIcon)
 			]));
-			menu.addMenuPanel(new crafity.html.MenuPanel("Systeem").addMenuItems([
+			menu.addMenuPanel(new crafity.html.MenuPanel("Onderhoud").addMenuItems([
 
 				new crafity.html.MenuItem("Mijn gegevens", function () {
 					if (userView === null) { userView = new controles.views.UserView(usersRepository); }
 					viewContainer.activate(userView);
 				}).append(personIcon),
-
+                new crafity.html.MenuItem("Controles", function () {
+                    if (controleView === null) { controleView = new controles.views.UserView(controleRepository); }
+                    viewContainer.activate(controleView);
+                }).append(editIcon),
 				new crafity.html.MenuItem("Uitloggen", function () {
 					authenticationRepository.logout();
 				}).append(outIcon)

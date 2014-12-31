@@ -286,6 +286,57 @@ app.get("/specialists", function (req, res) {
 	});
 });
 
+app.get("/controle", function (req, res) {
+    if (loggerLevel > 2) { console.log("\n**************************** GET /controleList *********************\n", req.params, req.body); }
+
+    var hasRows = false;
+    database.controles.getSelectList(function (err, row, rowcount) {
+        if (err) {
+            if (loggerLevel > 0) { console.error(err.stack || err.toString()); }
+            return res.end();
+        }
+
+        if (!hasRows) {
+            res.write('{\n"href": "/controle",');
+            res.write('\n"items": [\n');
+        }
+
+        if (row) {
+            res.write("\t" + (hasRows ? "," : "") + JSON.stringify(row) + "\n");
+            hasRows = true;
+
+        }
+        else {
+            res.write("\t]");
+            res.end("\n}");
+        }
+
+    });
+});
+
+app.get("/controles/:id", function (req, res) {
+    if (loggerLevel > 2) { console.log("\n**************************** GET /controles/:id *********************\n", req.params, req.body); }
+
+    database.controles.getById(req.params.id, function (err, row) {
+        if (err) {
+            if (loggerLevel > 0) { console.error(err.stack || err.toString()); }
+            return res.end();
+        }
+
+        if (!row) {
+            return res.send(404, {
+                "status": 404,
+                "message": "Controle with id '" + req.params.id + "' is not found."
+            });
+        }
+
+        row.href = req.url;
+        res.send(200, row);
+
+    });
+
+});
+
 app.get("/controles", function (req, res) {
 	if (loggerLevel > 2) { console.log("\n**************************** GET /controles *********************\n", req.params, req.body); }
 
@@ -542,6 +593,38 @@ app.get("/constateringen", function (req, res) {
  *  a status code
  *  and object as a body
  */
+
+app.post("/controles/:id", function (req, res) {
+    if (loggerLevel > 2) { console.log("\n**************************** POST /controles/:id *********************\n", req.params, req.body); }
+
+    database.controles.update(req.params.id, req.body, function (err, rowcount) {
+        if (err) {
+            if (loggerLevel > 0) { console.error(err.stack || err.toString()); }
+            return res.end();
+        }
+
+        database.controles.getById(req.params.id, function (err, controle) {
+            if (err) {
+                if (loggerLevel > 0) { console.error(err.stack || err.toString()); }
+                return res.end();
+            }
+
+            if (!controle) {
+                return res.send(404, {
+                    "status": 404,
+                    "message": "Controle with id '" + req.params.id + "' is not found."
+                });
+            }
+
+            controle.href = req.url;
+            res.send(200, controle);
+        });
+
+    });
+
+});
+
+
 app.post("/constateringen/:id", function (req, res) {
 	if (loggerLevel > 2) { console.log("\n**************************** POST /constateringen/:id *********************\n", req.params, req.body); }
 

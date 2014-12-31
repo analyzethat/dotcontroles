@@ -406,6 +406,7 @@ var database = (function () {
 			}
 		},
 
+
 		controles: (function () {
 
 			/**
@@ -462,7 +463,77 @@ var database = (function () {
 				 * @example  [Id],[Code],[Name],[Type],[FunctionalRoleId]
 				 * @returns {*[]}
 				 */
-				getColumnDefinitionList: function () {
+
+
+                getById: function (id, callback) {
+                    var isFound = false;
+
+                    database.createConnection(function (err, connection) {
+                        if (err) {
+                            return callback(err);
+                        }
+
+                        var query = "SELECT Code, Name, Type  \nFROM [Controles] \nWHERE Id = @Id";
+
+                        var request = new Request(query, function (err, rowcount) {
+                            if (err) {
+                                throw err;
+                            }
+                            if (!isFound) {
+                                return callback(null, null);
+                            }
+                        });
+
+                        request.on("row", function (columns) {
+                            if (isFound) {
+                                throw new Error("Multiple controles with the same id are found in database.");
+                            }
+
+                            isFound = true;
+
+                            var row = {};
+                            columns.forEach(function (column) {
+                                row[column.metadata.colName] = column.value;
+                            });
+                            return callback(null, row);
+
+                        });
+
+                        request.addParameter('Id', tediousTypes.Int, id);
+                        database.logQuery(query);
+
+                        connection.execSql(request);
+
+                    });
+                },
+
+                getSelectList: function (callback) {
+                    database.createConnection(function (err, connection) {
+                        if (err) {
+                            return callback(err);
+                        }
+
+                        var query = "SELECT [Id],[Name] \nFROM [Controles] \n ORDER BY Name;";
+
+                        var request = new Request(query, function (err, rowcount) {
+                            return callback(err, null, rowcount); // end
+                        });
+
+                        request.on("row", function (columns) {
+                            var row = {};
+
+                            columns.forEach(function (column) {
+                                row[column.metadata.colName] = column.value;
+                            });
+                            return callback(null, row, null);
+                        });
+
+                        database.logQuery(query);
+                        connection.execSql(request);
+                    });
+                },
+
+                getColumnDefinitionList: function () {
 					return [
 						{
 							name: "Id",
@@ -612,7 +683,57 @@ var database = (function () {
 
 						connection.execSql(request);
 					});
-				}
+				},
+                update: function (id, properties, callback) {
+                    if (!id || id === null) {
+                        throw new Error("Missing argument 'id'.");
+                    }
+                    if (!properties || properties.length === 0) {
+                        throw new Error("Missing argument 'members'.");
+                    }
+
+                    database.createConnection(function (err, connection) {
+                        if (err) {
+                            return callback(err);
+                        }
+
+                        var propertyKeys = Object.keys(properties);
+                        var lastIndex = propertyKeys.length - 1;
+
+                        var query = "UPDATE [Controles] ";
+
+                        var request = new Request(query, function (err, rowcount) {
+                            return callback(err, rowcount);
+                        });
+
+                        propertyKeys.forEach(function (propertyKey, indexPropertyKey) {
+                            database.controles.getColumnDefinitionList().forEach(function (colDefinition, index) {
+
+                                if (propertyKey === colDefinition.property) {
+
+                                    query += (indexPropertyKey === 0)
+                                        ? "\nSET " + propertyKey + " = @" + propertyKey
+                                        : ", " + propertyKey + " = @" + propertyKey;
+
+                                    if (database.controles.getTypeFor(propertyKey) === "Date") {
+                                        properties[propertyKey] = new Date(properties[propertyKey]);
+                                    }
+
+                                    request.addParameter(propertyKey, database.getSqlDataTypeFor(colDefinition.type), properties[propertyKey]);
+                                }
+
+                            });
+                        });
+
+                        query += " \nWHERE Id = @Id";
+                        request.addParameter('Id', tediousTypes.Int, id);
+
+                        database.logQuery(query);
+
+                        request.sqlTextOrProcedure = query;
+                        connection.execSql(request);
+                    });
+                }
 			};
 
 		}()),

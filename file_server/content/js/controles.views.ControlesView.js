@@ -41,6 +41,7 @@
 				controlesRepository.next();
 			});
 
+
 			var userRolesString = "";
 			controlesRepository.getUserRoles().forEach(function (role) {
 				userRolesString += (userRolesString ? ", " : "") + role.Name;
