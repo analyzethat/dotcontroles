@@ -532,7 +532,6 @@ var database = (function () {
                         connection.execSql(request);
                     });
                 },
-
                 getColumnDefinitionList: function () {
 					return [
 						{
@@ -737,6 +736,67 @@ var database = (function () {
 			};
 
 		}()),
+        controleHeaders: {
+
+            getById: function (id, callback) {
+                var isFound = false;
+                var dataset = {};
+                var i = 0;
+
+                database.createConnection(function (err, connection) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    var query = "SELECT InternalName, ExternalName, Type, Sortable \nFROM [ControleHeader] \nWHERE ControleId = @Id";
+
+                    var request = new Request(query, function (err, rowcount) {
+                        if (err) {
+                            throw err;
+                        }
+                      /*  if (!isFound) {
+                            return callback(null, null);
+                        }*/
+                        else {
+                            if (rowcount < 1) {
+                                callback(null, false);
+                            } else {
+                                callback(null, dataset);
+                            }
+                        }
+
+                    });
+
+                    request.on("row", function (columns) {
+                        /*if (isFound) {
+                            throw new Error("Multiple controleheaders with the same id are found in database.");
+                        }
+
+                        isFound = true;*/
+
+                        //var row = {};
+                        //columns.forEach(function (column) {
+                        //    row[column.metadata.colName] = column.value;
+                        //});
+                        //return callback(null, row);
+                        dataset[i] = {};
+                        columns.forEach(function(column) {
+                            dataset[i][column.metadata.colName] = column.value;
+                            });
+                        i = i +1;
+
+
+                    });
+
+
+                    request.addParameter('Id', tediousTypes.Int, id);
+                    database.logQuery(query);
+
+                    connection.execSql(request);
+
+                });
+            }
+        },
 
 		constateringen: (function () {
 			/**
@@ -945,7 +1005,7 @@ var database = (function () {
 
 								// sanitize column name => otherwise throw exception!
 								if (database.isNativeColumn(filters.sortBy, database.constateringen.getColumnDefinitionList())) { orderByColumnName = filters.sortBy; }
-								else { throw new Error("The sortBy column name is not froma native column in controles table.");}
+								else { throw new Error("The sortBy column name is not from a native column in controles table.");}
 
 								//								orderByColumnName = filters.sortBy;
 

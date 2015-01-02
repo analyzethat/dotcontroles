@@ -231,7 +231,7 @@
 		 */
 		ConstateringenRepository.prototype.columnDefinitionList = [
 			{
-				name: "Afhandelend OE",
+				name: "Eigenaar",
 				property: "SpecialismId",
 				type: "Number",
 				options: null,
@@ -244,11 +244,6 @@
 				},
 				sortable: "none"
 			},
-//			{
-//				name: "Status",
-//				property: "StatusName",
-//				type: "String"
-//			},
 			{
 				name: "Naar Status",
 				property: "StatusId",
