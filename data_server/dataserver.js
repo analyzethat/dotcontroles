@@ -2,6 +2,7 @@
 
 "use strict";
 
+
 var port = process.env.PORT || 8079;
 var http = require("http");
 var express = require("express");
@@ -32,6 +33,8 @@ app.use(express.cookieSession({
 	key: "app.sess",
 	secret: 'SEKR37'
 }));
+
+
 //app.use(app.router);
 
 //app.use(express.cookieSession({
@@ -183,7 +186,6 @@ app.get("/users", function (req, res) {
 
 app.get("/users/:id", function (req, res) {
 	if (loggerLevel > 2) { console.log("\n**************************** GET /users/:id *********************\n", req.params, req.body); }
-
 	database.users.getById(req.params.id, function (err, row) {
 		if (err) {
 			if (loggerLevel > 0) { console.error(err.stack || err.toString()); }
@@ -458,6 +460,30 @@ app.get("/controles", function (req, res) {
 	});
 
 });
+
+app.get("/controleheader/:id", function (req, res) {
+    if (loggerLevel > 2) { console.log("\n**************************** GET /controleheader/:id *********************\n", req.params, req.body); }
+    console.log(req);
+    database.controleHeaders.getById(req.params.id, function (err, row) {
+        if (err) {
+            if (loggerLevel > 0) { console.error(err.stack || err.toString()); }
+            return res.end();
+        }
+
+        if (!row) {
+            return res.send(404, {
+                "status": 404,
+                "message": "Controleheader with id '" + req.params.id + "' is not found."
+            });
+        }
+
+        row.href = req.url;
+        res.send(200, row);
+
+    });
+
+});
+
 
 app.get("/constateringen", function (req, res) {
 	if (loggerLevel > 2) {

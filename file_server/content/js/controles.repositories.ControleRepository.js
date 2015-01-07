@@ -16,10 +16,12 @@
 		function ControleRepository(authenticatedUser) {
             var ajaxAgent = superagent;
             var self = this;
+            var state = null;
             var _url = this._dataserverUrl + "/controles/";
             var _user = authenticatedUser;
 
             function setState(data) {
+                state = data;
                 self.emit("stateChanged", data);
             }
 

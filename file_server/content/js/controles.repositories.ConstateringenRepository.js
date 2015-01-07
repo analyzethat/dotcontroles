@@ -14,19 +14,21 @@
 		 *
 		 * @author Galina Slavova <galina@crafity.com>
 		 */
-		function ConstateringenRepository(authenticatedUser, specialistsRepository, specialismList, statusList) {
+		function ConstateringenRepository(authenticatedUser, specialistsRepository) {
 			if (!authenticatedUser) { throw new Error("Missing argument 'authenticatedUser'."); }
 			if (!specialistsRepository) { throw new Error("Missing argument 'specialistsRepository'."); }
-			if (!specialismList) { throw new Error("Missing argument 'specialismList'."); }
-			if (!statusList) { throw new Error("Missing argument 'statusList'."); }
 
-			var self = this;
+            var self = this;
 			var _url = this._dataserverUrl + "/constateringen";
 			var _user = authenticatedUser;
 			var _controle = null;
 			var _specialists = null;
-			var _specialismList = specialismList;
-			var _statusList = statusList;
+			//var _specialismList = specialismList;
+			//var _statusList = statusList;
+            //controleHeader[0].options = _specialismList; // fills options property of first element of columndefinitionlist
+            //controleHeader[1].options = _statusList; // fills options property of element of columndefinitionlist
+           // var columnDefinitionList = columnDefinitionList2;
+            //console.log(columnDefinitionList);
 			var _userFilters = {
 				fromDate: null,
 				specialist: null,
@@ -36,9 +38,7 @@
 
 			var FILTER_SEPARATOR = "|";
 
-			/* Auxiliary methods */
-			self.columnDefinitionList[0].options = _specialismList; // fills options property of first element of columndefinitionlist
-			self.columnDefinitionList[1].options = _statusList; // fills options property of element of columndefinitionlist
+
 
 			function updateUserFilters(userFilters) {
 				if (!userFilters) return;
@@ -74,7 +74,6 @@
 			specialistsRepository.on("stateChanged", function (data) {
 				_specialists = data;
 			});
-			/* End auxiliary methods */
 
 			/**
 			 * Get all user roles.
@@ -91,8 +90,7 @@
 			 */
 			this.init = function (controle) {
 				specialistsRepository.init();
-
-				_controle = controle;
+                _controle = controle;
 				this.filter();
 			};
 
@@ -171,6 +169,8 @@
 				});
 			};
 
+
+
 			/**
 			 * Partial update.
 			 *
@@ -229,7 +229,9 @@
 		 *
 		 * @type {Array}
 		 */
-		ConstateringenRepository.prototype.columnDefinitionList = [
+
+
+		ConstateringenRepository.prototype.columnDefinitionList2 = [
 			{
 				name: "Eigenaar",
 				property: "SpecialismId",
@@ -286,7 +288,8 @@
 				property: "VerantwoordelijkSpecialist",
 				type: "String",
 				sortable: "none"
-			},
+			}
+			,
 			{ name: "Overige kenmerken",
 				property: "OverigeKenmerken",
 				type: "String"

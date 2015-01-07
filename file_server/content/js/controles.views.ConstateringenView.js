@@ -16,15 +16,18 @@
 		 *
 		 * @author Galina Slavova <galina@crafity.com>
 		 */
-		function ConstateringenView(controle, constateringenRepository, specialistsRepository) {
+		function ConstateringenView(controle, constateringenRepository, specialistsRepository, controleHeaderRepository) {
 			if (!controle) { throw new Error("Missing argument 'controle'"); }
 			if (!constateringenRepository) { throw new Error("Missing argument 'constateringenRepository'"); }
 			if (!specialistsRepository) { throw new Error("Missing argument 'specialistsRepository'"); }
+            if (!controleHeaderRepository) { throw new Error("Missing argument 'controleHeaderRepository'"); }
 
 			this.addClass("constateringen");
 
+
 			/* Build the GUI elements */
-			var infoRow = new html.Element("div").addClass("info-row");
+            var infoRow = new html.Element("div").addClass("info-row");
+
 
 			var userRolesString = "";
 			constateringenRepository.getUserRoles().forEach(function (role) {
@@ -43,26 +46,27 @@
 				.appendTo(infoRow);
 
 			var gridRow = new html.Element("div").addClass("grid-row");
-			var mygrid = new html.Grid(constateringenRepository.columnDefinitionList).appendTo(gridRow)
-				.onsort(function (e) {
-					if (config.logger.level > 2) { console.log("\nSorting ", e.column.property, e.order); }
-					if (e) {
-						constateringenRepository.filter({"sortBy": e.column.property, "sortOrder": e.order });
-					}
-				})
-				.on("selectedStatus", function (column, row, value) {
-					if (confirm("Status verandering bevestigen?")) { // bevastigingsscherm bij wijziging status
-						row[column.property] = value;
-						constateringenRepository.changeStatus(value, row);
-					}
-				})
-				.on("selectedSpecialism", function (column, row, value) {
-					if (confirm('Doorzetten naar een ander specialisme?')) {
-						row[column.property] = value;
-						constateringenRepository.assignToSpecialism(value, row);
-					}
-				});
-
+            var mygrid = new html.Grid(controleHeaderRepository.columnDefinitionList).appendTo(gridRow)
+                .onsort(function (e) {
+                    if (config.logger.level > 2) {
+                        console.log("\nSorting ", e.column.property, e.order);
+                    }
+                    if (e) {
+                        constateringenRepository.filter({"sortBy": e.column.property, "sortOrder": e.order });
+                    }
+                })
+                .on("selectedStatus", function (column, row, value) {
+                    if (confirm("Status verandering bevestigen?")) { // bevastigingsscherm bij wijziging status
+                        row[column.property] = value;
+                        constateringenRepository.changeStatus(value, row);
+                    }
+                })
+                .on("selectedSpecialism", function (column, row, value) {
+                    if (confirm('Doorzetten naar een ander specialisme?')) {
+                        row[column.property] = value;
+                        constateringenRepository.assignToSpecialism(value, row);
+                    }
+                });
 			var backIcon = new crafity.html.Element("div").addClass("symbol back").text("\uF122"); //F060
 			var backButton = new html.Button("Controles").append(backIcon).on("click", function () {
 				controles.app.eventbus.emit("openControles");
@@ -92,20 +96,25 @@
 			this.append(infoRow)
 				.append(gridRow)
 				.append(commandRow);
-			
+
 			/* event handlers */
 			constateringenRepository.on("data", function (rows) {
-				mygrid.addRows(rows);
+                console.log("rows incoming....");
+                mygrid.addRows(rows);
+
+
 			});
-			constateringenRepository.on("stateChanged", function () {
-				firstButton.disabled(!constateringenRepository.hasPrevious());
-				previousButton.disabled(!constateringenRepository.hasPrevious());
-				nextButton.disabled(!constateringenRepository.hasNext());
-				lastButton.disabled(!constateringenRepository.hasNext());
-			});
+
+            constateringenRepository.on("stateChanged", function () {
+                firstButton.disabled(!constateringenRepository.hasPrevious());
+                previousButton.disabled(!constateringenRepository.hasPrevious());
+                nextButton.disabled(!constateringenRepository.hasNext());
+                lastButton.disabled(!constateringenRepository.hasNext());
+            });
+
+
 
 			constateringenRepository.init(controle); // load data
-
 		}
 
 		ConstateringenView.prototype = new html.Element("div");
